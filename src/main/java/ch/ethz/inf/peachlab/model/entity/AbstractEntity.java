@@ -128,7 +128,7 @@ public abstract class AbstractEntity implements Serializable {
     }
 
     public void updateCreateModifyFields(String username) {
-        if (getId() == null) {
+        if (createdUser == null || createdDateTime == null) {
             createdUser = username;
             createdDateTime = LocalDateTime.now();
         } else {
