@@ -1,1 +1,131 @@
-/* Add your styles here */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    --size-s: .5rem;
+    --size-m: 1rem;
+    --size-l: 2rem;
+
+    --bg-color: var(--lumo-contrast-10pct);
+}
+
+.background-bg {
+    background: var(--bg-color);
+}
+
+.width-full {
+    width: 100%;
+}
+
+.height-full {
+    height: 100%;
+}
+
+.fw-500 {
+    font-weight: 500;
+}
+
+.fw-700 {
+    font-weight: 700;
+}
+
+.text-wrap {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
+}
+
+.text-color-white {
+    color: white;
+    fill: white;
+    stroke: white;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-center {
+    align-items: center;
+    justify-content: center;
+}
+
+.flex-between {
+    justify-content: space-between;
+}
+
+.flex-justify-end {
+    justify-content: end;
+}
+
+.flex-align-start {
+    align-items: start;
+}
+
+.flex-align-center {
+    align-items: center;
+}
+
+.padding-s {
+    padding: var(--size-s);
+}
+
+.padding-m {
+    padding: var(--size-m);
+}
+
+.padding-l {
+    padding: var(--size-l);
+}
+
+.margin-s {
+    margin: var(--size-s);
+}
+
+.margin-m {
+    margin: var(--size-m);
+}
+
+.margin-l {
+    margin: var(--size-l);
+}
+
+.gap-s {
+    gap: var(--size-s);
+}
+
+.gap-m {
+    gap: var(--size-m);
+}
+
+.gap-l {
+    gap: var(--size-l);
+}
+
+.border-radius-s {
+    border-radius: var(--size-s);
+}
+
+.border-radius-m {
+    border-radius: var(--size-m);
+}
+
+.border-radius-l {
+    border-radius: var(--size-l);
+}
+
+.font-size-s {
+    font-size: smaller;
+}
+
+.font-size-l {
+    font-size: larger;
+}
