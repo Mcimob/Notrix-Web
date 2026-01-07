@@ -6,9 +6,9 @@ import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CompetitonDao extends BaseDaoImpl<CompetitionEntity, CompetitionFilter> {
+public class CompetitionDao extends BaseDaoImpl<CompetitionEntity, CompetitionFilter> {
 
-    public CompetitonDao(CompetitionRepository repository) {
+    public CompetitionDao(CompetitionRepository repository) {
         super(repository);
     }
 }

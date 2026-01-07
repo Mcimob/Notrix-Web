@@ -14,11 +14,9 @@ import java.util.Objects;
 public class CompetitionEntity extends AbstractEntity {
 
     @Id
-    @CsvBindByName
     private Long id;
 
     @Column(nullable = false)
-    @CsvBindByName
     private String title;
 
     @Column(nullable = false)
@@ -26,15 +24,12 @@ public class CompetitionEntity extends AbstractEntity {
     private String subTitle;
 
     @Column(nullable = false)
-    @CsvBindByName
     private String slug;
 
     @Column(nullable = false)
-    @CsvBindByName
     private Long totalSubmissions;
 
     @Column(nullable = false)
-    @CsvCustomBindByName(converter = LocalDateTimeConverter.class)
     private LocalDateTime deadlineDate;
 
     @Override
@@ -55,12 +50,12 @@ public class CompetitionEntity extends AbstractEntity {
         this.title = name;
     }
 
-    public String getSubTitle() {
-        return subTitle;
+    public String getSubtitle() {
+        return subtitle;
     }
 
-    public void setSubTitle(String description) {
-        this.subTitle = description;
+    public void setSubtitle(String description) {
+        this.subtitle = description;
     }
 
     public Long getTotalSubmissions() {
@@ -92,7 +87,7 @@ public class CompetitionEntity extends AbstractEntity {
         return "CompetitionEntity{"
                 + "id=" + id
                 + ", title='" + title + '\''
-                + ", description='" + subTitle + '\''
+                + ", description='" + subtitle + '\''
                 + ", slug='" + slug + '\''
                 + ", totalSubmissions=" + totalSubmissions
                 + ", deadlineDate=" + deadlineDate
@@ -112,7 +107,7 @@ public class CompetitionEntity extends AbstractEntity {
         }
         return Objects.equals(id, that.id)
                 && Objects.equals(title, that.title)
-                && Objects.equals(subTitle, that.subTitle)
+                && Objects.equals(subtitle, that.subtitle)
                 && Objects.equals(slug, that.slug)
                 && Objects.equals(totalSubmissions, that.totalSubmissions)
                 && Objects.equals(deadlineDate, that.deadlineDate);
@@ -123,7 +118,7 @@ public class CompetitionEntity extends AbstractEntity {
         return Objects.hash(super.hashCode(),
                 id,
                 title,
-                subTitle,
+                subtitle,
                 slug,
                 totalSubmissions,
                 deadlineDate);
