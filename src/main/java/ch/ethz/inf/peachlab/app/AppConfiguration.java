@@ -9,14 +9,7 @@ public class AppConfiguration {
     @Value("${application.title}")
     private String applicationTitle;
 
-    @Value("${backend.csvLocation}")
-    private String csvLocation;
-
     public String getApplicationTitle() {
         return applicationTitle;
-    }
-
-    public String getCsvLocation() {
-        return csvLocation;
     }
 }
