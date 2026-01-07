@@ -1,17 +1,17 @@
 package ch.ethz.inf.peachlab.model.entity;
 
-import ch.ethz.inf.peachlab.backend.dao.csv.converter.LocalDateTimeConverter;
-import com.opencsv.bean.CsvBindByName;
-import com.opencsv.bean.CsvCustomBindByName;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
-public class CompetitionEntity extends AbstractEntity {
+public class CompetitionEntity implements AbstractEntity {
 
     @Id
     private Long id;
@@ -20,8 +20,7 @@ public class CompetitionEntity extends AbstractEntity {
     private String title;
 
     @Column(nullable = false)
-    @CsvBindByName
-    private String subTitle;
+    private String subtitle;
 
     @Column(nullable = false)
     private String slug;
@@ -31,6 +30,14 @@ public class CompetitionEntity extends AbstractEntity {
 
     @Column(nullable = false)
     private LocalDateTime deadlineDate;
+
+    @OneToMany
+    @JoinColumn(name = "SourceCompetitionId")
+    private List<KernelEntity> kernels;
+
+    @OneToMany
+    @JoinColumn(name = "CompetitionId")
+    private List<ClusterEntity> clusters;
 
     @Override
     public Long getId() {
@@ -80,6 +87,22 @@ public class CompetitionEntity extends AbstractEntity {
 
     public void setSlug(String slug) {
         this.slug = slug;
+    }
+
+    public List<KernelEntity> getKernels() {
+        return kernels;
+    }
+
+    public void setKernels(List<KernelEntity> kernels) {
+        this.kernels = kernels;
+    }
+
+    public List<ClusterEntity> getClusters() {
+        return clusters;
+    }
+
+    public void setClusters(List<ClusterEntity> clusters) {
+        this.clusters = clusters;
     }
 
     @Override
