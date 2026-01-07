@@ -1,0 +1,15 @@
+{
+    "Environment": 0,
+    "Data_Extraction": 1,
+    "Data_Transform": 2,
+    "EDA": 3,
+    "Visualization": 4,
+    "Feature_Engineering": 5,
+    "Hyperparam_Tuning": 6,
+    "Model_Train": 7,
+    "Model_Evaluation": 8,
+    "Data_Export": 9,
+    "Commented": 10,
+    "Debug": 11,
+    "Other": 12
+}
