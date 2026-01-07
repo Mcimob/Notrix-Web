@@ -8,6 +8,7 @@ public final class DesignConstants {
     public static final String STYLE_FW_700 = "fw-700";
 
     public static final String STYLE_BACKGROUND_BG = "background-bg";
+    public static final String STYLE_BACKGROUND_WHITE = "background-white";
 
     public static final String STYLE_WIDTH_FULL = "width-full";
     public static final String STYLE_HEIGHT_FULL = "height-full";
@@ -41,4 +42,5 @@ public final class DesignConstants {
     public static final String STYLE_FONT_SIZE_L = "font-size-l";
 
     public static final String STYLE_TEXT_COLOR_WHITE = "text-color-white";
+    public static final String STYLE_TEXT_COLOR_GRAY = "text-color-gray";
 }
