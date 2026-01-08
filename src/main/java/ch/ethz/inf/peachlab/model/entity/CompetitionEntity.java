@@ -1,12 +1,15 @@
 package ch.ethz.inf.peachlab.model.entity;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -33,6 +36,11 @@ public class CompetitionEntity implements AbstractEntity {
 
     @Column(nullable = false)
     private LocalDateTime deadlineDate;
+
+    @ElementCollection
+    @CollectionTable(name = "CompetitionTags", joinColumns = {@JoinColumn(name = "CompetitionId")})
+    @Column(name = "Slug")
+    private Set<String> tags = new HashSet<>();
 
     @OneToMany
     @JoinColumn(name = "SourceCompetitionId")
@@ -98,6 +106,14 @@ public class CompetitionEntity implements AbstractEntity {
 
     public void setSlug(String slug) {
         this.slug = slug;
+    }
+
+    public Set<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
     }
 
     public Set<KernelEntity> getKernels() {

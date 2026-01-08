@@ -71,6 +71,25 @@ def get_competitions() -> pd.DataFrame:
         (competitions["TotalSubmissions"] >= 500)
     ][["Id", "Title", "Subtitle", "Overview", "Slug", "TotalSubmissions", "DeadlineDate"]]
 
+def get_tags(competitions: pd.DataFrame) -> pd.DataFrame:
+    competition_tags = pd.read_csv("meta-kaggle/CompetitionTags.csv")
+    tags = pd.read_csv("meta-kaggle/Tags.csv")
+    competition_slugs = competition_tags.merge(
+        tags,
+        left_on="TagId",
+        right_on="Id",
+        how="left"
+    )
+    
+    filtered = competition_slugs.merge(
+        competitions[["Id"]],
+        left_on="CompetitionId",
+        right_on="Id",
+        how="inner"
+    )
+    
+    return filtered[["CompetitionId", "Slug"]]
+
 def precompute_final_versions(kernels: pd.DataFrame, kernel_versions: pd.DataFrame, kernel_competition_sources: pd.DataFrame) -> pd.DataFrame:
     merged = kernel_competition_sources.merge(
         kernel_versions, on='KernelVersionId', how='left'

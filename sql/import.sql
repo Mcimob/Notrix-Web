@@ -10,6 +10,17 @@ CREATE TABLE competition_entity
     CONSTRAINT pk_competitionentity PRIMARY KEY (id)
 );
 
+create table competition_tags
+(
+    competition_id bigint not null
+        constraint fka01qmjjv2xywa54vo1rhsk683
+            references competition_entity,
+    slug            varchar(255)
+);
+
+alter table competition_tags
+    owner to postgres;
+
 CREATE TABLE cluster_entity
 (
     id             BIGINT NOT NULL,
@@ -62,5 +73,6 @@ ALTER TABLE cell_entity
     ALTER COLUMN source TYPE VARCHAR(255) USING (source::VARCHAR(255));
 
 \copy competition_entity(id, title, subtitle, slug, total_submissions, deadline_date) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/Competitions.csv' DELIMITER ',' CSV HEADER
+\copy competition_tags(competition_id, slug) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/CompetitionTags.csv' DELIMITER ',' CSV HEADER
 \copy kernel_entity(kernel_version_id, source_competition_id, creation_date, version_number, title, total_votes, total_views, total_comments, current_url_slug, author_user_name, author_display_name) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/AllCompetitionKernels.csv' DELIMITER ',' CSV HEADER
 \copy cell_entity(id, kernel_version_id, cell_id, source, cell_type, main_label) FROM '/media/tim/Data/Thesis/Cells_predicted.csv' DELIMITER ',' CSV HEADER

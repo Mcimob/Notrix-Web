@@ -1,6 +1,7 @@
 package ch.ethz.inf.peachlab.model.filter;
 
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
+import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
 public class CompetitionFilter extends AbstractFilter<CompetitionEntity> {
@@ -25,7 +26,10 @@ public class CompetitionFilter extends AbstractFilter<CompetitionEntity> {
 
     Specification<CompetitionEntity> matchesSearchString(String searchString) {
         return ((root, cq, cb) ->
-                cb.like(cb.lower(root.get("title")), "%" + searchString.toLowerCase() + "%"));
+                cb.or(
+                        cb.like(cb.lower(root.get("title")), "%" + searchString.toLowerCase() + "%"),
+                        cb.like(cb.lower(root.joinSet("tags", JoinType.LEFT)), "%" + searchString.toLowerCase() + "%")
+                ));
     }
 
     Specification<CompetitionEntity> matchesSlug(String slug) {
