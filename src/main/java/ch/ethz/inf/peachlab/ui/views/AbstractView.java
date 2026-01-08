@@ -13,7 +13,8 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
-public abstract class AbstractView extends Div implements AfterNavigationObserver, HasRender, HasLogger {
+public abstract class AbstractView extends Div
+        implements AfterNavigationObserver, HasRender, HasLogger, HasNotification {
 
     public AbstractView() {
         initStyles();

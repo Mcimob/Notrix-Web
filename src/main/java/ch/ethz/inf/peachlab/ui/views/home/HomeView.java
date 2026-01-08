@@ -5,9 +5,14 @@ import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.provider.CompetitionProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
+import ch.ethz.inf.peachlab.ui.views.competition.CompetitionView;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.router.Route;
 
@@ -72,6 +77,8 @@ public class HomeView extends AbstractView {
                 .setHeader("Deadline Date")
                 .setSortable(true)
                 .setSortProperty("deadlineDate");
+        grid.addComponentColumn(this::createCompetitionNavigation)
+                .setHeader("Navigate");
 
         grid.addSelectionListener(event -> {
             competitionDescriptionBox.setCompetition(event.getFirstSelectedItem().orElse(null));
@@ -84,5 +91,15 @@ public class HomeView extends AbstractView {
         grid.setHeightFull();
 
         return grid;
+    }
+
+    private Component createCompetitionNavigation(CompetitionEntity competition) {
+        Button button = new Button(VaadinIcon.ENTER_ARROW.create());
+        button.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ICON);
+        button.addClickListener(e -> UI.getCurrent().navigate(
+                CompetitionView.class,
+                competition.getSlug()));
+
+        return button;
     }
 }

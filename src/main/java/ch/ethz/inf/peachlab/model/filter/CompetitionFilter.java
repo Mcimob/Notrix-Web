@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 public class CompetitionFilter extends AbstractFilter<CompetitionEntity> {
 
     private String searchString;
+    private String slug;
 
     @Override
     public Specification<CompetitionEntity> getSpecification() {
@@ -13,6 +14,10 @@ public class CompetitionFilter extends AbstractFilter<CompetitionEntity> {
 
         if (searchString != null) {
             spec = spec.and(matchesSearchString(searchString));
+        }
+
+        if (slug != null) {
+            spec = spec.and(matchesSlug(slug));
         }
 
         return spec;
@@ -23,11 +28,24 @@ public class CompetitionFilter extends AbstractFilter<CompetitionEntity> {
                 cb.like(cb.lower(root.get("title")), "%" + searchString.toLowerCase() + "%"));
     }
 
+    Specification<CompetitionEntity> matchesSlug(String slug) {
+        return ((root, cq, cb) ->
+                cb.equal(root.get("slug"), slug));
+    }
+
     public String getSearchString() {
         return searchString;
     }
 
     public void setSearchString(String searchString) {
         this.searchString = searchString;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 }

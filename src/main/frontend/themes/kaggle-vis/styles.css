@@ -10,6 +10,11 @@ html {
     --bg-color: var(--lumo-contrast-10pct);
 }
 
+button,
+vaadin-button{
+    cursor: pointer;
+}
+
 .background-bg {
     background: var(--bg-color);
 }
