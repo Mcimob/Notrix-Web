@@ -2,7 +2,8 @@ CREATE TABLE competition_entity
 (
     id                BIGINT                      NOT NULL,
     title             VARCHAR(255)                NOT NULL,
-    subtitle         VARCHAR(255)                NOT NULL,
+    subtitle          VARCHAR(255)                NOT NULL,
+    overview          VARCHAR,
     slug              VARCHAR(255)                NOT NULL,
     total_submissions BIGINT                      NOT NULL,
     deadline_date     TIMESTAMP WITHOUT TIME ZONE NOT NULL,

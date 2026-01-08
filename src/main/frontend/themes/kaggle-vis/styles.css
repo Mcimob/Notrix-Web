@@ -135,6 +135,22 @@ vaadin-button{
     border-radius: var(--size-l);
 }
 
+.border-width-s {
+    border-width: 1px;
+}
+
+.border-style-solid {
+    border-style: solid;
+}
+
+.border-style-dashed {
+    border-style: dashed;
+}
+
+.border-color-gray {
+    border-color: var(--lumo-tertiary-text-color);
+}
+
 .font-size-s {
     font-size: smaller;
 }

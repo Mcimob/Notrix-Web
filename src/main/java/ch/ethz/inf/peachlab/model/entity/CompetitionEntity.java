@@ -7,8 +7,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 public class CompetitionEntity implements AbstractEntity {
@@ -22,6 +22,9 @@ public class CompetitionEntity implements AbstractEntity {
     @Column(nullable = false)
     private String subtitle;
 
+    @Column(nullable = true, columnDefinition = "varchar")
+    private String overview;
+
     @Column(nullable = false)
     private String slug;
 
@@ -33,11 +36,11 @@ public class CompetitionEntity implements AbstractEntity {
 
     @OneToMany
     @JoinColumn(name = "SourceCompetitionId")
-    private List<KernelEntity> kernels;
+    private Set<KernelEntity> kernels;
 
     @OneToMany
     @JoinColumn(name = "CompetitionId")
-    private List<ClusterEntity> clusters;
+    private Set<ClusterEntity> clusters;
 
     @Override
     public Long getId() {
@@ -65,6 +68,14 @@ public class CompetitionEntity implements AbstractEntity {
         this.subtitle = description;
     }
 
+    public String getOverview() {
+        return overview;
+    }
+
+    public void setOverview(String overiew) {
+        this.overview = overiew;
+    }
+
     public Long getTotalSubmissions() {
         return totalSubmissions;
     }
@@ -89,19 +100,19 @@ public class CompetitionEntity implements AbstractEntity {
         this.slug = slug;
     }
 
-    public List<KernelEntity> getKernels() {
+    public Set<KernelEntity> getKernels() {
         return kernels;
     }
 
-    public void setKernels(List<KernelEntity> kernels) {
+    public void setKernels(Set<KernelEntity> kernels) {
         this.kernels = kernels;
     }
 
-    public List<ClusterEntity> getClusters() {
+    public Set<ClusterEntity> getClusters() {
         return clusters;
     }
 
-    public void setClusters(List<ClusterEntity> clusters) {
+    public void setClusters(Set<ClusterEntity> clusters) {
         this.clusters = clusters;
     }
 

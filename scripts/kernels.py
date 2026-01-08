@@ -69,7 +69,7 @@ def get_competitions() -> pd.DataFrame:
     return competitions[
         (competitions["DeadlineDate"] >= "2020-01-01") &
         (competitions["TotalSubmissions"] >= 500)
-    ][["Id", "Title", "Subtitle", "Slug", "TotalSubmissions", "DeadlineDate"]]
+    ][["Id", "Title", "Subtitle", "Overview", "Slug", "TotalSubmissions", "DeadlineDate"]]
 
 def precompute_final_versions(kernels: pd.DataFrame, kernel_versions: pd.DataFrame, kernel_competition_sources: pd.DataFrame) -> pd.DataFrame:
     merged = kernel_competition_sources.merge(

@@ -37,6 +37,13 @@ public final class DesignConstants {
     public static final String STYLE_BORDER_RADIUS_M = "border-radius-m";
     public static final String STYLE_BORDER_RADIUS_L = "border-radius-l";
 
+    public static final String STYLE_BORDER_WIDTH_S = "border-width-s";
+
+    public static final String STYLE_BORDER_STYLE_SOLID = "border-style-solid";
+    public static final String STYLE_BORDER_STYLE_DASHED = "border-style-dashed";
+
+    public static final String STYLE_BORDER_COLOR_GRAY = "border-color-gray";
+
     public static final String STYLE_FONT_SIZE_S = "font-size-s";
     //                         STYLE_FONT_SIZE_M is not needed, as it would just be regular font size
     public static final String STYLE_FONT_SIZE_L = "font-size-l";
