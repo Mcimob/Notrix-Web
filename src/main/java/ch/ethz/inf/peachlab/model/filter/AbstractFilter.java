@@ -9,6 +9,10 @@ public abstract class AbstractFilter<T extends AbstractEntity> implements Serial
 
     public Specification<T> getSpecification() {
         Specification<T> spec = Specification.unrestricted();
+        spec = spec.and((root, cq, cb) -> {
+            cq.distinct(true);
+            return cb.conjunction();
+        });
         return spec;
     }
 }

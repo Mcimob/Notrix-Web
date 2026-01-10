@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,6 +44,7 @@ public class KernelEntity implements AbstractEntity {
 
     @OneToMany
     @JoinColumn(name = "KernelVersionId")
+    @OrderColumn(name = "CellId")
     private List<CellEntity> cells;
 
     @Override

@@ -28,7 +28,9 @@ public class CompetitionFilter extends AbstractFilter<CompetitionEntity> {
         return ((root, cq, cb) ->
                 cb.or(
                         cb.like(cb.lower(root.get("title")), "%" + searchString.toLowerCase() + "%"),
-                        cb.like(cb.lower(root.joinSet("tags", JoinType.LEFT)), "%" + searchString.toLowerCase() + "%")
+                        cb.like(
+                                cb.lower(root.joinSet("tags", JoinType.LEFT)),
+                                "%" + searchString.toLowerCase() + "%")
                 ));
     }
 

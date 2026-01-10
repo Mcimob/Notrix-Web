@@ -47,19 +47,18 @@ public class BaseRepositoryImpl<T extends AbstractEntity, F extends AbstractFilt
     @Override
     public Page<T> findAll(F filter, Pageable pageable, HasLoadType loadType) {
         Specification<T> specification = filter.getSpecification();
+
         TypedQuery<T> query = createQueryWithEntityGraph(specification, loadType.getName(), pageable.getSort());
 
-        List<T> result = query.getResultList();
-        int totalRows = query.getResultList().size();
-
-        if (pageable.isUnpaged()) {
-            return new PageImpl<>(result);
+        if (!pageable.isUnpaged()) {
+            query.setFirstResult((int) pageable.getOffset());
+            query.setMaxResults(pageable.getPageSize());
         }
 
-        query.setFirstResult((int) pageable.getOffset());
-        query.setMaxResults(pageable.getPageSize());
+        List<T> result = query.getResultList();
+        long totalRows = count(filter.getSpecification());
 
-        return new PageImpl<>(query.getResultList(), pageable, totalRows);
+        return new PageImpl<>(result, pageable, totalRows);
     }
 
     private TypedQuery<T> createQueryWithEntityGraph(
