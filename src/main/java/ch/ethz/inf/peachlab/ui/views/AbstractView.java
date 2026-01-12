@@ -7,7 +7,6 @@ import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_BG;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
@@ -20,8 +19,8 @@ public abstract class AbstractView extends Div
         initStyles();
     }
 
-    private void initStyles() {
-        addClassNames(STYLE_BACKGROUND_BG, STYLE_PADDING_M, STYLE_WIDTH_FULL, STYLE_HEIGHT_FULL, STYLE_GAP_M, STYLE_FLEX_COLUMN);
+    protected void initStyles() {
+        addClassNames(STYLE_BACKGROUND_BG, STYLE_PADDING_M, STYLE_WIDTH_FULL, STYLE_HEIGHT_FULL, STYLE_GAP_M);
     }
 
     @Override

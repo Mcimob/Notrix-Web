@@ -23,6 +23,12 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     @Override
+    protected void initStyles() {
+        super.initStyles();
+        addClassNames(STYLE_FLEX_ROW);
+    }
+
+    @Override
     public void render() {
         add(new Text(competition.getTitle()));
     }

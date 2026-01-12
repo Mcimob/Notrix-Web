@@ -34,6 +34,12 @@ public class HomeView extends AbstractView {
     private final CompetitionFilter filter = new CompetitionFilter();
 
     @Override
+    protected void initStyles() {
+        super.initStyles();
+        addClassNames(STYLE_FLEX_COLUMN);
+    }
+
+    @Override
     public void render() {
         removeAll();
 
