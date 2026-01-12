@@ -2,8 +2,12 @@ package ch.ethz.inf.peachlab.model.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 
@@ -12,7 +16,13 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
+@NamedEntityGraph(name = KernelEntity.WITH_CELLS,
+    attributeNodes = {
+        @NamedAttributeNode("cells")
+    })
 public class KernelEntity implements AbstractEntity {
+
+    public static final String WITH_CELLS = "withCells";
 
     @Id
     @Column(nullable = false, name = "KernelVersionId")
@@ -41,6 +51,10 @@ public class KernelEntity implements AbstractEntity {
 
     @Column(nullable = true, name = "AuthorDisplayName")
     private String authorDisplayName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "SourceCompetitionId")
+    private CompetitionEntity competition;
 
     @OneToMany
     @JoinColumn(name = "KernelVersionId")
@@ -119,6 +133,14 @@ public class KernelEntity implements AbstractEntity {
 
     public void setAuthorDisplayName(String authorDisplayName) {
         this.authorDisplayName = authorDisplayName;
+    }
+
+    public List<CellEntity> getCells() {
+        return cells;
+    }
+
+    public void setCells(List<CellEntity> cells) {
+        this.cells = cells;
     }
 
     @Override
