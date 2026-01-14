@@ -35,6 +35,14 @@ vaadin-button{
     min-height: 0;
 }
 
+.position-relative {
+    position: relative;
+}
+
+.position-absolute {
+    position: absolute;
+}
+
 .fw-500 {
     font-weight: 500;
 }

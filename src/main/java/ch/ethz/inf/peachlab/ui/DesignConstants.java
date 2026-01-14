@@ -15,6 +15,9 @@ public final class DesignConstants {
 
     public static final String STYLE_MIN_HEIGHT_0 = "min-height-0";
 
+    public static final String STYLE_POSITION_RELATIVE = "position-relative";
+    public static final String STYLE_POSITION_ABSOLUTE = "position-absolute";
+
     public static final String STYLE_FLEX_COLUMN = "flex-column";
     public static final String STYLE_FLEX_ROW = "flex-row";
     public static final String STYLE_FLEX_CENTER = "flex-center";
