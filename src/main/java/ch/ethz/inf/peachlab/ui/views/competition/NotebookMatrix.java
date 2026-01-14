@@ -92,7 +92,7 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
 
     private Component createColumn(KernelEntity kernel) {
         Div div = new Div();
-        div.setWidth("18px");
+        div.setWidth("1rem");
         div.addClassNames(STYLE_FLEX_COLUMN);
         div.getStyle().setFlexShrink("0");
         div.getStyle().setGap("1px");
@@ -159,7 +159,8 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
             getStyle().setBackgroundColor(Optional.ofNullable(cell.getMainLabel())
                     .map(i -> DesignConstants.StageColors.COLORS[i])
                     .orElse("white"));
-            setHeight("3px");
+            setHeight(".5rem" +
+                    "");
             getStyle().setFlexShrink("0");
             if (cell.getCellType() == CellType.CODE) {
                 getElement().setAttribute("data-tooltip", "Stage: %s<br/>Title: %s<br/>Lines: %s".formatted(

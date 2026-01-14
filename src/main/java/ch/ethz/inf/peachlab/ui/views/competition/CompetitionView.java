@@ -26,6 +26,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_0;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
@@ -96,7 +97,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         NotebookMatrix matrix = new NotebookMatrix(competition);
         matrix.render();
         Div div = new Div(matrix);
-        div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL);
+        div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0);
         return div;
     }
 
