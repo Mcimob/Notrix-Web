@@ -3,7 +3,10 @@ package ch.ethz.inf.peachlab.model.entity;
 import ch.ethz.inf.peachlab.model.enums.CellType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 import java.util.Objects;
 
@@ -19,11 +22,18 @@ public class CellEntity implements AbstractEntity {
     @Column(nullable = true, name = "Source", columnDefinition = "varchar")
     private String source;
 
+    @Column(nullable = false, name = "SourceLineCount")
+    private int sourceLinesCount;
+
     @Column(nullable = false, name = "CellType")
     private CellType cellType;
 
     @Column(nullable = true, name = "MainLabel")
     private Integer mainLabel;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "kernelVersionId")
+    private KernelEntity kernel;
 
     @Override
     public Long getId() {
@@ -49,6 +59,14 @@ public class CellEntity implements AbstractEntity {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public int getSourceLinesCount() {
+        return sourceLinesCount;
+    }
+
+    public void setSourceLinesCount(int sourceLinesCount) {
+        this.sourceLinesCount = sourceLinesCount;
     }
 
     public CellType getCellType() {

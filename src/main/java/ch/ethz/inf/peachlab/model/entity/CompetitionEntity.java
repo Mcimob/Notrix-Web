@@ -7,9 +7,12 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -36,6 +39,16 @@ public class CompetitionEntity implements AbstractEntity {
 
     @Column(nullable = false)
     private LocalDateTime deadlineDate;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "MainLabelStats", columnDefinition = "jsonb")
+    private Map<Integer, Integer> mainLabelStats;
+
+    @Column(nullable = false)
+    private Double avgCellsPerKernel;
+
+    @Column(nullable = false)
+    private Double avgVotes;
 
     @ElementCollection
     @CollectionTable(name = "CompetitionTags", joinColumns = {@JoinColumn(name = "CompetitionId")})
@@ -106,6 +119,30 @@ public class CompetitionEntity implements AbstractEntity {
 
     public void setSlug(String slug) {
         this.slug = slug;
+    }
+
+    public Map<Integer, Integer> getMainLabelStats() {
+        return mainLabelStats;
+    }
+
+    public void setMainLabelStats(Map<Integer, Integer> mainLabelStats) {
+        this.mainLabelStats = mainLabelStats;
+    }
+
+    public Double getAvgCellsPerKernel() {
+        return avgCellsPerKernel;
+    }
+
+    public void setAvgCellsPerKernel(Double avgCellsPerKernel) {
+        this.avgCellsPerKernel = avgCellsPerKernel;
+    }
+
+    public Double getAvgVotes() {
+        return avgVotes;
+    }
+
+    public void setAvgVotes(Double avgVotes) {
+        this.avgVotes = avgVotes;
     }
 
     public Set<String> getTags() {

@@ -1,12 +1,15 @@
 CREATE TABLE competition_entity
 (
-    id                BIGINT                      NOT NULL,
-    title             VARCHAR(255)                NOT NULL,
-    subtitle          VARCHAR(255)                NOT NULL,
-    overview          VARCHAR,
-    slug              VARCHAR(255)                NOT NULL,
-    total_submissions BIGINT                      NOT NULL,
-    deadline_date     TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    id                   BIGINT                      NOT NULL,
+    title                VARCHAR(255),
+    subtitle             VARCHAR(255)                NOT NULL,
+    overview             VARCHAR,
+    slug                 VARCHAR(255)                NOT NULL,
+    total_submissions    BIGINT                      NOT NULL,
+    deadline_date        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    main_label_stats     JSONB,
+    avg_cells_per_kernel DOUBLE PRECISION            NOT NULL,
+    avg_votes            DOUBLE PRECISION            NOT NULL,
     CONSTRAINT pk_competitionentity PRIMARY KEY (id)
 );
 
@@ -37,7 +40,7 @@ CREATE TABLE kernel_entity
     kernel_version_id     BIGINT                      NOT NULL,
     creation_date         TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     version_number        INTEGER                     NOT NULL,
-    title                 VARCHAR(255)                NOT NULL,
+    title                 VARCHAR(255),
     total_votes           INTEGER                     NOT NULL,
     total_views           INTEGER                     NOT NULL,
     total_comments        INTEGER                     NOT NULL,
@@ -57,10 +60,11 @@ ALTER TABLE kernel_entity
 
 CREATE TABLE cell_entity
 (
-    id                BIGINT       NOT NULL,
-    cell_id           INTEGER      NOT NULL,
-    source            VARCHAR,
-    cell_type         VARCHAR(255) NOT NULL,
+    id                BIGINT   NOT NULL,
+    cell_id           INTEGER  NOT NULL,
+    source            VARCHAR(255),
+    source_line_count INTEGER  NOT NULL,
+    cell_type         SMALLINT NOT NULL,
     main_label        INTEGER,
     kernel_version_id BIGINT,
     CONSTRAINT pk_cellentity PRIMARY KEY (id)
@@ -70,9 +74,9 @@ ALTER TABLE cell_entity
     ADD CONSTRAINT FK_CELLENTITY_ON_KERNELVERSIONID FOREIGN KEY (kernel_version_id) REFERENCES kernel_entity (kernel_version_id);
 
 ALTER TABLE cell_entity
-    ALTER COLUMN source TYPE VARCHAR(255) USING (source::VARCHAR(255));
+    ALTER COLUMN source TYPE VARCHAR(255) USING (source::varchar);
 
-\copy competition_entity(id, title, subtitle, slug, total_submissions, deadline_date) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/Competitions.csv' DELIMITER ',' CSV HEADER
+\copy competition_entity(id, title, subtitle, overview, slug, total_submissions, deadline_date, main_label_stats, avg_cells_per_kernel, avg_votes) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/Competitions_stats.csv' DELIMITER ',' CSV HEADER
 \copy competition_tags(competition_id, slug) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/CompetitionTags.csv' DELIMITER ',' CSV HEADER
 \copy kernel_entity(kernel_version_id, source_competition_id, creation_date, version_number, title, total_votes, total_views, total_comments, current_url_slug, author_user_name, author_display_name) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/AllCompetitionKernels.csv' DELIMITER ',' CSV HEADER
-\copy cell_entity(id, kernel_version_id, cell_id, source, cell_type, main_label) FROM '/media/tim/Data/Thesis/Cells_predicted.csv' DELIMITER ',' CSV HEADER
+\copy cell_entity(id, kernel_version_id, cell_id, source, cell_type, main_label, source_line_count) FROM '/media/tim/Data/Thesis/Cells_predicted.csv' DELIMITER ',' CSV HEADER

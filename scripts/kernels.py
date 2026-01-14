@@ -58,9 +58,13 @@ def main():
     final_versions = join_authors(final_versions)
     final_versions = final_versions[["KernelVersionId", "SourceCompetitionId", "CreationDate", "VersionNumber", "Title", "TotalVotes", "TotalViews", "TotalComments", "CurrentUrlSlug", "AuthorUserName", "AuthorDisplayName"]]
     final_versions = final_versions.fillna({"TotalViews": 0, "TotalComments": 0})
-    final_versions.to_csv("AllCompetitionKernels.csv", index=False)
     
     all_cells = extract_all_code_cells(final_versions["KernelVersionId"])
+    
+    final_versions, competitions = remove_empty(all_cells, final_versions, competitions)
+    
+    competitions.to_csv("Competitions.csv", index=False)
+    final_versions.to_csv("AllCompetitionKernels.csv", index=False)
     all_cells.to_csv("/media/tim/Data/Thesis/Cells.csv", index_label="Id")
     
 
@@ -128,6 +132,29 @@ def join_authors(kernels_final: pd.DataFrame) -> pd.DataFrame:
     result.rename(columns={"UserName": "AuthorUserName"}, inplace=True)
     result.rename(columns={"DisplayName": "AuthorDisplayName"}, inplace=True)
     return result
+
+def remove_empty(cells: pd.DataFrame, kernels: pd.DataFrame, competitions: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    kernels = kernels[
+        kernels['KernelVersionId'].isin(cells['KernelVersionId'])
+    ].copy()
+
+    competitions = competitions[
+        competitions['Id'].isin(kernels['SourceCompetitionId'])
+    ].copy()
+
+    cells = cells[
+        cells['KernelVersionId'].isin(kernels['KernelVersionId'])
+    ].copy()
+
+    
+    assert cells['KernelVersionId'].isin(kernels['KernelVersionId']).all()
+    assert kernels['SourceCompetitionId'].isin(competitions['Id']).all()
+    
+    return (kernels, competitions)
+
+
+
+
 
 if __name__ == "__main__":
     main()

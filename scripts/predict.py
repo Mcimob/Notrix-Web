@@ -59,7 +59,7 @@ class Predictor():
 def main():
     print("Reading Cells.csv ...")
     cells = pd.read_csv(FILE_BASE + "Cells.csv")
-    code_mask = cells["CellType"] == "code"
+    code_mask = cells["CellType"] == 0
     code_cells = cells.loc[code_mask, "Source"].astype("str")
     
     predictor = Predictor()

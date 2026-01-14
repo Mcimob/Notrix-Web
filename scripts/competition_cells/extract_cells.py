@@ -34,6 +34,12 @@ import pandas as pd
 from joblib import Parallel, delayed
 from tqdm import tqdm
 
+CELLTYPE_MAP = {
+    "code": 0,
+    "markdown": 1,
+    "raw": 2,
+    "heading": 3
+}
 
 BASE_PATH = "/media/tim/Data/Thesis/extracted_kernels"
 
@@ -75,7 +81,7 @@ def extract_code_cells(notebook_path):
             "KernelVersionId": kernel_version_id,
             "CellId": str(i),
             "Source": source.strip(),
-            "CellType": cell.get("cell_type", "code"),
+            "CellType": CELLTYPE_MAP[cell.get("cell_type", "code")] if cell.get("cell_type", "code") in CELLTYPE_MAP.keys else 2,
         })
 
     return rows
