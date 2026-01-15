@@ -12,6 +12,7 @@ public final class DesignConstants {
 
     public static final String STYLE_WIDTH_FULL = "width-full";
     public static final String STYLE_HEIGHT_FULL = "height-full";
+    public static final String STYLE_HEIGHT_150PX = "height-150px";
 
     public static final String STYLE_MIN_HEIGHT_0 = "min-height-0";
 
@@ -23,6 +24,8 @@ public final class DesignConstants {
     public static final String STYLE_FLEX_CENTER = "flex-center";
     public static final String STYLE_FLEX_BETWEEN = "flex-between";
     public static final String STYLE_FLEX_ALIGN_START = "flex-align-start";
+    public static final String STYLE_FLEX_ALIGN_END = "flex-align-end";
+    public static final String STYLE_FLEX_JUSTIFY_CENTER = "flex-justify-center";
     public static final String STYLE_FLEX_ALIGN_CENTER = "flex-align-center";
     public static final String STYLE_FLEX_JUSTIFY_END = "flex-justify-end";
 
@@ -49,9 +52,14 @@ public final class DesignConstants {
 
     public static final String STYLE_BORDER_COLOR_GRAY = "border-color-gray";
 
+    public static final String STYLE_FONT_SIZE_XS = "font-size-xs";
     public static final String STYLE_FONT_SIZE_S = "font-size-s";
     //                         STYLE_FONT_SIZE_M is not needed, as it would just be regular font size
     public static final String STYLE_FONT_SIZE_L = "font-size-l";
+
+    public static final String STYLE_BOX_SHADOW = "box-shadow";
+
+    public static final String STYLE_TEXT_WRAP_NO = "text-wrap-no";
 
     public static final String STYLE_TEXT_COLOR_WHITE = "text-color-white";
     public static final String STYLE_TEXT_COLOR_GRAY = "text-color-gray";

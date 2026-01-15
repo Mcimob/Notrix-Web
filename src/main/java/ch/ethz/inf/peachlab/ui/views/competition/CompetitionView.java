@@ -52,15 +52,14 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         removeAll();
         Div left = new Div("Transitions");
         left.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_CENTER, STYLE_BACKGROUND_WHITE);
-        left.setWidth("20rem");
+        left.setWidth("80rem");
 
         Div center = new Div(createTitleBox(), createDescriptionBox(), createNotebookMatrix());
         center.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
         center.getStyle().setMinWidth("0");
 
-        Div right = new Div();
+        Div right = new Div(createStats());
         right.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL);
-        right.add(new Div("Right"));
 
         add(left, center, right);
     }
@@ -99,6 +98,12 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         Div div = new Div(matrix);
         div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0);
         return div;
+    }
+
+    private Component createStats() {
+        CompetitionStatsPanel stats = new CompetitionStatsPanel(competition);
+        stats.render();
+        return stats;
     }
 
     @Override

@@ -31,6 +31,10 @@ vaadin-button{
     height: 100%;
 }
 
+.height-150px {
+    height: 150px;
+}
+
 .min-height-0 {
     min-height: 0;
 }
@@ -51,11 +55,8 @@ vaadin-button{
     font-weight: 700;
 }
 
-.text-wrap {
-    min-width: 0;
-    overflow-wrap: break-word;
-    word-break: break-word;
-    white-space: normal;
+.text-wrap-no {
+    text-wrap: nowrap;
 }
 
 .text-color-white {
@@ -87,6 +88,9 @@ vaadin-button{
     justify-content: space-between;
 }
 
+.flex-justify-center {
+    justify-content: center;
+}
 .flex-justify-end {
     justify-content: end;
 }
@@ -97,6 +101,10 @@ vaadin-button{
 
 .flex-align-center {
     align-items: center;
+}
+
+.flex-align-end {
+    align-items: end;
 }
 
 .padding-s {
@@ -163,12 +171,20 @@ vaadin-button{
     border-color: var(--lumo-tertiary-text-color);
 }
 
+.font-size-xs {
+    font-size: x-small;
+}
+
 .font-size-s {
     font-size: smaller;
 }
 
 .font-size-l {
     font-size: larger;
+}
+
+.box-shadow {
+    box-shadow: rgba(0, 0, 0, 0.15) 2px 2px 3px;
 }
 
 .cell {
