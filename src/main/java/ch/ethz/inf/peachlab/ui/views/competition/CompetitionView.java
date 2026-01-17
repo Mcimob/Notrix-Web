@@ -3,18 +3,23 @@ package ch.ethz.inf.peachlab.ui.views.competition;
 import ch.ethz.inf.peachlab.backend.service.CompetitionService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
+import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
+import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.components.OverviewBox;
+import ch.ethz.inf.peachlab.ui.provider.KernelProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
@@ -58,8 +63,8 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         center.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
         center.getStyle().setMinWidth("0");
 
-        Div right = new Div(createStats());
-        right.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL);
+        Div right = new Div(createStats(), createGrid());
+        right.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
 
         add(left, center, right);
     }
@@ -104,6 +109,36 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         CompetitionStatsPanel stats = new CompetitionStatsPanel(competition);
         stats.render();
         return stats;
+    }
+
+    private Component createGrid() {
+        Grid<KernelEntity> grid = new Grid<>();
+        grid.addColumn(KernelEntity::getTitle)
+                .setHeader("Ttile")
+                .setSortable(true)
+                .setSortProperty("title");
+        grid.addColumn(KernelEntity::getTotalVotes)
+                .setHeader("# Votes")
+                .setSortable(true)
+                .setSortProperty("totalVotes");
+        grid.addColumn(KernelEntity::getTotalViews)
+                .setHeader("# Views")
+                .setSortable(true)
+                .setSortProperty("totalViews");
+        grid.setHeightFull();
+
+        KernelFilter filter = new KernelFilter();
+        filter.setCompetition(competition);
+
+        ConfigurableFilterDataProvider<KernelEntity, Void, KernelFilter> provider =
+                new KernelProvider().withConfigurableFilter();
+        provider.setFilter(filter);
+        grid.setDataProvider(provider);
+
+        Div div = new Div(grid);
+        div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+
+        return div;
     }
 
     @Override
