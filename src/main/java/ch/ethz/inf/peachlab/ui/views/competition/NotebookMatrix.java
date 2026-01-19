@@ -14,12 +14,9 @@ import ch.ethz.inf.peachlab.ui.DesignConstants;
 import ch.ethz.inf.peachlab.ui.HasRender;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
-import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.Scroller;
-import com.vaadin.flow.shared.Registration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -37,14 +34,6 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 import static java.lang.Math.min;
 
 public class NotebookMatrix extends Scroller implements HasLogger, HasNotification, HasRender {
-
-    private static final String JS = """
-    let timer = null;
-    
-    this.addEventListener("mousemove", () => {
-                      clearTimeout(timer);
-                      timer = setTimeout(() => $0.onMouseStop(this.kernelIndex), 300);
-                  });""";
 
     private final CompetitionEntity competition;
 
@@ -66,11 +55,6 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
                 .forEach(div::add);
 
         return div;
-    }
-
-    @ClientCallable
-    private void onMouseStop(int index) {
-        fireEvent(new KernelHoverEvent(index, this, true));
     }
 
     private List<Component> createColumns() {
@@ -115,18 +99,27 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
         // attach hover JS globally
         getElement().executeJs("""
         let timer = null;
-        this.addEventListener('mousemove', e => {
-            const target = e.composedPath()[0];
-            const index = target.kernelIndex;
-            if (index === undefined) return;
-            clearTimeout(timer);
-            timer = setTimeout(() => this.$server.onMouseStop(index), 300);
-        });
-    """);
-    }
+        let lastRow = null;
 
-    public Registration addHoverListener(ComponentEventListener<KernelHoverEvent> listener) {
-        return addListener(KernelHoverEvent.class, listener);
+        this.addEventListener('mousemove', e => {
+            const target = e.composedPath().filter(el => el.kernelIndex != undefined)[0];
+            if (!target) return;
+            const index = target.kernelIndex;
+            onMouseStop(index);
+        });
+
+        const onMouseStop = (index) => {
+            if (lastRow && lastRow.rowindex - 2 == index) return;
+            let grid = document.getElementById("kernel-grid");
+            grid.scrollToIndex(index);
+            if (lastRow) lastRow?.querySelectorAll('td').forEach(td => td.part.remove('hover-highlight'));
+            let newRow = Array.from(grid.shadowRoot.children[0].getElementsByTagName("tr")).filter(r => r.getAttribute("aria-rowindex") - 2 == index)[0];
+            if (!newRow) return;
+            newRow.querySelectorAll('td').forEach(td =>
+                          td.part.add("hover-highlight"));
+            lastRow = newRow;
+        };
+    """);
     }
 
     private static class Cell extends Div {

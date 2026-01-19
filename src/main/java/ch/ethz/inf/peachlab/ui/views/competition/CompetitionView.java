@@ -20,12 +20,9 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
-import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
-
-import java.util.List;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_CENTER;
@@ -108,14 +105,6 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private Component createNotebookMatrix() {
         NotebookMatrix matrix = new NotebookMatrix(competition);
-        matrix.addHoverListener(e ->
-            provider.fetch(new Query<>(e.getIndex(), 1, List.of(), null, null))
-                .findFirst()
-                .ifPresent(item -> {
-                    hoveredItemId = item.getId();
-                    grid.scrollToIndex(e.getIndex());
-                    UI.getCurrent().access(() -> grid.getDataProvider().refreshItem(item));
-                }));
         matrix.render();
         Div div = new Div(matrix);
         div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0);
