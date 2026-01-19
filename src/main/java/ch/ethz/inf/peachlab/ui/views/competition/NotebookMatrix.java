@@ -98,27 +98,38 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
 
         // attach hover JS globally
         getElement().executeJs("""
-        let timer = null;
-        let lastRow = null;
+        let lastIndex = null;
 
         this.addEventListener('mousemove', e => {
             const target = e.composedPath().filter(el => el.kernelIndex != undefined)[0];
             if (!target) return;
             const index = target.kernelIndex;
-            onMouseStop(index);
+            onMouseMove(index);
         });
 
-        const onMouseStop = (index) => {
-            if (lastRow && lastRow.rowindex - 2 == index) return;
-            let grid = document.getElementById("kernel-grid");
+        this.addEventListener('mouseleave', e => {
+            const grid = document.getElementById("kernel-grid");
+            clearHighlights(grid);
+        });
+
+        function onMouseMove(index) {
+            if (lastIndex == index) return;
+            const grid = document.getElementById("kernel-grid");
             grid.scrollToIndex(index);
-            if (lastRow) lastRow?.querySelectorAll('td').forEach(td => td.part.remove('hover-highlight'));
+            clearHighlights(grid);
             let newRow = Array.from(grid.shadowRoot.children[0].getElementsByTagName("tr")).filter(r => r.getAttribute("aria-rowindex") - 2 == index)[0];
             if (!newRow) return;
             newRow.querySelectorAll('td').forEach(td =>
-                          td.part.add("hover-highlight"));
-            lastRow = newRow;
+                td.part.add("hover-highlight"));
+
+            lastIndex = index;
         };
+
+        function clearHighlights(grid) {
+            grid.shadowRoot
+            .querySelectorAll('td[part~="hover-highlight"]')
+                .forEach(td => td.part.remove("hover-highlight"));
+        }
     """);
     }
 
