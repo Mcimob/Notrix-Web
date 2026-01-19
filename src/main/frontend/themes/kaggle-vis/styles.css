@@ -207,3 +207,16 @@ vaadin-button{
     font-size: 12px;
     white-space: pre;
 }
+
+vaadin-grid::part(hover-highlight)::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(81, 85, 87, 0.4);
+    z-index: 10;
+    pointer-events: none; /* don’t block interactions */
+}
+

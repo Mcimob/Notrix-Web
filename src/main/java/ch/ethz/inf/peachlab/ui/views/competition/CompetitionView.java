@@ -20,9 +20,12 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
+import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
+
+import java.util.List;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_CENTER;
@@ -41,6 +44,12 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     private final transient CompetitionService competitionService;
 
     private CompetitionEntity competition;
+    private Long hoveredItemId;
+
+    private final Grid<KernelEntity> grid = new Grid<>();
+    private final KernelFilter filter = new KernelFilter();
+    private final ConfigurableFilterDataProvider<KernelEntity, Void, KernelFilter> provider =
+            new KernelProvider().withConfigurableFilter();
 
     public CompetitionView(CompetitionService competitionService) {
         this.competitionService = competitionService;
@@ -99,6 +108,14 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private Component createNotebookMatrix() {
         NotebookMatrix matrix = new NotebookMatrix(competition);
+        matrix.addHoverListener(e ->
+            provider.fetch(new Query<>(e.getIndex(), 1, List.of(), null, null))
+                .findFirst()
+                .ifPresent(item -> {
+                    hoveredItemId = item.getId();
+                    grid.scrollToIndex(e.getIndex());
+                    UI.getCurrent().access(() -> grid.getDataProvider().refreshItem(item));
+                }));
         matrix.render();
         Div div = new Div(matrix);
         div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0);
@@ -112,9 +129,10 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     private Component createGrid() {
-        Grid<KernelEntity> grid = new Grid<>();
+        grid.setId("kernel-grid"); // unique DOM id
+
         grid.addColumn(KernelEntity::getTitle)
-                .setHeader("Ttile")
+                .setHeader("Title")
                 .setSortable(true)
                 .setSortProperty("title");
         grid.addColumn(KernelEntity::getTotalVotes)
@@ -126,14 +144,19 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
                 .setSortable(true)
                 .setSortProperty("totalViews");
         grid.setHeightFull();
-
-        KernelFilter filter = new KernelFilter();
+        grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         filter.setCompetition(competition);
 
-        ConfigurableFilterDataProvider<KernelEntity, Void, KernelFilter> provider =
-                new KernelProvider().withConfigurableFilter();
         provider.setFilter(filter);
         grid.setDataProvider(provider);
+
+        grid.setPartNameGenerator(item ->
+                item.getId().equals(hoveredItemId) ? "hover-highlight" : null
+        );
+
+        grid.addSelectionListener(e -> {
+            getLogger().info("Row selected: {}", e.getFirstSelectedItem().orElse(null));
+        });
 
         Div div = new Div(grid);
         div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);

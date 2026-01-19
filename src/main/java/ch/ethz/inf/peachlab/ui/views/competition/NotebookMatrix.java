@@ -14,17 +14,20 @@ import ch.ethz.inf.peachlab.ui.DesignConstants;
 import ch.ethz.inf.peachlab.ui.HasRender;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
+import com.vaadin.flow.component.ClientCallable;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.shared.Registration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_CELL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
@@ -35,18 +38,27 @@ import static java.lang.Math.min;
 
 public class NotebookMatrix extends Scroller implements HasLogger, HasNotification, HasRender {
 
+    private static final String JS = """
+    let timer = null;
+    
+    this.addEventListener("mousemove", () => {
+                      clearTimeout(timer);
+                      timer = setTimeout(() => $0.onMouseStop(this.kernelIndex), 300);
+                  });""";
+
     private final CompetitionEntity competition;
 
     public NotebookMatrix(CompetitionEntity competition) {
         this.competition = competition;
     }
 
-    private Component createColumn(KernelEntity kernel) {
+    private Component createColumn(KernelEntity kernel, int index) {
         Div div = new Div();
         div.setWidth("1rem");
         div.addClassNames(STYLE_FLEX_COLUMN);
         div.getStyle().setFlexShrink("0");
         div.getStyle().setGap("1px");
+        div.getElement().setProperty("kernelIndex", index);
         kernel.getCells().stream()
                 .filter(Objects::nonNull)
                 .filter(c -> c.getCellType() == CellType.CODE)
@@ -56,7 +68,12 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
         return div;
     }
 
-    private Stream<Component> createColumns() {
+    @ClientCallable
+    private void onMouseStop(int index) {
+        fireEvent(new KernelHoverEvent(index, this, true));
+    }
+
+    private List<Component> createColumns() {
         KernelService service = SpringContext.getBean(KernelService.class);
         KernelFilter filter = new KernelFilter();
         filter.setCompetition(competition);
@@ -65,10 +82,16 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
         response.getErrorMessages().stream()
                 .map(this::getTranslation)
                 .forEach(this::showErrorNotification);
-        return response.getEntity()
+        List<KernelEntity> kernels = response.getEntity()
                 .map(Slice::getContent)
-                .map(List::stream).stream()
-                .flatMap(l -> l.map(this::createColumn));
+                .orElse(List.of());
+
+        List<Component> result = new ArrayList<>();
+        for (int i = 0; i < kernels.size(); i++) {
+            result.add(createColumn(kernels.get(i), i));
+        }
+
+        return result;
     }
 
     private Component createContent() {
@@ -89,7 +112,21 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
         setSizeFull();
         setContent(createContent());
 
-        createColumns();
+        // attach hover JS globally
+        getElement().executeJs("""
+        let timer = null;
+        this.addEventListener('mousemove', e => {
+            const target = e.composedPath()[0];
+            const index = target.kernelIndex;
+            if (index === undefined) return;
+            clearTimeout(timer);
+            timer = setTimeout(() => this.$server.onMouseStop(index), 300);
+        });
+    """);
+    }
+
+    public Registration addHoverListener(ComponentEventListener<KernelHoverEvent> listener) {
+        return addListener(KernelHoverEvent.class, listener);
     }
 
     private static class Cell extends Div {

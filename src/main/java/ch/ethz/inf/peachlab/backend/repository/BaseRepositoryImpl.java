@@ -66,7 +66,7 @@ public class BaseRepositoryImpl<T extends AbstractEntity, F extends AbstractFilt
         TypedQuery<T> query = getQuery(specification, sort);
         if (entityGraphName != null) {
             EntityGraph<?> entityGraph = em.getEntityGraph(entityGraphName);
-            return query.setHint("javax.persistence.loadgraph", entityGraph);
+            return query.setHint("jakarta.persistence.loadgraph", entityGraph);
         }
         return query;
     }
