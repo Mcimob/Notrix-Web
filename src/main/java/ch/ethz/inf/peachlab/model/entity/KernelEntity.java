@@ -1,5 +1,6 @@
 package ch.ethz.inf.peachlab.model.entity;
 
+import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -56,7 +57,7 @@ public class KernelEntity implements AbstractEntity {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "LabelSequence", columnDefinition = "jsonb")
-    private Integer[] labelSequence;
+    private MainLabel[] labelSequence;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SourceCompetitionId")
@@ -141,11 +142,11 @@ public class KernelEntity implements AbstractEntity {
         this.authorDisplayName = authorDisplayName;
     }
 
-    public Integer[] getLabelSequence() {
+    public MainLabel[] getLabelSequence() {
         return labelSequence;
     }
 
-    public void setLabelSequence(Integer[] labelSequence) {
+    public void setLabelSequence(MainLabel[] labelSequence) {
         this.labelSequence = labelSequence;
     }
 

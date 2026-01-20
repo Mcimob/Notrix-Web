@@ -4,8 +4,8 @@ import ch.ethz.inf.peachlab.app.SpringContext;
 import ch.ethz.inf.peachlab.backend.service.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
+import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
-import ch.ethz.inf.peachlab.ui.DesignConstants;
 import ch.ethz.inf.peachlab.ui.HasRender;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.TextWithIcon;
@@ -42,7 +42,6 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_WRAP_NO;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
-import static java.lang.Math.min;
 
 public class CompetitionStatsPanel extends Div implements HasRender {
 
@@ -101,7 +100,7 @@ public class CompetitionStatsPanel extends Div implements HasRender {
                 STYLE_BORDER_WIDTH_S, STYLE_BORDER_COLOR_GRAY, STYLE_BORDER_RADIUS_S, STYLE_BORDER_STYLE_SOLID);
         chartContainer.render();
 
-        LinkedHashMap<Integer, Integer> sortedByValue =
+        LinkedHashMap<MainLabel, Integer> sortedByValue =
                 competition.getMainLabelStats().entrySet().stream()
                     .sorted(Map.Entry.comparingByValue())   // ascending
                     .collect(Collectors.collectingAndThen(
@@ -125,18 +124,18 @@ public class CompetitionStatsPanel extends Div implements HasRender {
         return div;
     }
 
-    private Component createBar(Map.Entry<Integer, Integer> entry, int maxValue) {
+    private Component createBar(Map.Entry<MainLabel, Integer> entry, int maxValue) {
         Div div = new Div();
         div.addClassNames(STYLE_HEIGHT_FULL, STYLE_FLEX_COLUMN, STYLE_FLEX_ALIGN_CENTER, STYLE_FLEX_JUSTIFY_END);
 
         Div bar = new Div();
-        bar.getElement().setAttribute("data-tooltip", "%s: %s".formatted(getTranslation("entity.cell.mainLabel." + min(11, entry.getKey())), entry.getValue()));
+        bar.getElement().setAttribute("data-tooltip", "%s: %s".formatted(getTranslation(entry.getKey().getTitleKey()), entry.getValue()));
         bar.addClassNames(STYLE_BORDER_RADIUS_S, "bar", STYLE_BOX_SHADOW);
         float percent = entry.getValue() * 90f / maxValue;
         bar.getStyle()
                 .setHeight(percent + "%")
                 .setWidth("22px")
-                .setBackgroundColor(DesignConstants.StageColors.COLORS[entry.getKey()]);
+                .setBackgroundColor(entry.getKey().getColor());
 
         Span label = new Span(entry.getValue().toString());
         label.addClassNames(STYLE_FONT_SIZE_XS);

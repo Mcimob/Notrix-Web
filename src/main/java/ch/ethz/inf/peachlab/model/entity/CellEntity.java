@@ -1,8 +1,11 @@
 package ch.ethz.inf.peachlab.model.entity;
 
 import ch.ethz.inf.peachlab.model.enums.CellType;
+import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -25,11 +28,13 @@ public class CellEntity implements AbstractEntity {
     @Column(nullable = false, name = "SourceLineCount")
     private int sourceLinesCount;
 
+    @Enumerated(EnumType.ORDINAL)
     @Column(nullable = false, name = "CellType")
     private CellType cellType;
 
+    @Enumerated(EnumType.ORDINAL)
     @Column(nullable = true, name = "MainLabel")
-    private Integer mainLabel;
+    private MainLabel mainLabel;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "kernelVersionId")
@@ -77,11 +82,11 @@ public class CellEntity implements AbstractEntity {
         this.cellType = cellType;
     }
 
-    public Integer getMainLabel() {
+    public MainLabel getMainLabel() {
         return mainLabel;
     }
 
-    public void setMainLabel(Integer mainLabel) {
+    public void setMainLabel(MainLabel mainLabel) {
         this.mainLabel = mainLabel;
     }
 

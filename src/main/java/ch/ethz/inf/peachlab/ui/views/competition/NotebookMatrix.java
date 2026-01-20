@@ -8,9 +8,9 @@ import ch.ethz.inf.peachlab.model.entity.CellEntity;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.enums.CellType;
+import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
-import ch.ethz.inf.peachlab.ui.DesignConstants;
 import ch.ethz.inf.peachlab.ui.HasRender;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
@@ -33,7 +33,6 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
-import static java.lang.Math.min;
 
 @JsModule("./src/notebook-matrix.js")
 public class NotebookMatrix extends Scroller implements HasLogger, HasNotification, HasRender {
@@ -117,13 +116,13 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
         public Cell(CellEntity cell, KernelEntity kernel) {
             addClassNames(STYLE_WIDTH_FULL, STYLE_CELL);
             getStyle().setBackgroundColor(Optional.ofNullable(cell.getMainLabel())
-                    .map(i -> DesignConstants.StageColors.COLORS[i])
+                    .map(MainLabel::getColor)
                     .orElse("white"));
             setHeight(".5rem");
             getStyle().setFlexShrink("0");
             if (cell.getCellType() == CellType.CODE) {
                 getElement().setAttribute("data-tooltip", "Stage: %s<br/>Title: %s<br/>Lines: %s".formatted(
-                        getTranslation("entity.cell.mainLabel." + min(11, cell.getMainLabel())),
+                        getTranslation(cell.getMainLabel().getTitleKey()),
                         kernel.getTitle(),
                         cell.getSourceLinesCount()));
             }

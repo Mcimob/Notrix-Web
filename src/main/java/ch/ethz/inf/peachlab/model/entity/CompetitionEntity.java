@@ -1,5 +1,6 @@
 package ch.ethz.inf.peachlab.model.entity;
 
+import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -15,6 +16,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 public class CompetitionEntity implements AbstractEntity {
@@ -125,12 +127,15 @@ public class CompetitionEntity implements AbstractEntity {
         this.slug = slug;
     }
 
-    public Map<Integer, Integer> getMainLabelStats() {
-        return mainLabelStats;
-    }
+    public Map<MainLabel, Integer> getMainLabelStats() {
+        if (mainLabelStats == null) {
+            return Map.of();
+        }
 
-    public void setMainLabelStats(Map<Integer, Integer> mainLabelStats) {
-        this.mainLabelStats = mainLabelStats;
+        return mainLabelStats.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> MainLabel.values()[e.getKey()],
+                        Map.Entry::getValue));
     }
 
     public Double getAvgCellsPerKernel() {
