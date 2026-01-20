@@ -10,6 +10,8 @@ import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -51,6 +53,10 @@ public class KernelEntity implements AbstractEntity {
 
     @Column(nullable = true, name = "AuthorDisplayName")
     private String authorDisplayName;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "LabelSequence", columnDefinition = "jsonb")
+    private Integer[] labelSequence;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SourceCompetitionId")
@@ -133,6 +139,14 @@ public class KernelEntity implements AbstractEntity {
 
     public void setAuthorDisplayName(String authorDisplayName) {
         this.authorDisplayName = authorDisplayName;
+    }
+
+    public Integer[] getLabelSequence() {
+        return labelSequence;
+    }
+
+    public void setLabelSequence(Integer[] labelSequence) {
+        this.labelSequence = labelSequence;
     }
 
     public List<CellEntity> getCells() {

@@ -10,19 +10,18 @@ CREATE TABLE competition_entity
     main_label_stats     JSONB,
     avg_cells_per_kernel DOUBLE PRECISION            NOT NULL,
     avg_votes            DOUBLE PRECISION            NOT NULL,
+    transition_matrix    JSONB,
     CONSTRAINT pk_competitionentity PRIMARY KEY (id)
 );
 
-create table competition_tags
+CREATE TABLE competition_tags
 (
-    competition_id bigint not null
-        constraint fka01qmjjv2xywa54vo1rhsk683
-            references competition_entity,
-    slug            varchar(255)
+    competition_id BIGINT NOT NULL,
+    slug           VARCHAR(255)
 );
 
-alter table competition_tags
-    owner to postgres;
+ALTER TABLE competition_tags
+    ADD CONSTRAINT fk_competitiontags_on_competition_entity FOREIGN KEY (competition_id) REFERENCES competition_entity (id);
 
 CREATE TABLE cluster_entity
 (
@@ -47,6 +46,7 @@ CREATE TABLE kernel_entity
     current_url_slug      VARCHAR(255),
     author_user_name      VARCHAR(255),
     author_display_name   VARCHAR(255),
+    label_sequence        JSONB,
     source_competition_id BIGINT,
     cluster_id            BIGINT,
     CONSTRAINT pk_kernelentity PRIMARY KEY (kernel_version_id)
@@ -76,7 +76,7 @@ ALTER TABLE cell_entity
 ALTER TABLE cell_entity
     ALTER COLUMN source TYPE VARCHAR(255) USING (source::varchar);
 
-\copy competition_entity(id, title, subtitle, overview, slug, total_submissions, deadline_date, main_label_stats, avg_cells_per_kernel, avg_votes) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/Competitions_stats.csv' DELIMITER ',' CSV HEADER
+\copy competition_entity(id, title, subtitle, overview, slug, total_submissions, deadline_date, main_label_stats, avg_cells_per_kernel, avg_votes, transition_matrix) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/Competitions_stats.csv' DELIMITER ',' CSV HEADER
 \copy competition_tags(competition_id, slug) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/CompetitionTags.csv' DELIMITER ',' CSV HEADER
-\copy kernel_entity(kernel_version_id, source_competition_id, creation_date, version_number, title, total_votes, total_views, total_comments, current_url_slug, author_user_name, author_display_name) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/AllCompetitionKernels.csv' DELIMITER ',' CSV HEADER
+\copy kernel_entity(kernel_version_id, source_competition_id, creation_date, version_number, title, total_votes, total_views, total_comments, current_url_slug, author_user_name, author_display_name, label_sequence) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/AllCompetitionKernels.csv' DELIMITER ',' CSV HEADER
 \copy cell_entity(id, kernel_version_id, cell_id, source, cell_type, main_label, source_line_count) FROM '/media/tim/Data/Thesis/Cells_predicted.csv' DELIMITER ',' CSV HEADER

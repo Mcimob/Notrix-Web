@@ -50,6 +50,10 @@ public class CompetitionEntity implements AbstractEntity {
     @Column(nullable = false)
     private Double avgVotes;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "TransitionMatrix", columnDefinition = "jsonb")
+    private Integer[][] transitionMatrix;
+
     @ElementCollection
     @CollectionTable(name = "CompetitionTags", joinColumns = {@JoinColumn(name = "CompetitionId")})
     @Column(name = "Slug")
@@ -143,6 +147,14 @@ public class CompetitionEntity implements AbstractEntity {
 
     public void setAvgVotes(Double avgVotes) {
         this.avgVotes = avgVotes;
+    }
+
+    public Integer[][] getTransitionMatrix() {
+        return transitionMatrix;
+    }
+
+    public void setTransitionMatrix(Integer[][] transitionMatrix) {
+        this.transitionMatrix = transitionMatrix;
     }
 
     public Set<String> getTags() {
