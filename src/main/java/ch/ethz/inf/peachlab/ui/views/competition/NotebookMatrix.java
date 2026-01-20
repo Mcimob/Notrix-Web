@@ -14,7 +14,9 @@ import ch.ethz.inf.peachlab.ui.DesignConstants;
 import ch.ethz.inf.peachlab.ui.HasRender;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
+import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import org.springframework.data.domain.Page;
@@ -33,6 +35,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 import static java.lang.Math.min;
 
+@JsModule("./src/notebook-matrix.js")
 public class NotebookMatrix extends Scroller implements HasLogger, HasNotification, HasRender {
 
     private final CompetitionEntity competition;
@@ -95,43 +98,20 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
         setScrollDirection(ScrollDirection.BOTH);
         setSizeFull();
         setContent(createContent());
-
-        // attach hover JS globally
-        getElement().executeJs("""
-        let lastIndex = null;
-
-        this.addEventListener('mousemove', e => {
-            const target = e.composedPath().filter(el => el.kernelIndex != undefined)[0];
-            if (!target) return;
-            const index = target.kernelIndex;
-            onMouseMove(index);
-        });
-
-        this.addEventListener('mouseleave', e => {
-            const grid = document.getElementById("kernel-grid");
-            clearHighlights(grid);
-        });
-
-        function onMouseMove(index) {
-            if (lastIndex == index) return;
-            const grid = document.getElementById("kernel-grid");
-            grid.scrollToIndex(index);
-            clearHighlights(grid);
-            let newRow = Array.from(grid.shadowRoot.children[0].getElementsByTagName("tr")).filter(r => r.getAttribute("aria-rowindex") - 2 == index)[0];
-            if (!newRow) return;
-            newRow.querySelectorAll('td').forEach(td =>
-                td.part.add("hover-highlight"));
-
-            lastIndex = index;
-        };
-
-        function clearHighlights(grid) {
-            grid.shadowRoot
-            .querySelectorAll('td[part~="hover-highlight"]')
-                .forEach(td => td.part.remove("hover-highlight"));
-        }
-    """);
     }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+
+        getElement().executeJs(
+                "window.attachNotebookMatrixHover($0, $1)",
+                getElement(),
+                "kernel-grid"
+        );
+    }
+
+
 
     private static class Cell extends Div {
         public Cell(CellEntity cell, KernelEntity kernel) {
