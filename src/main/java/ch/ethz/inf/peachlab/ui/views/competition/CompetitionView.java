@@ -61,7 +61,11 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     @Override
     public void render() {
         removeAll();
-        Div left = new Div("Transitions");
+        TransitionSidebar sidebar = new TransitionSidebar();
+        sidebar.setStageFrequencies(competition.getMainLabelStats());
+        sidebar.setTransitionMatrix(competition.getTransitionMatrix());
+        sidebar.render();
+        Div left = new Div(sidebar);
         left.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_CENTER, STYLE_BACKGROUND_WHITE);
         left.setWidth("80rem");
 
