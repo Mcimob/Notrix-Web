@@ -3,7 +3,7 @@ package ch.ethz.inf.peachlab.ui.views.competition;
 import ch.ethz.inf.peachlab.model.enums.LabelCategory;
 import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import ch.ethz.inf.peachlab.ui.HasRender;
-import com.vaadin.flow.component.html.Div;
+import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import com.vaadin.flow.component.svg.Svg;
 import com.vaadin.flow.component.svg.elements.Rect;
 
@@ -15,7 +15,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
-public class TransitionSidebar extends Div implements HasRender {
+public class TransitionSidebar extends DivWithTooltip implements HasRender {
 
     private static final int RECT_SPACING = 70;
     private static final int VIEWBOX_WIDTH = 400;
@@ -25,6 +25,7 @@ public class TransitionSidebar extends Div implements HasRender {
     private Integer[][] transitionMatrix;
 
     public TransitionSidebar() {
+        super(".with-hover");
         initStyles();
     }
 
@@ -34,7 +35,7 @@ public class TransitionSidebar extends Div implements HasRender {
 
     @Override
     public void render() {
-        removeAll();
+        super.render();
         if (stageFrequencies == null || transitionMatrix == null) {
             return;
         }
@@ -48,7 +49,7 @@ public class TransitionSidebar extends Div implements HasRender {
                 .max(Integer::compareTo)
                 .orElseThrow();
         stageFrequencies.forEach((key, value) -> {
-            Rect rect = new Rect("stage" + key, RECT_WIDTH, 15 + (value * 45F / maxValue));
+            Rect rect = new Rect("stage-" + key.ordinal(), RECT_WIDTH, 15 + (value * 45F / maxValue));
             rect.move((VIEWBOX_WIDTH - RECT_WIDTH) / 2F, key.ordinal() * RECT_SPACING);
             rect.setFillColor(key.getColor());
             rect.setAttribute("rx", "3");
@@ -58,6 +59,11 @@ public class TransitionSidebar extends Div implements HasRender {
                             || key.getLabelCategory() == LabelCategory.MODEL_ORIENTED
                             ? "#666" : "none",
                     3);
+            rect.addClassName("with-hover");
+            rect.setAttribute("data-tooltip", "<b>%s</b><br/>%s<br/>Count: %s".formatted(
+                    getTranslation(key.getTitleKey()),
+                    getTranslation(key.getLabelCategory().getTitleKey()),
+                    value));
             svg.add(rect);
         });
 
