@@ -56,34 +56,27 @@ class TransitionSidebar extends ReactAdapterElement {
             return labels.find(l => l.id == id);
         }
 
+        const setOpacity = (value: string) =>
+            (el: Element) => {
+                return (el as HTMLElement).style.opacity = value;
+            }
+
         const onRectMouseover = (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
             const rect = event.currentTarget;
             const stageClass = Array.from(rect.classList).find(cls => cls.startsWith("stage-"));
             if (!stageClass) return;
 
             // Highlight all rects with this stage class
-            document.querySelectorAll("#notebook-matrix .cell").forEach(el => {
-                (el as HTMLElement).style.opacity = "0.1";
-            });
-            document.querySelectorAll("transition-sidebar path").forEach(el => {
-                (el as SVGPathElement).style.opacity = "0.1"
-            });
+            document.querySelectorAll("#notebook-matrix .cell").forEach(setOpacity("0.1"));
+            document.querySelectorAll("transition-sidebar path").forEach(setOpacity("0.1"));
 
-            document.querySelectorAll(`#notebook-matrix .${stageClass}`).forEach(el => {
-                (el as HTMLElement).style.opacity = "0.9";
-            });
-            document.querySelectorAll(`transition-sidebar path.${stageClass}`).forEach(el => {
-                (el as SVGPathElement).style.opacity = "0.9";
-            });
+            document.querySelectorAll(`#notebook-matrix .${stageClass}`).forEach(setOpacity("0.9"));
+            document.querySelectorAll(`transition-sidebar path.${stageClass}`).forEach(setOpacity("0.9"));
         };
 
         const onRectMouseLeave = (_: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-            document.querySelectorAll("#notebook-matrix .cell").forEach(el => {
-                (el as HTMLElement).style.opacity = "1";
-            });
-            document.querySelectorAll("transition-sidebar path").forEach(el => {
-                (el as SVGPathElement).style.opacity = "1";
-            })
+            document.querySelectorAll("#notebook-matrix .cell").forEach(setOpacity("1"));
+            document.querySelectorAll("transition-sidebar path").forEach(setOpacity("1"));
         };
 
         const onPathMouseover = (event: React.MouseEvent<SVGPathElement, MouseEvent>)=> {
@@ -91,29 +84,16 @@ class TransitionSidebar extends ReactAdapterElement {
             const transitionClass = Array.from(path.classList).find(cls => cls.startsWith("transition-"));
             if (!transitionClass) return;
 
-            document.querySelectorAll("#notebook-matrix .cell").forEach(el => {
-                (el as HTMLElement).style.opacity = "0.1";
-            });
+            document.querySelectorAll("#notebook-matrix .cell").forEach(setOpacity("0.1"));
+            document.querySelectorAll("transition-sidebar path").forEach(setOpacity("0.1"));
 
-            document.querySelectorAll("transition-sidebar path").forEach(el => {
-                (el as SVGPathElement).style.opacity = "0.1"
-            });
-
-            document.querySelectorAll(`#notebook-matrix .${transitionClass}`).forEach(el => {
-                (el as HTMLElement).style.opacity = "0.9";
-            });
-
+            document.querySelectorAll(`#notebook-matrix .${transitionClass}`).forEach(setOpacity("0.9"));
             path.style.opacity = "0.9";
         };
 
         const onPathMouseleave = (_: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-            document.querySelectorAll("#notebook-matrix .cell").forEach(el => {
-                (el as HTMLElement).style.opacity = "1";
-            });
-
-            document.querySelectorAll("transition-sidebar path").forEach(el => {
-                (el as SVGPathElement).style.opacity = "1";
-            })
+            document.querySelectorAll("#notebook-matrix .cell").forEach(setOpacity("1"));
+            document.querySelectorAll("transition-sidebar path").forEach(setOpacity("1"))
         };
 
         return (
