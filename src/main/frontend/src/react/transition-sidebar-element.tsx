@@ -88,7 +88,7 @@ class TransitionSidebar extends ReactAdapterElement {
             document.querySelectorAll("transition-sidebar path").forEach(setOpacity("0.1"));
 
             document.querySelectorAll(`#notebook-matrix .${transitionClass}`).forEach(setOpacity("0.9"));
-            path.style.opacity = "0.9";
+            document.querySelectorAll(`transition-sidebar .${transitionClass}`).forEach(setOpacity("0.9"));
         };
 
         const onPathMouseleave = (_: React.MouseEvent<SVGRectElement, MouseEvent>) => {
@@ -139,27 +139,48 @@ class TransitionSidebar extends ReactAdapterElement {
                         const x = VIEWBOX_WIDTH / 2;
                         const y1 = from.id * RECT_SPACING + rectHeight(stages[from.id].count) / 2;
                         const y2 = to.id * RECT_SPACING + rectHeight(stages[to.id].count) / 2;
-                        const side = y2 > y1 ? 1 : -1;
-                        const ctrlX = x + side * Math.min(Math.abs(y2 - y1) * 0.5, 200);
+                        const yDiff = y2 - y1;
+                        const side = Math.sign(yDiff);
+                        const ctrlX = x + side * Math.min(Math.abs(yDiff) * 0.5, 200);
 
-                        const d = `
-            M ${x},${y1}
-            C ${ctrlX},${y1} ${ctrlX},${y2} ${x},${y2}
-          `;
+                        const strokeWidth = pathStrokeWidth(value);
+                        const dPath = `
+                            M ${x},${y1}
+                            C ${ctrlX},${y1} ${ctrlX},${y2} ${x},${y2}
+                        `;
 
-                        return (
+                        const arrowSize = Math.max(8, strokeWidth * 0.5);
+
+                        const dArrow = `
+                            M 0 ${arrowSize / 2} 
+                            L ${-arrowSize / 2} ${-arrowSize / 2} 
+                            L ${arrowSize / 2} ${-arrowSize / 2} 
+                            Z
+                        `;
+
+                        return (<>
                             <path
                                 key={`path-${from.id}-${to.id}`}
-                                d={d}
+                                d={dPath}
                                 fill="none"
                                 stroke={`url(#grad-${from.id}-${to.id})`}
-                                strokeWidth={pathStrokeWidth(value)}
+                                strokeWidth={strokeWidth}
                                 className={`with-hover stage-${from.id} stage-${to.id} transition-${from.id}-${to.id}`}
                                 data-tooltip={`<b>${label(from.id)!.name} -> ${label(to.id)!.name}</b><br/>Count: ${value}`}
                                 onMouseOver={onPathMouseover}
                                 onMouseLeave={onPathMouseleave}
                             />
-                        );
+                            <path
+                                key={`arrow-${from.id}-${to.id}`}
+                                d={dArrow}
+                                fill={label(from.id)!.color}
+                                stroke={label(from.id)!.color}
+                                strokeWidth={1.2}
+                                strokeLinejoin={"round"}
+                                transform={`translate(${x + (ctrlX - x) * 0.75}, ${y1 + yDiff / 2}) rotate(${(side - 1) * 90})`}
+                                className={`stage-${from.id} stage-${to.id} transition-${from.id}-${to.id}`}
+                            />
+                        </>);
                     })
                 )}
 
