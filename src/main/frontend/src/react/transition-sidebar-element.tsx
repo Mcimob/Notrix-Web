@@ -22,6 +22,7 @@ type Props = {
 };
 
 class TransitionSidebar extends ReactAdapterElement {
+
     protected render(hooks: RenderHooks): React.ReactElement | null {
         const [data, setData] = hooks.useState<Props>("data")
 
@@ -38,6 +39,37 @@ class TransitionSidebar extends ReactAdapterElement {
 
         const label = (id: number)=> {
             return labels.find(l => l.id == id);
+        }
+
+        const onRectMouseover = (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
+            const rect = event.currentTarget;
+            const stageClass = Array.from(rect.classList).find(cls => cls.startsWith("stage-"));
+            console.log(stageClass);
+            if (!stageClass) return;
+
+            // Highlight all rects with this stage class
+            document.querySelectorAll("#notebook-matrix .cell").forEach(el => {
+                (el as HTMLElement).style.opacity = "0.1";
+            });
+            document.querySelectorAll("transition-sidebar path").forEach(el => {
+                (el as SVGPathElement).style.opacity = "0.1"
+            });
+
+            document.querySelectorAll(`#notebook-matrix .${stageClass}`).forEach(el => {
+                (el as HTMLElement).style.opacity = "0.9";
+            });
+            document.querySelectorAll(`transition-sidebar path.${stageClass}`).forEach(el => {
+                (el as SVGPathElement).style.opacity = "0.9";
+            });
+        };
+
+        const onRectMouseLeave = (_: React.MouseEvent<SVGRectElement>) => {
+            document.querySelectorAll("#notebook-matrix .cell").forEach(el => {
+                (el as HTMLElement).style.opacity = "1";
+            });
+            document.querySelectorAll("transition-sidebar path").forEach(el => {
+                (el as SVGPathElement).style.opacity = "1";
+            })
         }
 
         return (
@@ -98,7 +130,7 @@ class TransitionSidebar extends ReactAdapterElement {
                                 fill="none"
                                 stroke={`url(#grad-${from.id}-${to.id})`}
                                 strokeWidth={5}
-                                className={"with-hover"}
+                                className={`with-hover stage-${from.id} stage-${to.id}`}
                                 data-tooltip={`<b>${label(from.id)!.name} -> ${label(to.id)!.name}</b><br/>Count: ${value}`}
                             />
                         );
@@ -122,8 +154,10 @@ class TransitionSidebar extends ReactAdapterElement {
                             stroke={label(stage.id)!.stroke}
                             strokeWidth={3}
                             strokeDasharray={label(stage.id)!.strokeDasharray}
-                            className={"with-hover"}
+                            className={`with-hover stage-${stage.id}`}
                             data-tooltip={`<b>${label(stage.id)!.name}</b><br/>${label(stage.id)!.groupName}<br/>Count: ${stage.count}`}
+                            onMouseOver={onRectMouseover}
+                            onMouseLeave={onRectMouseLeave}
                         />
                     );
                 })}

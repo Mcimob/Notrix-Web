@@ -41,6 +41,7 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
 
     public NotebookMatrix(CompetitionEntity competition) {
         this.competition = competition;
+        setId("notebook-matrix");
     }
 
     private Component createColumn(KernelEntity kernel, int index) {
@@ -114,7 +115,7 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
 
     private static class Cell extends Div {
         public Cell(CellEntity cell, KernelEntity kernel) {
-            addClassNames(STYLE_WIDTH_FULL, STYLE_CELL);
+            addClassNames(STYLE_WIDTH_FULL, STYLE_CELL, "stage-" + cell.getMainLabel().ordinal());
             getStyle().setBackgroundColor(Optional.ofNullable(cell.getMainLabel())
                     .map(MainLabel::getColor)
                     .orElse("white"));
