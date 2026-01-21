@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 
-@JsModule("./src/react/transition-sidebar-element.tsx")
+@JsModule("./src/react/sidebar/transition-sidebar-element.tsx")
 @Tag("transition-sidebar")
 public class TransitionSidebarReact extends ReactAdapterComponent {
 
