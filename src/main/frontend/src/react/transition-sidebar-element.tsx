@@ -33,9 +33,24 @@ class TransitionSidebar extends ReactAdapterElement {
 
         const maxValue = Math.max(...stages.map(s => s.count));
         const height = stages.length * RECT_SPACING;
+        const minTransitionValue = Math.min(...transitions.flat());
+        const maxTransitionValue = Math.max(...transitions.flat());
+        const minPathWidth = 2;
+        const maxPathWidth = 26;
 
         const rectHeight = (value: number) =>
             15 + (value * 45) / maxValue;
+
+        const pathStrokeWidth = (count: number) => {
+            if (count <= 0)
+                return 0;
+            if (maxTransitionValue <= 5) {
+                // 离散情况直接写死
+                return [0, 2, 4][count] || 5;
+            }
+            const t = (count - minTransitionValue) / (maxTransitionValue - minTransitionValue);
+            return minPathWidth + Math.pow(t, 0.4) * (maxPathWidth - minPathWidth);
+        }
 
         const label = (id: number)=> {
             return labels.find(l => l.id == id);
@@ -129,7 +144,7 @@ class TransitionSidebar extends ReactAdapterElement {
                                 d={d}
                                 fill="none"
                                 stroke={`url(#grad-${from.id}-${to.id})`}
-                                strokeWidth={5}
+                                strokeWidth={pathStrokeWidth(value)}
                                 className={`with-hover stage-${from.id} stage-${to.id}`}
                                 data-tooltip={`<b>${label(from.id)!.name} -> ${label(to.id)!.name}</b><br/>Count: ${value}`}
                             />
