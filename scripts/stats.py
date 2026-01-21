@@ -90,25 +90,22 @@ def get_label_stats(cells: pd.DataFrame, kernels: pd.DataFrame) -> pd.DataFrame:
 
 def get_label_sequences(cells: pd.DataFrame) -> pd.DataFrame:
     cells_valid = cells.dropna(subset=["MainLabel"])
+
+    cells_sorted = cells_valid.sort_values(["KernelVersionId", "CellId"])
+
+    is_duplicate = cells_sorted["MainLabel"] == cells_sorted.groupby("KernelVersionId")["MainLabel"].shift()
     
-    cells_sorted = cells_valid.sort_values(
-        ["KernelVersionId", "CellId"]
-    )
-
-    # remove consecutive duplicates within each kernel
-    cells_dedup = cells_sorted[
-        cells_sorted["MainLabel"]
-        != cells_sorted.groupby("KernelVersionId")["MainLabel"].shift()
-    ]
-
-    # build sequence per kernel
+    # Keep the first row of each kernel and remove other consecutive duplicates
+    cells_dedup = cells_sorted[~is_duplicate | cells_sorted.groupby("KernelVersionId").cumcount().eq(0)]
+    
+    # Build sequence per kernel
     kernel_sequences = (
         cells_dedup
         .groupby("KernelVersionId")["MainLabel"]
         .agg(list)
         .reset_index(name="LabelSequence")
     )
-    
+
     kernel_sequences["LabelSequence"] = kernel_sequences["LabelSequence"].apply(lambda lst: [int(x) for x in lst])
     
     return kernel_sequences
