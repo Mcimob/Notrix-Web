@@ -51,13 +51,42 @@ public class NotebookMatrix extends Scroller implements HasLogger, HasNotificati
         div.getStyle().setFlexShrink("0");
         div.getStyle().setGap("1px");
         div.getElement().setProperty("kernelIndex", index);
-        kernel.getCells().stream()
+
+        createCells(kernel).forEach(div::add);
+        return div;
+    }
+
+    private List<Cell> createCells(KernelEntity kernel) {
+        List<CellEntity> cells = kernel.getCells().stream()
                 .filter(Objects::nonNull)
                 .filter(c -> c.getCellType() == CellType.CODE)
-                .map(c -> new Cell(c, kernel))
-                .forEach(div::add);
+                .toList();
+        MainLabel[] labelSequence = kernel.getLabelSequence();
+        int sequenceIndex = 0;
 
-        return div;
+        List<Cell> result = new ArrayList<>();
+        for (CellEntity cell : cells) {
+            Cell cellElement = new Cell(cell, kernel);
+            if (labelSequence.length != 0) {
+                if (labelSequence[sequenceIndex] != cell.getMainLabel()) {
+                    sequenceIndex++;
+                }
+                if (sequenceIndex + 1 < labelSequence.length) {
+                    cellElement.addClassName("transition-%s-%s".formatted(
+                            labelSequence[sequenceIndex].ordinal(),
+                            labelSequence[sequenceIndex + 1].ordinal()));
+                }
+                if (sequenceIndex - 1 >= 0) {
+                    cellElement.addClassName("transition-%s-%s".formatted(
+                            labelSequence[sequenceIndex - 1].ordinal(),
+                            labelSequence[sequenceIndex].ordinal()
+                    ));
+                }
+            }
+            result.add(cellElement);
+        }
+
+        return result;
     }
 
     private List<Component> createColumns() {

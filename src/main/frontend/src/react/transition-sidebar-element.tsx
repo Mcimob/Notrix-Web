@@ -59,7 +59,6 @@ class TransitionSidebar extends ReactAdapterElement {
         const onRectMouseover = (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
             const rect = event.currentTarget;
             const stageClass = Array.from(rect.classList).find(cls => cls.startsWith("stage-"));
-            console.log(stageClass);
             if (!stageClass) return;
 
             // Highlight all rects with this stage class
@@ -78,14 +77,44 @@ class TransitionSidebar extends ReactAdapterElement {
             });
         };
 
-        const onRectMouseLeave = (_: React.MouseEvent<SVGRectElement>) => {
+        const onRectMouseLeave = (_: React.MouseEvent<SVGRectElement, MouseEvent>) => {
             document.querySelectorAll("#notebook-matrix .cell").forEach(el => {
                 (el as HTMLElement).style.opacity = "1";
             });
             document.querySelectorAll("transition-sidebar path").forEach(el => {
                 (el as SVGPathElement).style.opacity = "1";
             })
-        }
+        };
+
+        const onPathMouseover = (event: React.MouseEvent<SVGPathElement, MouseEvent>)=> {
+            const path = event.currentTarget;
+            const transitionClass = Array.from(path.classList).find(cls => cls.startsWith("transition-"));
+            if (!transitionClass) return;
+
+            document.querySelectorAll("#notebook-matrix .cell").forEach(el => {
+                (el as HTMLElement).style.opacity = "0.1";
+            });
+
+            document.querySelectorAll("transition-sidebar path").forEach(el => {
+                (el as SVGPathElement).style.opacity = "0.1"
+            });
+
+            document.querySelectorAll(`#notebook-matrix .${transitionClass}`).forEach(el => {
+                (el as HTMLElement).style.opacity = "0.9";
+            });
+
+            path.style.opacity = "0.9";
+        };
+
+        const onPathMouseleave = (_: React.MouseEvent<SVGRectElement, MouseEvent>) => {
+            document.querySelectorAll("#notebook-matrix .cell").forEach(el => {
+                (el as HTMLElement).style.opacity = "1";
+            });
+
+            document.querySelectorAll("transition-sidebar path").forEach(el => {
+                (el as SVGPathElement).style.opacity = "1";
+            })
+        };
 
         return (
             <svg viewBox={`0 0 ${VIEWBOX_WIDTH} ${height}`} width="100%" height="100%">
@@ -145,8 +174,10 @@ class TransitionSidebar extends ReactAdapterElement {
                                 fill="none"
                                 stroke={`url(#grad-${from.id}-${to.id})`}
                                 strokeWidth={pathStrokeWidth(value)}
-                                className={`with-hover stage-${from.id} stage-${to.id}`}
+                                className={`with-hover stage-${from.id} stage-${to.id} transition-${from.id}-${to.id}`}
                                 data-tooltip={`<b>${label(from.id)!.name} -> ${label(to.id)!.name}</b><br/>Count: ${value}`}
+                                onMouseOver={onPathMouseover}
+                                onMouseLeave={onPathMouseleave}
                             />
                         );
                     })
