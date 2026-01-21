@@ -7,7 +7,9 @@ import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.ui.MainLayout;
+import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.OverviewBox;
+import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
 import ch.ethz.inf.peachlab.ui.provider.KernelProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
@@ -61,13 +63,14 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     @Override
     public void render() {
         removeAll();
-        TransitionSidebar sidebar = new TransitionSidebar();
-        sidebar.setStageFrequencies(competition.getMainLabelStats());
-        sidebar.setTransitionMatrix(competition.getTransitionMatrix());
-        sidebar.render();
-        Div left = new Div(sidebar);
-        left.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_CENTER, STYLE_BACKGROUND_WHITE);
-        left.setWidth("80rem");
+        TransitionSidebarReact sidebar = new TransitionSidebarReact();
+        sidebar.setData(competition.getMainLabelStats(), competition.getTransitionMatrix());
+        sidebar.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+        DivWithTooltip sidebarDiv = new DivWithTooltip(".with-hover");
+        sidebarDiv.render();
+        sidebarDiv.add(sidebar);
+        sidebarDiv.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_CENTER, STYLE_BACKGROUND_WHITE);
+        sidebarDiv.setWidth("80rem");
 
         Div center = new Div(createTitleBox(), createDescriptionBox(), createNotebookMatrix());
         center.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
@@ -76,7 +79,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         Div right = new Div(createStats(), createGrid());
         right.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
 
-        add(left, center, right);
+        add(sidebarDiv, center, right);
     }
 
     private Component createTitleBox() {
