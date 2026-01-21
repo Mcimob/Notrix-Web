@@ -10,7 +10,8 @@ public record MainLabelDTO(
         String name,
         String groupName,
         String color,
-        String stroke) {
+        String stroke,
+        String strokeDasharray) {
 
     public static MainLabelDTO ofLabel(MainLabel label, Function<String, String> translator) {
         return new MainLabelDTO(
@@ -20,7 +21,9 @@ public record MainLabelDTO(
                 label.getColor(),
                 label.getLabelCategory() == LabelCategory.DATA_ORIENTED
                         || label.getLabelCategory() == LabelCategory.MODEL_ORIENTED
-                        ? "#666" : "none"
+                        ? "#666" : "none",
+                label.getLabelCategory() == LabelCategory.MODEL_ORIENTED
+                    ? "8" : "none"
         );
     }
 }

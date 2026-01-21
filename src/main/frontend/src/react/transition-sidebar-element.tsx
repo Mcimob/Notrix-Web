@@ -17,6 +17,7 @@ type Props = {
         groupName: string;
         color: string;
         stroke: string;
+        strokeDasharray: string
     }[];
 };
 
@@ -120,6 +121,7 @@ class TransitionSidebar extends ReactAdapterElement {
                             fill={label(stage.id)!.color}
                             stroke={label(stage.id)!.stroke}
                             strokeWidth={3}
+                            strokeDasharray={label(stage.id)!.strokeDasharray}
                             className={"with-hover"}
                             data-tooltip={`<b>${label(stage.id)!.name}</b><br/>${label(stage.id)!.groupName}<br/>Count: ${stage.count}`}
                         />
