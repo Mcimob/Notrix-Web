@@ -28,8 +28,17 @@ public class Filterbar extends Div implements HasRender {
         div.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_FLEX_ALIGN_CENTER);
 
         div.add(new Text("Show:"));
+        div.add(createHeightButton());
         div.add(createMarkdownButton());
         return div;
+    }
+
+    private Component createHeightButton() {
+        ToggleButton button = new ToggleButton("Height");
+        button.addValueChangeListener(change ->
+                fireEvent(new ShowHeightEvent(change.getValue(), this, change.isFromClient())));
+
+        return button;
     }
 
     private Component createMarkdownButton() {
@@ -49,5 +58,9 @@ public class Filterbar extends Div implements HasRender {
 
     public Registration addMarkdownButtonListener(ComponentEventListener<ShowMarkdownEvent> listener) {
         return addListener(ShowMarkdownEvent.class, listener);
+    }
+
+    public Registration addHeightButtonListener(ComponentEventListener<ShowHeightEvent> listener) {
+        return addListener(ShowHeightEvent.class, listener);
     }
 }

@@ -127,7 +127,6 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     private Component createNotebookMatrix() {
-        matrix.getStyle().set("--display-md", "none");
         matrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         UI ui = UI.getCurrent();
         kernelService.fetchAsync(Pageable.unpaged(), filter, KernelLoadType.WITH_CELLS)
@@ -137,7 +136,14 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         Filterbar bar = new Filterbar();
         bar.render();
         bar.addMarkdownButtonListener(event ->
-                matrix.getStyle().set("--display-md", event.getShow() ? "block" : "none"));
+            matrix.getStyle().set("--display-md", event.getShow() ? "block" : "none"));
+        bar.addHeightButtonListener(event -> {
+            if (event.getShow()) {
+                matrix.getStyle().set("--cell-height", "initial");
+            } else {
+                matrix.getStyle().set("--cell-height", "5px");
+            }
+        });
 
         DivWithTooltip div = new DivWithTooltip(".cell");
         div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0,

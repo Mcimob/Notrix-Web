@@ -13,6 +13,9 @@ class NotebookMatrix extends ReactAdapterElement {
         const [items, _setItems] = hooks.useState<KernelData[]>("items", []);
         const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", [])
 
+        const cellHeight = (item: CellData) =>
+            Math.max(3, Math.min(20, 3 + item.sourceLinesCount * 0.8));
+
         const Cells = (item: KernelData) => {
             const result = [];
             const cells = item.cells;
@@ -36,7 +39,7 @@ class NotebookMatrix extends ReactAdapterElement {
                 result.push(<div
                     style={{
                         backgroundColor: `var(--clr-stage-${cell.mainLabel}, white)`,
-                        height: "10px",
+                        height: `var(--cell-height, ${cellHeight(cell)}px)`,
                         flexShrink: 0,
                         display: cell.mainLabel == -1 ? "var(--display-md)" : "block",
                         border: cell.mainLabel == -1 ? "1px solid #bbb" : `1px solid var(--clr-stage-${cell.mainLabel})`,

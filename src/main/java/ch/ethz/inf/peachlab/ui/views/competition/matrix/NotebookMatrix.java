@@ -30,6 +30,8 @@ public class NotebookMatrix extends ReactAdapterComponent implements HasLogger, 
         setState("labelData", Arrays.stream(MainLabel.values())
                 .map(l -> SimpleMainLabelDTO.ofMainLabel(l, this::getTranslation))
                 .toArray());
+        getStyle().set("--display-md", "none");
+        getStyle().set("--cell-height", "5px");
     }
 
     @Override
