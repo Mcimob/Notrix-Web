@@ -15,6 +15,7 @@ import ch.ethz.inf.peachlab.ui.components.OverviewBox;
 import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
 import ch.ethz.inf.peachlab.ui.provider.KernelProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
+import ch.ethz.inf.peachlab.ui.views.competition.matrix.Filterbar;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.NotebookMatrix;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
 import com.vaadin.flow.component.Component;
@@ -126,15 +127,24 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     private Component createNotebookMatrix() {
+        matrix.getStyle().set("--display-md", "none");
+        matrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         UI ui = UI.getCurrent();
         kernelService.fetchAsync(Pageable.unpaged(), filter, KernelLoadType.WITH_CELLS)
                 .whenComplete((res, err) ->
                         ui.access(() -> onNewMatrixData(res, err)));
 
+        Filterbar bar = new Filterbar();
+        bar.render();
+        bar.addMarkdownButtonListener(event ->
+                matrix.getStyle().set("--display-md", event.getShow() ? "block" : "none"));
+
         DivWithTooltip div = new DivWithTooltip(".cell");
+        div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0,
+                STYLE_FLEX_COLUMN, STYLE_GAP_S);
         div.render();
+        div.add(bar);
         div.add(matrix);
-        div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0);
         return div;
     }
 
