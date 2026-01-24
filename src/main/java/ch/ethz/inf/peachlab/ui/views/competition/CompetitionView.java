@@ -1,17 +1,21 @@
 package ch.ethz.inf.peachlab.ui.views.competition;
 
 import ch.ethz.inf.peachlab.backend.service.CompetitionService;
+import ch.ethz.inf.peachlab.backend.service.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
+import ch.ethz.inf.peachlab.model.dto.KernelDTO;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
+import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.OverviewBox;
 import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
 import ch.ethz.inf.peachlab.ui.provider.KernelProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
+import ch.ethz.inf.peachlab.ui.views.competition.matrix.NotebookMatrix;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -25,6 +29,8 @@ import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_CENTER;
@@ -41,17 +47,23 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 public class CompetitionView extends AbstractView implements HasUrlParameter<String> {
 
     private final transient CompetitionService competitionService;
+    private final transient KernelService kernelService;
 
     private CompetitionEntity competition;
-    private Long hoveredItemId;
 
     private final Grid<KernelEntity> grid = new Grid<>();
     private final KernelFilter filter = new KernelFilter();
     private final ConfigurableFilterDataProvider<KernelEntity, Void, KernelFilter> provider =
             new KernelProvider().withConfigurableFilter();
 
-    public CompetitionView(CompetitionService competitionService) {
+    public CompetitionView(CompetitionService competitionService, KernelService kernelService) {
         this.competitionService = competitionService;
+        this.kernelService = kernelService;
+    }
+
+    private void initProvider() {
+        filter.setCompetition(competition);
+        provider.setFilter(filter);
     }
 
     @Override
@@ -111,9 +123,20 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     private Component createNotebookMatrix() {
-        NotebookMatrix matrix = new NotebookMatrix(competition);
-        matrix.render();
-        Div div = new Div(matrix);
+        NotebookMatrix matrix = new NotebookMatrix();
+        UI ui = UI.getCurrent();
+        kernelService.fetchAsync(Pageable.unpaged(), filter, KernelLoadType.WITH_CELLS)
+                .whenComplete((res, err) ->{
+                    ui.access(() ->
+                        matrix.setItems(res.getEntity().orElse(Page.empty()).stream()
+                                .map(KernelDTO::ofKernel)
+                                .toList())
+                    );
+                });
+
+        DivWithTooltip div = new DivWithTooltip(".cell");
+        div.render();
+        div.add(matrix);
         div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0);
         return div;
     }
@@ -143,16 +166,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         filter.setCompetition(competition);
 
-        provider.setFilter(filter);
         grid.setDataProvider(provider);
-
-        grid.setPartNameGenerator(item ->
-                item.getId().equals(hoveredItemId) ? "hover-highlight" : null
-        );
-
-        grid.addSelectionListener(e -> {
-            getLogger().info("Row selected: {}", e.getFirstSelectedItem().orElse(null));
-        });
 
         Div div = new Div(grid);
         div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
@@ -174,5 +188,6 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
             return;
         }
         competition = response.getEntity().get();
+        initProvider();
     }
 }

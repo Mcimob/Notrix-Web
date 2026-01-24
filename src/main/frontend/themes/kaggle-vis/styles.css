@@ -8,6 +8,20 @@ html {
     --size-l: 2rem;
 
     --bg-color: var(--lumo-contrast-10pct);
+
+    --clr-stage-0: #D3B484;
+    --clr-stage-1: #9EB9F3;
+    --clr-stage-2: #8BE0A4;
+    --clr-stage-3: #66C5CC;
+    --clr-stage-4: #C9DB74;
+    --clr-stage-5: #87C55F;
+    --clr-stage-6: #F6CF71;
+    --clr-stage-7: #F89C74;
+    --clr-stage-8: #FE88B1;
+    --clr-stage-9: #DCB0F2;
+    --clr-stage-10: #B3B3B3;
+    --clr-stage-11: #B3B3B3;
+    --clr-stage-12: #B3B3B3;
 }
 
 button,
@@ -211,4 +225,3 @@ vaadin-button{
 vaadin-grid::part(hover-highlight) {
     background-color: var(--lumo-contrast-20pct);
 }
-

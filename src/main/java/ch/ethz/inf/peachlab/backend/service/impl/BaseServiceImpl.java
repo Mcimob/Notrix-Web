@@ -10,8 +10,10 @@ import ch.ethz.inf.peachlab.model.filter.AbstractFilter;
 import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<T>> implements BaseService<T, F> {
 
@@ -66,6 +68,13 @@ public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<
         } catch (DaoException e) {
             return handleException(e, "Error fetching entities");
         }
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<ServiceResponse<Page<T>>> fetchAsync(Pageable pageable, F filter, HasLoadType loadType) {
+        ServiceResponse<Page<T>> response = fetch(pageable, filter, loadType);
+        return CompletableFuture.completedFuture(response);
     }
 
     @Override

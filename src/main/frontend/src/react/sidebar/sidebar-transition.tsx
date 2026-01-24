@@ -18,15 +18,15 @@ export default function SidebarTransition({from, to, value, maxValue, labelFunct
         const transitionClass = Array.from(path.classList).find(cls => cls.startsWith("transition-"));
         if (!transitionClass) return;
 
-        document.querySelectorAll("#notebook-matrix .cell").forEach(setOpacity("0.1"));
+        document.querySelectorAll("notebook-matrix .cell").forEach(setOpacity("0.1"));
         document.querySelectorAll("transition-sidebar path").forEach(setOpacity("0.1"));
 
-        document.querySelectorAll(`#notebook-matrix .${transitionClass}`).forEach(setOpacity("0.9"));
+        document.querySelectorAll(`notebook-matrix .${transitionClass}`).forEach(setOpacity("0.9"));
         document.querySelectorAll(`transition-sidebar .${transitionClass}`).forEach(setOpacity("0.9"));
     };
 
     const onPathMouseleave = (_: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-        document.querySelectorAll("#notebook-matrix .cell").forEach(setOpacity("1"));
+        document.querySelectorAll("notebook-matrix .cell").forEach(setOpacity("1"));
         document.querySelectorAll("transition-sidebar path").forEach(setOpacity("1"))
     };
 

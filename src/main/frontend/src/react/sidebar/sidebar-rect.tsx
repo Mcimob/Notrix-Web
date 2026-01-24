@@ -23,15 +23,15 @@ export default function SidebarRect({stage, index, maxValue, labelFunction} : Re
         if (!stageClass) return;
 
         // Highlight all rects with this stage class
-        document.querySelectorAll("#notebook-matrix .cell").forEach(setOpacity("0.1"));
+        document.querySelectorAll("notebook-matrix .cell").forEach(setOpacity("0.1"));
         document.querySelectorAll("transition-sidebar path").forEach(setOpacity("0.1"));
 
-        document.querySelectorAll(`#notebook-matrix .${stageClass}`).forEach(setOpacity("0.9"));
+        document.querySelectorAll(`notebook-matrix .${stageClass}`).forEach(setOpacity("0.9"));
         document.querySelectorAll(`transition-sidebar path.${stageClass}`).forEach(setOpacity("0.9"));
     };
 
     const onRectMouseLeave = (_: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-        document.querySelectorAll("#notebook-matrix .cell").forEach(setOpacity("1"));
+        document.querySelectorAll("notebook-matrix .cell").forEach(setOpacity("1"));
         document.querySelectorAll("transition-sidebar path").forEach(setOpacity("1"));
     };
 

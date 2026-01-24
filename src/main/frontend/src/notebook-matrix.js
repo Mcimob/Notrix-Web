@@ -3,10 +3,8 @@ window.attachNotebookMatrixHover = function (host, gridId) {
 
     host.addEventListener("mousemove", event => {
         const index = event
-            .composedPath()
-            .find(el => el?.kernelIndex !== undefined)
-            ?.kernelIndex;
-
+            .composedPath()[1]
+            ?.getAttribute("kernel-index");
         if (index == null || index === lastIndex) return;
         highlight(index);
     });
@@ -38,7 +36,7 @@ window.attachNotebookMatrixHover = function (host, gridId) {
         return Array.from(
             grid.shadowRoot.querySelectorAll("tr[aria-rowindex]")
         ).find(r =>
-            Number(r.getAttribute("aria-rowindex")) - 2 === index
+            r.getAttribute("aria-rowindex") - 2 == index
         );
     }
 
