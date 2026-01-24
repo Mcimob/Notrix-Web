@@ -2,6 +2,8 @@ package ch.ethz.inf.peachlab.ui.views.competition.matrix;
 
 import ch.ethz.inf.peachlab.logger.HasLogger;
 import ch.ethz.inf.peachlab.model.dto.KernelDTO;
+import ch.ethz.inf.peachlab.model.dto.SimpleMainLabelDTO;
+import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.Tag;
@@ -9,6 +11,7 @@ import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Tag("notebook-matrix")
@@ -21,6 +24,12 @@ public class NotebookMatrix extends ReactAdapterComponent implements HasLogger, 
 
     public void setItems(List<KernelDTO> items) {
         setState("items", items);
+    }
+
+    public NotebookMatrix() {
+        setState("labelData", Arrays.stream(MainLabel.values())
+                .map(l -> SimpleMainLabelDTO.ofMainLabel(l, this::getTranslation))
+                .toArray());
     }
 
     @Override

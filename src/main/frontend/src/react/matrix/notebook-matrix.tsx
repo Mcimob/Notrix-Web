@@ -9,6 +9,7 @@ type KernelData = { title: string; currentUrlSlug: string; labelSequence: number
 class NotebookMatrix extends ReactAdapterElement {
     protected render(hooks: RenderHooks): React.ReactElement | null {
         const [items, _setItems] = hooks.useState<KernelData[]>("items", []);
+        const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", [])
 
         const Cells = (item: KernelData) => {
             const result = [];
@@ -33,7 +34,7 @@ class NotebookMatrix extends ReactAdapterElement {
                 result.push(<div
                     style={{backgroundColor: `var(--clr-stage-${cell.mainLabel})`, height: "10px", flexShrink: 0}}
                     className={className}
-                    data-tooltip={`Stage: ${cell.mainLabel}<br/>Title: ${item.title}<br/>Lines:${cell.sourceLinesCount}`} />);
+                    data-tooltip={`Stage: ${labelData.find(l => l.id == cell.mainLabel)?.title || "None"}<br/>Title: ${item.title}<br/>Lines: ${cell.sourceLinesCount}`} />);
             }
 
             return result;
