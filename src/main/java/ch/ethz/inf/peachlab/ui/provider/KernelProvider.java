@@ -31,7 +31,7 @@ public class KernelProvider extends AbstractBackEndDataProvider<KernelEntity, Ke
                         query.getLimit(),
                         Sort.by(query.getSortOrders().stream()
                                 .map(s -> new Sort.Order(getSortDirection(s), s.getSorted())).toList())),
-                filter, KernelLoadType.WITH_CELLS);
+                filter);
         return response.getEntity().orElse(Page.empty()).stream();
     }
 
