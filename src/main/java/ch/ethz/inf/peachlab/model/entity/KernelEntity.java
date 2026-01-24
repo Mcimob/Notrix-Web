@@ -16,6 +16,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Entity
@@ -55,9 +56,23 @@ public class KernelEntity implements AbstractEntity {
     @Column(nullable = true, name = "AuthorDisplayName")
     private String authorDisplayName;
 
+    @Column(nullable = false, name = "NumLines")
+    private Integer numLines;
+
+    @Column(nullable = false, name="CellCount")
+    private Integer cellCount;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "LabelSequence", columnDefinition = "jsonb")
     private MainLabel[] labelSequence;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "TransitionMatrix", columnDefinition = "jsonb")
+    private Integer[][] transitionMatrix;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "MainLabelStats", columnDefinition = "jsonb")
+    private Map<Integer, Integer> mainLabelStats;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SourceCompetitionId")
@@ -82,80 +97,60 @@ public class KernelEntity implements AbstractEntity {
         return creationDate;
     }
 
-    public void setCreationDate(LocalDateTime creationDate) {
-        this.creationDate = creationDate;
-    }
-
     public String getTitle() {
         return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
     }
 
     public int getTotalVotes() {
         return totalVotes;
     }
 
-    public void setTotalVotes(int totalVotes) {
-        this.totalVotes = totalVotes;
-    }
-
     public int getTotalViews() {
         return totalViews;
-    }
-
-    public void setTotalViews(int totalViews) {
-        this.totalViews = totalViews;
     }
 
     public int getTotalComments() {
         return totalComments;
     }
 
-    public void setTotalComments(int totalComments) {
-        this.totalComments = totalComments;
-    }
-
     public String getCurrentUrlSlug() {
         return currentUrlSlug;
-    }
-
-    public void setCurrentUrlSlug(String currentUrlSlug) {
-        this.currentUrlSlug = currentUrlSlug;
     }
 
     public String getAuthorUserName() {
         return authorUserName;
     }
 
-    public void setAuthorUserName(String authorUserName) {
-        this.authorUserName = authorUserName;
-    }
-
     public String getAuthorDisplayName() {
         return authorDisplayName;
     }
 
-    public void setAuthorDisplayName(String authorDisplayName) {
-        this.authorDisplayName = authorDisplayName;
+    public Integer getNumLines() {
+        return numLines;
+    }
+
+    public Integer getCellCount() {
+        return cellCount;
     }
 
     public MainLabel[] getLabelSequence() {
         return labelSequence;
     }
 
-    public void setLabelSequence(MainLabel[] labelSequence) {
-        this.labelSequence = labelSequence;
+    public Integer[][] getTransitionMatrix() {
+        return transitionMatrix;
+    }
+
+    public Map<Integer, Integer> getMainLabelStats() {
+        return mainLabelStats;
+    }
+
+    public CompetitionEntity getCompetition() {
+        return competition;
     }
 
     public List<CellEntity> getCells() {
         return cells;
-    }
-
-    public void setCells(List<CellEntity> cells) {
-        this.cells = cells;
     }
 
     @Override
@@ -166,9 +161,6 @@ public class KernelEntity implements AbstractEntity {
         if (!(o instanceof KernelEntity that)) {
             return false;
         }
-        if (!super.equals(o)) {
-            return false;
-        }
         return totalVotes == that.totalVotes
                 && totalViews == that.totalViews
                 && totalComments == that.totalComments
@@ -177,13 +169,14 @@ public class KernelEntity implements AbstractEntity {
                 && Objects.equals(title, that.title)
                 && Objects.equals(currentUrlSlug, that.currentUrlSlug)
                 && Objects.equals(authorUserName, that.authorUserName)
-                && Objects.equals(authorDisplayName, that.authorDisplayName);
+                && Objects.equals(authorDisplayName, that.authorDisplayName)
+                && Objects.equals(numLines, that.numLines)
+                && Objects.equals(cellCount, that.cellCount);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(),
-                id,
+        return Objects.hash(id,
                 creationDate,
                 title,
                 totalVotes,
@@ -191,7 +184,9 @@ public class KernelEntity implements AbstractEntity {
                 totalComments,
                 currentUrlSlug,
                 authorUserName,
-                authorDisplayName);
+                authorDisplayName,
+                numLines,
+                cellCount);
     }
 
     @Override
@@ -206,6 +201,8 @@ public class KernelEntity implements AbstractEntity {
                 + ", currentUrlSlug='" + currentUrlSlug + '\''
                 + ", authorUserName='" + authorUserName + '\''
                 + ", authorDisplayName='" + authorDisplayName + '\''
-                + "} " + super.toString();
+                + ", numLines=" + numLines
+                + ", cellCount=" + cellCount
+                + '}';
     }
 }

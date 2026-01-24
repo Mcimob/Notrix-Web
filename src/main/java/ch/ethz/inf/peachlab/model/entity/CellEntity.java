@@ -22,7 +22,7 @@ public class CellEntity implements AbstractEntity {
     @Column(nullable = false, name = "CellId")
     private int cellId;
 
-    @Column(nullable = true, name = "Source", columnDefinition = "varchar")
+    @Column(nullable = true, name = "Source", columnDefinition = "text")
     private String source;
 
     @Column(nullable = false, name = "SourceLineCount")
