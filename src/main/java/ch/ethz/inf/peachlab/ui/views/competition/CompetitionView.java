@@ -26,11 +26,13 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
+import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_CENTER;
@@ -51,6 +53,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private CompetitionEntity competition;
 
+    private final NotebookMatrix matrix = new NotebookMatrix();
     private final Grid<KernelEntity> grid = new Grid<>();
     private final KernelFilter filter = new KernelFilter();
     private final ConfigurableFilterDataProvider<KernelEntity, Void, KernelFilter> provider =
@@ -123,22 +126,25 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     private Component createNotebookMatrix() {
-        NotebookMatrix matrix = new NotebookMatrix();
         UI ui = UI.getCurrent();
         kernelService.fetchAsync(Pageable.unpaged(), filter, KernelLoadType.WITH_CELLS)
-                .whenComplete((res, err) ->{
-                    ui.access(() ->
-                        matrix.setItems(res.getEntity().orElse(Page.empty()).stream()
-                                .map(KernelDTO::ofKernel)
-                                .toList())
-                    );
-                });
+                .whenComplete((res, err) ->
+                        ui.access(() -> onNewMatrixData(res, err)));
 
         DivWithTooltip div = new DivWithTooltip(".cell");
         div.render();
         div.add(matrix);
         div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0);
         return div;
+    }
+
+    private void onNewMatrixData(ServiceResponse<Page<KernelEntity>> response, Throwable err) {
+        matrix.setItems(
+            response.getEntity()
+                .orElse(Page.empty())
+                .stream()
+                .map(KernelDTO::ofKernel)
+                .toList());
     }
 
     private Component createStats() {
@@ -153,20 +159,55 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         grid.addColumn(KernelEntity::getTitle)
                 .setHeader("Title")
                 .setSortable(true)
-                .setSortProperty("title");
+                .setSortProperty("title")
+                .setKey("title")
+                .setFlexGrow(1);
         grid.addColumn(KernelEntity::getTotalVotes)
                 .setHeader("# Votes")
                 .setSortable(true)
-                .setSortProperty("totalVotes");
+                .setSortProperty("totalVotes")
+                .setKey("totalVotes")
+                .setFlexGrow(0);
         grid.addColumn(KernelEntity::getTotalViews)
                 .setHeader("# Views")
                 .setSortable(true)
-                .setSortProperty("totalViews");
+                .setSortProperty("totalViews")
+                .setKey("totalViews")
+                .setFlexGrow(0);
+        grid.addColumn(KernelEntity::getCellCount)
+                .setHeader("# Cells")
+                .setSortable(true)
+                .setSortProperty("cellCount")
+                .setKey("cellCount")
+                .setFlexGrow(0);
+        grid.addColumn(KernelEntity::getNumLines)
+                .setHeader("# Lines")
+                .setSortable(true)
+                .setSortProperty("numLines")
+                .setKey("numLines")
+                .setFlexGrow(0);
+
         grid.setHeightFull();
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         filter.setCompetition(competition);
 
         grid.setDataProvider(provider);
+
+        UI ui = UI.getCurrent();
+        grid.addSortListener(sort -> {
+            Sort sortOrders = Sort.by(sort.getSortOrder()
+                .stream()
+                    .map(s -> new Sort.Order(
+                        s.getDirection() == SortDirection.ASCENDING
+                            ? Sort.Direction.ASC
+                            : Sort.Direction.DESC,
+                        s.getSorted().getKey()))
+                        .toList());
+
+            kernelService.fetchAsync(Pageable.unpaged(sortOrders), filter, KernelLoadType.WITH_CELLS)
+                    .whenComplete((res, err) ->
+                            ui.access(() -> onNewMatrixData(res, err)));
+        });
 
         Div div = new Div(grid);
         div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
