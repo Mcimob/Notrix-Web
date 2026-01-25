@@ -10,6 +10,7 @@ import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
+import com.vaadin.flow.function.SerializableConsumer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,6 +33,10 @@ public class NotebookMatrix extends ReactAdapterComponent implements HasLogger, 
                 .toArray());
         getStyle().set("--display-md", "none");
         getStyle().set("--cell-height", "5px");
+    }
+
+    public void addClickedListener(SerializableConsumer<Long> listener) {
+        addStateChangeListener("clickedId", Long.class, listener);
     }
 
     @Override

@@ -4,7 +4,7 @@ import {ReactAdapterElement, RenderHooks} from "Frontend/generated/flow/ReactAda
 import {AutoSizer, AutoSizerChildProps} from "react-virtualized-auto-sizer";
 
 type CellData = { sourceLinesCount: number; cellType: number; mainLabel: number };
-type KernelData = { title: string; currentUrlSlug: string; labelSequence: number[]; cells: CellData[] };
+type KernelData = { id: number; title: string; currentUrlSlug: string; labelSequence: number[]; cells: CellData[] };
 
 type LabelData = {id: number, title: string};
 
@@ -12,6 +12,7 @@ class NotebookMatrix extends ReactAdapterElement {
     protected render(hooks: RenderHooks): React.ReactElement | null {
         const [items, _setItems] = hooks.useState<KernelData[]>("items", []);
         const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", [])
+        const [clickedId, setClickedId] = hooks.useState<number>("clickedId", -1);
 
         const cellHeight = (item: CellData) =>
             Math.max(3, Math.min(20, 3 + item.sourceLinesCount * 0.8));
@@ -45,7 +46,9 @@ class NotebookMatrix extends ReactAdapterElement {
                         border: cell.mainLabel == -1 ? "1px solid #bbb" : `1px solid var(--clr-stage-${cell.mainLabel})`,
                     }}
                     className={className}
-                    data-tooltip={`Stage: ${labelData.find(l => l.id == cell.mainLabel)?.title || "None"}<br/>Title: ${item.title}<br/>Lines: ${cell.sourceLinesCount}`} />);
+                    data-tooltip={`Stage: ${labelData.find(l => l.id == cell.mainLabel)?.title || "None"}<br/>Title: ${item.title}<br/>Lines: ${cell.sourceLinesCount}`}
+                    onClick={() => setClickedId(item.id)}
+                />);
             }
 
             return result;

@@ -19,6 +19,7 @@ import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.Filterbar;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.NotebookMatrix;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
+import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -82,14 +83,6 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     @Override
     public void render() {
         removeAll();
-        TransitionSidebarReact sidebar = new TransitionSidebarReact();
-        sidebar.setData(competition.getMainLabelStats(), competition.getTransitionMatrix());
-        sidebar.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
-        DivWithTooltip sidebarDiv = new DivWithTooltip(".with-hover");
-        sidebarDiv.render();
-        sidebarDiv.add(sidebar);
-        sidebarDiv.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_CENTER, STYLE_BACKGROUND_WHITE);
-        sidebarDiv.setWidth("80rem");
 
         Div center = new Div(createTitleBox(), createDescriptionBox(), createNotebookMatrix());
         center.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
@@ -98,7 +91,20 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         Div right = new Div(createStats(), createGrid());
         right.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
 
-        add(sidebarDiv, center, right);
+        add(createSidebar(), center, right);
+    }
+
+    private Component createSidebar() {
+        TransitionSidebarReact sidebar = new TransitionSidebarReact();
+        sidebar.setData(competition.getMainLabelStats(), competition.getTransitionMatrix());
+        sidebar.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+        DivWithTooltip div = new DivWithTooltip(".with-hover");
+        div.render();
+        div.add(sidebar);
+        div.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_CENTER, STYLE_BACKGROUND_WHITE);
+        div.setWidth("80rem");
+
+        return div;
     }
 
     private Component createTitleBox() {
@@ -131,6 +137,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private Component createNotebookMatrix() {
         matrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+        matrix.addClickedListener(this::onKernelClicked);
         UiAsyncUtils.callServiceAsync(
             () -> kernelService.fetch(Pageable.unpaged(), filter, KernelLoadType.WITH_CELLS),
             UI.getCurrent(),
@@ -155,6 +162,19 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         div.add(bar);
         div.add(matrix);
         return div;
+    }
+
+    private void onKernelClicked(Long kernelId) {
+        ServiceResponse<KernelEntity> response = kernelService.fetchById(kernelId);
+        if (response.hasErrorMessages() || response.getEntity().isEmpty()) {
+            response.getErrorMessages().stream()
+                .map(this::getTranslation)
+                .forEach(this::showErrorNotification);
+            return;
+        }
+        KernelEntity kernel = response.getEntity().get();
+        String param = "%s/%s".formatted(kernel.getAuthorUserName(), kernel.getCurrentUrlSlug());
+        UI.getCurrent().navigate(KernelView.class, param);
     }
 
     private void onNewMatrixData(ServiceResponse<PageImpl<KernelEntity>> response) {
