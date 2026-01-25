@@ -53,6 +53,11 @@
             <artifactId>togglebutton</artifactId>
             <version>3.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.flowingcode.vaadin.addons</groupId>
+            <artifactId>syntax-highlighter-addon</artifactId>
+            <version>1.0.0</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

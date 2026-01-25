@@ -30,7 +30,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "code", layout = MainLayout.class)
@@ -53,7 +53,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
     @Override
     public void render() {
         removeAll();
-        Div center = new Div(createHeader());
+        Div center = new Div(createHeader(), createGrid());
         center.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_M);
 
         Div right = new Div();
@@ -97,7 +97,18 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
 
         Div div = new Div(textDiv, iconsDiv);
         div.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_BETWEEN, STYLE_FLEX_ALIGN_CENTER,
-            STYLE_WIDTH_FULL, STYLE_BACKGROUND_WHITE, STYLE_PADDING_S);
+            STYLE_WIDTH_FULL, STYLE_BACKGROUND_WHITE, STYLE_PADDING_M);
+
+        return div;
+    }
+
+    private Component createGrid() {
+        ContentGrid grid = new ContentGrid();
+
+        grid.setItems(kernel.getCells());
+
+        Div div = new Div(grid);
+        div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
 
         return div;
     }
