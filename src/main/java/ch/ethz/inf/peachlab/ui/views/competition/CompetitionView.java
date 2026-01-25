@@ -47,6 +47,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_0;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
@@ -109,7 +110,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private Component createTitleBox() {
         Div div = new Div();
-        div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_ROW, STYLE_PADDING_S, STYLE_GAP_S);
+        div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_ROW, STYLE_PADDING_M, STYLE_GAP_S, STYLE_FLEX_ALIGN_CENTER);
 
         div.add(new H2(competition.getTitle()));
 
@@ -124,7 +125,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private Component createDescriptionBox() {
         Div div = new Div();
-        div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_PADDING_S);
+        div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_PADDING_M);
 
         div.add(new H2("Competition description"));
 
@@ -249,7 +250,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         });
 
         Div div = new Div(grid);
-        div.addClassNames(STYLE_PADDING_S, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+        div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
 
         return div;
     }
