@@ -1,18 +1,8 @@
 import React from "react";
 import {computeTransitionPosition, setOpacity} from "Frontend/src/react/sidebar/sidebar-utils";
-import {Label, Stage} from "Frontend/src/react/sidebar/sidebar-types";
+import {Label, Stage, TransitionProps} from "Frontend/src/react/sidebar/sidebar-types";
 
-type TransitionProps = {
-    from: Stage;
-    to: Stage;
-    value: number;
-    maxValue: number
-    labelFunction: (value: number) => Label;
-    strokeFunction: (value: number) => number;
-    countFunction: (id: number) => number;
-}
-
-export default function SidebarTransition({from, to, value, maxValue, labelFunction, strokeFunction, countFunction}: TransitionProps) {
+export default function SidebarTransition({fromStage, from, toStage, to, value, maxValue, labelFunction, strokeFunction, countFunction}: TransitionProps) {
     const onPathMouseover = (event: React.MouseEvent<SVGPathElement, MouseEvent>)=> {
         const path = event.currentTarget;
         const transitionClass = Array.from(path.classList).find(cls => cls.startsWith("transition-"));
@@ -30,7 +20,7 @@ export default function SidebarTransition({from, to, value, maxValue, labelFunct
         document.querySelectorAll("transition-sidebar path").forEach(setOpacity("1"))
     };
 
-    const {x, y1, y2, ctrlX} = computeTransitionPosition(from, to, maxValue, countFunction);
+    const {x, y1, y2, ctrlX} = computeTransitionPosition(fromStage, from, toStage, to, maxValue, countFunction);
 
     const strokeWidth = strokeFunction(value);
     const dPath = `
@@ -38,17 +28,17 @@ export default function SidebarTransition({from, to, value, maxValue, labelFunct
         C ${ctrlX},${y1} ${ctrlX},${y2} ${x},${y2}`;
 
     const tooltipText = `\
-<b>${labelFunction(from.id)!.name} -> ${labelFunction(to.id)!.name}</b>
+<b>${labelFunction(fromStage.id)!.name} -> ${labelFunction(toStage.id)!.name}</b>
 Count: ${value}`;
 
     return (
         <path
-            key={`path-${from.id}-${to.id}`}
+            key={`path-${fromStage.id}-${toStage.id}`}
             d={dPath}
             fill="none"
-            stroke={`url(#grad-${from.id}-${to.id})`}
+            stroke={`url(#grad-${fromStage.id}-${toStage.id})`}
             strokeWidth={strokeWidth}
-            className={`with-hover stage-${from.id} stage-${to.id} transition-${from.id}-${to.id}`}
+            className={`with-hover stage-${fromStage.id} stage-${toStage.id} transition-${fromStage.id}-${toStage.id}`}
             data-tooltip={tooltipText}
             onMouseOver={onPathMouseover}
             onMouseLeave={onPathMouseleave}

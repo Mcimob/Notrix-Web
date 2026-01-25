@@ -54,28 +54,32 @@ class TransitionSidebar extends ReactAdapterElement {
                 </defs>
 
                 {/* ===================== PATHS ===================== */}
-                {stages.flatMap((from) =>
-                    stages.map((to) => {
-                        const value = transitions[from.id]?.[to.id];
-                        if (!value || from === to) return null;
+                {stages.flatMap((fromStage, from) =>
+                    stages.map((toStage, to) => {
+                        const value = transitions[fromStage.id]?.[toStage.id];
+                        if (!value || fromStage === toStage) return null;
                         return (<>
                             <SidebarTransition
+                                fromStage={fromStage}
                                 from={from}
+                                toStage={toStage}
                                 to={to}
                                 value={value}
                                 maxValue={maxValue}
                                 labelFunction={label}
                                 strokeFunction={pathStrokeWidth}
-                                countFunction={n => stages[n].count}
+                                countFunction={n => stages.find(s => s.id == n)?.count || 0}
                             />
                             <SidebarArrow
+                                fromStage={fromStage}
                                 from={from}
+                                toStage={toStage}
                                 to={to}
                                 value={value}
                                 maxValue={maxValue}
                                 labelFunction={label}
                                 strokeFunction={pathStrokeWidth}
-                                countFunction={n => stages[n].count}
+                                countFunction={n => stages.find(s => s.id == n)?.count || 0}
                             />
                         </>);
                     })

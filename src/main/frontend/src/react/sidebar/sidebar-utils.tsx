@@ -30,10 +30,10 @@ type TransitionPosition = {
     ctrlX: number;
 }
 
-export const computeTransitionPosition = (from: Stage, to: Stage, maxValue: number, countFunction: (id: number) => number): TransitionPosition =>  {
+export const computeTransitionPosition = (fromStage: Stage, from: number, toStage: Stage, to: number, maxValue: number, countFunction: (id: number) => number): TransitionPosition =>  {
     const x = VIEWBOX_WIDTH / 2;
-    const y1 = from.id * RECT_SPACING + rectHeight(countFunction(from.id), maxValue) / 2;
-    const y2 = to.id * RECT_SPACING + rectHeight(countFunction(to.id), maxValue) / 2;
+    const y1 = from * RECT_SPACING + rectHeight(fromStage.count, maxValue) / 2;
+    const y2 = to * RECT_SPACING + rectHeight(toStage.count, maxValue) / 2;
     const yDiff = y2 - y1;
     const side = Math.sign(yDiff);
     const ctrlX = x + side * Math.min(Math.abs(yDiff) * 0.5, 200);

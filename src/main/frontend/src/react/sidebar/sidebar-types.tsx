@@ -19,3 +19,15 @@ export type Props = {
     transitions: Transitions;
     labels: Label[];
 };
+
+export type TransitionProps = {
+    fromStage: Stage;
+    from: number;
+    toStage: Stage;
+    to: number;
+    value: number;
+    maxValue: number
+    labelFunction: (value: number) => Label;
+    strokeFunction: (value: number) => number;
+    countFunction: (id: number) => number;
+}

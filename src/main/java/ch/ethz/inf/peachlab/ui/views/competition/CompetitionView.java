@@ -102,7 +102,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         div.render();
         div.add(sidebar);
         div.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_CENTER, STYLE_BACKGROUND_WHITE);
-        div.setWidth("80rem");
+        div.setWidth("50%");
 
         return div;
     }
