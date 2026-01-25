@@ -11,6 +11,7 @@ import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
+import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.OverviewBox;
 import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
@@ -22,12 +23,9 @@ import ch.ethz.inf.peachlab.ui.views.home.HomeView;
 import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.BeforeEvent;
@@ -109,16 +107,11 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     private Component createTitleBox() {
-        Div div = new Div();
-        div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_ROW, STYLE_PADDING_M, STYLE_GAP_S, STYLE_FLEX_ALIGN_CENTER);
-
-        div.add(new H2(competition.getTitle()));
-
-        Button navigationButton = new Button(
-                VaadinIcon.EXTERNAL_LINK.create(), click ->
-                UI.getCurrent().getPage().setLocation("https://kaggle.com/competitions/" + competition.getSlug()));
-        navigationButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-        div.add(navigationButton);
+        Div div = new Div(new ComponentWithLink(
+            new H2(competition.getTitle()),
+            "https://kaggle.com/competitions/" + competition.getSlug()
+        ));
+        div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_PADDING_M);
 
         return div;
     }
@@ -232,7 +225,6 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         filter.setCompetition(competition);
 
         grid.setDataProvider(provider);
-        UI ui = UI.getCurrent();
         grid.addSortListener(sort -> {
             Sort sortOrders = Sort.by(sort.getSortOrder()
                 .stream()
