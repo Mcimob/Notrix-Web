@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Entity
 @NamedEntityGraph(name = KernelEntity.WITH_CELLS,
@@ -141,8 +142,15 @@ public class KernelEntity implements AbstractEntity {
         return transitionMatrix;
     }
 
-    public Map<Integer, Integer> getMainLabelStats() {
-        return mainLabelStats;
+    public Map<MainLabel, Integer> getMainLabelStats() {
+        if (mainLabelStats == null) {
+            return Map.of();
+        }
+
+        return mainLabelStats.entrySet().stream()
+            .collect(Collectors.toMap(
+                e -> MainLabel.values()[e.getKey()],
+                Map.Entry::getValue));
     }
 
     public CompetitionEntity getCompetition() {
