@@ -4,6 +4,7 @@ import ch.ethz.inf.peachlab.model.entity.AbstractEntity;
 import ch.ethz.inf.peachlab.model.filter.AbstractFilter;
 import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -17,7 +18,7 @@ public interface BaseRepository<T extends AbstractEntity, F extends AbstractFilt
 
     Optional<T> findOne(F filter, HasLoadType loadType);
 
-    Page<T> findAll(F filter, Pageable pageable, HasLoadType loadType);
+    PageImpl<T> findAll(F filter, Pageable pageable, HasLoadType loadType);
 
     Optional<T> findById(Long id, HasLoadType loadType);
 }

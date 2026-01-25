@@ -10,6 +10,7 @@ import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
@@ -26,13 +27,13 @@ public class KernelProvider extends AbstractBackEndDataProvider<KernelEntity, Ke
     @Override
     protected Stream<KernelEntity> fetchFromBackEnd(Query<KernelEntity, KernelFilter> query) {
         KernelFilter filter = query.getFilter().orElse(new KernelFilter());
-        ServiceResponse<Page<KernelEntity>> response = competitionService.fetch(PageRequest.of(
+        ServiceResponse<PageImpl<KernelEntity>> response = competitionService.fetch(PageRequest.of(
                         query.getOffset() / query.getLimit(),
                         query.getLimit(),
                         Sort.by(query.getSortOrders().stream()
                                 .map(s -> new Sort.Order(getSortDirection(s), s.getSorted())).toList())),
                 filter);
-        return response.getEntity().orElse(Page.empty()).stream();
+        return response.getEntity().map(PageImpl::stream).orElse(Stream.empty());
     }
 
     @Override

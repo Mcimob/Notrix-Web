@@ -7,10 +7,14 @@ import java.util.Set;
 public class ServiceResponse<T> {
 
     private T entity;
-
     private final Set<String> infoMessages = new HashSet<>();
-
     private final Set<String> errorMessages = new HashSet<>();
+
+    public static <T> ServiceResponse<T> error() {
+        ServiceResponse<T> response = new ServiceResponse<>();
+        response.addErrorMessage("service.general.error");
+        return response;
+    }
 
     public Optional<T> getEntity() {
         return Optional.ofNullable(entity);

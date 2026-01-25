@@ -5,17 +5,16 @@ import ch.ethz.inf.peachlab.model.entity.AbstractEntity;
 import ch.ethz.inf.peachlab.model.filter.AbstractFilter;
 import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.concurrent.CompletableFuture;
 
 public interface BaseService<T extends AbstractEntity, F extends AbstractFilter<T>> extends HasLogger {
 
-    ServiceResponse<Page<T>> fetch(Pageable pageable, F filter, HasLoadType loadType);
+    ServiceResponse<PageImpl<T>> fetch(Pageable pageable, F filter, HasLoadType loadType);
 
-    CompletableFuture<ServiceResponse<Page<T>>> fetchAsync(Pageable pageable, F filter, HasLoadType loadType);
-
-    ServiceResponse<Page<T>> fetch(Pageable pageable, F filter);
+    ServiceResponse<PageImpl<T>> fetch(Pageable pageable, F filter);
 
     ServiceResponse<T> fetchOne(F filter, HasLoadType loadType);
 
@@ -33,7 +32,7 @@ public interface BaseService<T extends AbstractEntity, F extends AbstractFilter<
 
     ServiceResponse<T> save(T entity);
 
-    ServiceResponse<Page<T>> saveAll(Iterable<T> entities);
+    ServiceResponse<PageImpl<T>> saveAll(Iterable<T> entities);
 
     ServiceResponse<T> delete(T entity);
 

@@ -10,6 +10,7 @@ import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
+import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.OverviewBox;
 import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
@@ -31,9 +32,11 @@ import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+
+import java.util.stream.Stream;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_CENTER;
@@ -128,10 +131,10 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private Component createNotebookMatrix() {
         matrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
-        UI ui = UI.getCurrent();
-        kernelService.fetchAsync(Pageable.unpaged(), filter, KernelLoadType.WITH_CELLS)
-                .whenComplete((res, err) ->
-                        ui.access(() -> onNewMatrixData(res, err)));
+        UiAsyncUtils.callServiceAsync(
+            () -> kernelService.fetch(Pageable.unpaged(), filter, KernelLoadType.WITH_CELLS),
+            UI.getCurrent(),
+            this::onNewMatrixData);
 
         Filterbar bar = new Filterbar();
         bar.render();
@@ -154,11 +157,11 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         return div;
     }
 
-    private void onNewMatrixData(ServiceResponse<Page<KernelEntity>> response, Throwable err) {
+    private void onNewMatrixData(ServiceResponse<PageImpl<KernelEntity>> response) {
         matrix.setItems(
             response.getEntity()
-                .orElse(Page.empty())
-                .stream()
+                .map(PageImpl::stream)
+                .orElse(Stream.empty())
                 .map(KernelDTO::ofKernel)
                 .toList());
     }
@@ -208,7 +211,6 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         filter.setCompetition(competition);
 
         grid.setDataProvider(provider);
-
         UI ui = UI.getCurrent();
         grid.addSortListener(sort -> {
             Sort sortOrders = Sort.by(sort.getSortOrder()
@@ -220,9 +222,10 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
                         s.getSorted().getKey()))
                         .toList());
 
-            kernelService.fetchAsync(Pageable.unpaged(sortOrders), filter, KernelLoadType.WITH_CELLS)
-                    .whenComplete((res, err) ->
-                            ui.access(() -> onNewMatrixData(res, err)));
+            UiAsyncUtils.callServiceAsync(
+                () -> kernelService.fetch(Pageable.unpaged(sortOrders), filter, KernelLoadType.WITH_CELLS),
+                UI.getCurrent(),
+                this::onNewMatrixData);
         });
 
         Div div = new Div(grid);

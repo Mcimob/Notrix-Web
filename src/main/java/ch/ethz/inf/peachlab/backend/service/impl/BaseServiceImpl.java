@@ -8,12 +8,10 @@ import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.entity.AbstractEntity;
 import ch.ethz.inf.peachlab.model.filter.AbstractFilter;
 import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<T>> implements BaseService<T, F> {
 
@@ -55,14 +53,14 @@ public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<
     }
 
     @Override
-    public ServiceResponse<Page<T>> fetch(Pageable pageable, F filter, HasLoadType loadType) {
-        ServiceResponse<Page<T>> response = new ServiceResponse<>();
+    public ServiceResponse<PageImpl<T>> fetch(Pageable pageable, F filter, HasLoadType loadType) {
+        ServiceResponse<PageImpl<T>> response = new ServiceResponse<>();
         if (handleNullCheck(response, pageable, filter, loadType)) {
             return response;
         }
 
         try {
-            Page<T> result = dao.fetch(pageable, filter, loadType);
+            PageImpl<T> result = dao.fetch(pageable, filter, loadType);
             response.setEntity(result);
             return response;
         } catch (DaoException e) {
@@ -71,21 +69,14 @@ public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<
     }
 
     @Override
-    @Async
-    public CompletableFuture<ServiceResponse<Page<T>>> fetchAsync(Pageable pageable, F filter, HasLoadType loadType) {
-        ServiceResponse<Page<T>> response = fetch(pageable, filter, loadType);
-        return CompletableFuture.completedFuture(response);
-    }
-
-    @Override
-    public ServiceResponse<Page<T>> fetch(Pageable pageable, F filter) {
-        ServiceResponse<Page<T>> response = new ServiceResponse<>();
+    public ServiceResponse<PageImpl<T>> fetch(Pageable pageable, F filter) {
+        ServiceResponse<PageImpl<T>> response = new ServiceResponse<>();
         if (handleNullCheck(response, pageable, filter)) {
             return response;
         }
 
         try {
-            Page<T> result = dao.fetch(pageable, filter);
+            PageImpl<T> result = dao.fetch(pageable, filter);
             response.setEntity(result);
             return response;
         } catch (DaoException e) {
@@ -221,8 +212,8 @@ public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<
     }
 
     @Override
-    public ServiceResponse<Page<T>> saveAll(Iterable<T> entities) {
-        ServiceResponse<Page<T>> response = new ServiceResponse<>();
+    public ServiceResponse<PageImpl<T>> saveAll(Iterable<T> entities) {
+        ServiceResponse<PageImpl<T>> response = new ServiceResponse<>();
         if (handleNullCheck(response, entities)) {
             return response;
         }

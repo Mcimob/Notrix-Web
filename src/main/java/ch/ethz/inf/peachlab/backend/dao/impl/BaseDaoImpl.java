@@ -28,7 +28,7 @@ public class BaseDaoImpl<T extends AbstractEntity, F extends AbstractFilter<T>> 
     }
 
     @Override
-    public Page<T> fetch(Pageable pageable, F filter, HasLoadType loadType) throws DaoException {
+    public PageImpl<T> fetch(Pageable pageable, F filter, HasLoadType loadType) throws DaoException {
         try {
             return repository.findAll(filter, pageable, loadType);
         } catch (DataAccessException | PersistenceException e) {
@@ -37,7 +37,7 @@ public class BaseDaoImpl<T extends AbstractEntity, F extends AbstractFilter<T>> 
     }
 
     @Override
-    public Page<T> fetch(Pageable pageable, F filter) throws DaoException {
+    public PageImpl<T> fetch(Pageable pageable, F filter) throws DaoException {
         return fetch(pageable, filter, BaseLoadType.NONE);
     }
 
@@ -111,7 +111,7 @@ public class BaseDaoImpl<T extends AbstractEntity, F extends AbstractFilter<T>> 
     }
 
     @Override
-    public Page<T> saveAll(Iterable<T> entities) throws DaoException {
+    public PageImpl<T> saveAll(Iterable<T> entities) throws DaoException {
         try {
             return new PageImpl<>(repository.saveAll(entities));
         } catch (OptimisticLockingFailureException | OptimisticLockException e) {

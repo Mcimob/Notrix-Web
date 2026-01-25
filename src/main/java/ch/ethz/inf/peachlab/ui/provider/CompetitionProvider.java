@@ -9,6 +9,7 @@ import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.QuerySortOrder;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
@@ -25,13 +26,13 @@ public class CompetitionProvider extends AbstractBackEndDataProvider<Competition
     @Override
     protected Stream<CompetitionEntity> fetchFromBackEnd(Query<CompetitionEntity, CompetitionFilter> query) {
         CompetitionFilter filter = query.getFilter().orElse(new CompetitionFilter());
-        ServiceResponse<Page<CompetitionEntity>> response = competitionService.fetch(PageRequest.of(
+        ServiceResponse<PageImpl<CompetitionEntity>> response = competitionService.fetch(PageRequest.of(
                         query.getOffset() / query.getLimit(),
                         query.getLimit(),
                         Sort.by(query.getSortOrders().stream()
                                 .map(s -> new Sort.Order(getSortDirection(s), s.getSorted())).toList())),
                 filter);
-        return response.getEntity().orElse(Page.empty()).stream();
+        return response.getEntity().map(PageImpl::stream).orElse(Stream.empty());
     }
 
     @Override
