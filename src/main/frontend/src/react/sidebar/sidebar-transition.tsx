@@ -2,22 +2,23 @@ import React from "react";
 import {computeTransitionPosition, setOpacity} from "Frontend/src/react/sidebar/sidebar-utils";
 import {Label, Stage, TransitionProps} from "Frontend/src/react/sidebar/sidebar-types";
 
-export default function SidebarTransition({fromStage, from, toStage, to, value, maxValue, labelFunction, strokeFunction, countFunction}: TransitionProps) {
+export default function SidebarTransition({fromStage, from, toStage, to, value, maxValue, labelFunction, strokeFunction, countFunction, opacityTargets}: TransitionProps) {
+    const targets = ["transition-sidebar path", ...opacityTargets];
+
     const onPathMouseover = (event: React.MouseEvent<SVGPathElement, MouseEvent>)=> {
         const path = event.currentTarget;
         const transitionClass = Array.from(path.classList).find(cls => cls.startsWith("transition-"));
         if (!transitionClass) return;
 
-        document.querySelectorAll("notebook-matrix .cell").forEach(setOpacity("0.1"));
-        document.querySelectorAll("transition-sidebar path").forEach(setOpacity("0.1"));
-
-        document.querySelectorAll(`notebook-matrix .${transitionClass}`).forEach(setOpacity("0.9"));
-        document.querySelectorAll(`transition-sidebar .${transitionClass}`).forEach(setOpacity("0.9"));
+        targets.forEach(selector => {
+            document.querySelectorAll(selector).forEach(setOpacity("0.1"));
+            document.querySelectorAll(`${selector}.${transitionClass}`).forEach(setOpacity("0.9"));
+        });
     };
 
     const onPathMouseleave = (_: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-        document.querySelectorAll("notebook-matrix .cell").forEach(setOpacity("1"));
-        document.querySelectorAll("transition-sidebar path").forEach(setOpacity("1"))
+        targets.forEach(selector =>
+            document.querySelectorAll(selector).forEach(setOpacity("1")));
     };
 
     const {x, y1, y2, ctrlX} = computeTransitionPosition(fromStage, from, toStage, to, maxValue, countFunction);

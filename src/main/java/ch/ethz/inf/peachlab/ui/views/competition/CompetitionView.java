@@ -96,6 +96,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     private Component createSidebar() {
         TransitionSidebarReact sidebar = new TransitionSidebarReact();
         sidebar.setData(competition.getMainLabelStats(), competition.getTransitionMatrix());
+        sidebar.setOpacityTargets(new String[]{"notebook-matrix .cell"});
         sidebar.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         DivWithTooltip div = new DivWithTooltip(".with-hover");
         div.render();

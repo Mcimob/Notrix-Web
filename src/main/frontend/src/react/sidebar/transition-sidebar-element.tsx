@@ -11,6 +11,7 @@ class TransitionSidebar extends ReactAdapterElement {
 
     protected render(hooks: RenderHooks): React.ReactElement | null {
         const [data, _setData] = hooks.useState<Props>("data")
+        const [opacityTargets, _setOpacityTargets] = hooks.useState<string[]>("opacityTargets", [])
 
         const { stages, transitions, labels } = data;
 
@@ -69,6 +70,7 @@ class TransitionSidebar extends ReactAdapterElement {
                                 labelFunction={label}
                                 strokeFunction={pathStrokeWidth}
                                 countFunction={n => stages.find(s => s.id == n)?.count || 0}
+                                opacityTargets={opacityTargets}
                             />
                             <SidebarArrow
                                 fromStage={fromStage}
@@ -80,6 +82,7 @@ class TransitionSidebar extends ReactAdapterElement {
                                 labelFunction={label}
                                 strokeFunction={pathStrokeWidth}
                                 countFunction={n => stages.find(s => s.id == n)?.count || 0}
+                                opacityTargets={opacityTargets}
                             />
                         </>);
                     })
@@ -92,6 +95,7 @@ class TransitionSidebar extends ReactAdapterElement {
                         index={i}
                         maxValue={maxValue}
                         labelFunction={label}
+                        opacityTargets={opacityTargets}
                     />
                     )
                 }

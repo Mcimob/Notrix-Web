@@ -30,4 +30,5 @@ export type TransitionProps = {
     labelFunction: (value: number) => Label;
     strokeFunction: (value: number) => number;
     countFunction: (id: number) => number;
+    opacityTargets: string[];
 }
