@@ -78,7 +78,9 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         sidebar.setData(kernel.getMainLabelStats(), kernel.getTransitionMatrix());
         sidebar.setOpacityTargets(new String[]{"cell-column-element .cell"});
         sidebar.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
-        Div div = new Div(sidebar);
+        DivWithTooltip div = new DivWithTooltip(".with-hover");
+        div.render();
+        div.add(sidebar);
         div.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_CENTER, STYLE_BACKGROUND_WHITE);
         div.setWidth("50%");
 
