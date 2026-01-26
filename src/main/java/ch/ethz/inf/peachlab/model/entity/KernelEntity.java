@@ -158,7 +158,7 @@ public class KernelEntity implements AbstractEntity {
     }
 
     public List<CellEntity> getCells() {
-        return cells;
+        return cells.stream().filter(Objects::nonNull).toList();
     }
 
     @Override

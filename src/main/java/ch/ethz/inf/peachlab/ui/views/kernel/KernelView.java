@@ -2,12 +2,15 @@ package ch.ethz.inf.peachlab.ui.views.kernel;
 
 import ch.ethz.inf.peachlab.backend.service.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
+import ch.ethz.inf.peachlab.model.entity.CellEntity;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.enums.CellType;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
+import ch.ethz.inf.peachlab.ui.components.CellColumn;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
+import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.StageChart;
 import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
 import ch.ethz.inf.peachlab.ui.components.TripleStats;
@@ -110,11 +113,21 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
 
     private Component createGrid() {
         ContentGrid grid = new ContentGrid();
-
         grid.setItems(kernel.getCells());
 
-        Div div = new Div(grid);
-        div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+        CellColumn cellColumn = new CellColumn();
+        cellColumn.setKernel(kernel);
+        cellColumn.addCellClickListener(idx -> {
+            CellEntity cell = kernel.getCells().get(idx);
+            grid.scrollToItem(cell);
+            grid.select(cell);
+        });
+        DivWithTooltip columnDiv = new DivWithTooltip(".cell");
+        columnDiv.render();
+        columnDiv.add(cellColumn);
+
+        Div div = new Div(columnDiv, grid);
+        div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL, STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_BACKGROUND_WHITE, STYLE_PADDING_M, STYLE_FLEX_ALIGN_CENTER);
 
         return div;
     }

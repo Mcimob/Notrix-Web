@@ -4,7 +4,7 @@ window.attachNotebookMatrixHover = function (host, gridId) {
     host.addEventListener("mousemove", event => {
         const index = event
             .composedPath()[1]
-            ?.getAttribute("kernel-index");
+            ?.getAttribute("data-kernel-index");
         if (index == null || index === lastIndex) return;
         highlight(index);
     });

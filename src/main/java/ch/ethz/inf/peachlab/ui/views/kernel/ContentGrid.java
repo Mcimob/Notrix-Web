@@ -35,7 +35,7 @@ public class ContentGrid extends Grid<CellEntity> {
     private void styleGrid() {
         setHeightFull();
         addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS, GridVariant.LUMO_NO_BORDER);
-        setSelectionMode(Grid.SelectionMode.NONE);
+        setSelectionMode(SelectionMode.SINGLE);
     }
 
     private Component createCell(CellEntity cell) {
