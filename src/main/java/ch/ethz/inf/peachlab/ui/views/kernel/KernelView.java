@@ -3,11 +3,14 @@ package ch.ethz.inf.peachlab.ui.views.kernel;
 import ch.ethz.inf.peachlab.backend.service.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
+import ch.ethz.inf.peachlab.model.enums.CellType;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
+import ch.ethz.inf.peachlab.ui.components.StageChart;
 import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
+import ch.ethz.inf.peachlab.ui.components.TripleStats;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
@@ -20,6 +23,9 @@ import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.WildcardParameter;
+import org.springframework.data.util.Pair;
+
+import java.util.List;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ALIGN_CENTER;
@@ -56,8 +62,8 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         Div center = new Div(createHeader(), createGrid());
         center.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_M);
 
-        Div right = new Div();
-        right.addClassNames(STYLE_HEIGHT_FULL, STYLE_BACKGROUND_WHITE);
+        Div right = new Div(createStats());
+        right.addClassNames(STYLE_HEIGHT_FULL);
         right.setWidth("50%");
 
         add(createSidebar(), center, right);
@@ -111,6 +117,53 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
 
         return div;
+    }
+
+    private Component createStats() {
+        Div div = new Div(createNumStats(), createBarStats());
+        div.addClassNames(STYLE_WIDTH_FULL, STYLE_PADDING_M, STYLE_BACKGROUND_WHITE,
+            STYLE_FLEX_COLUMN, STYLE_GAP_M);
+
+        return div;
+    }
+
+    private Component createNumStats() {
+        TripleStats kernelStats = new TripleStats();
+        kernelStats.setStats(List.of(
+            Pair.of("Creation Date", kernel.getCreationDate().toLocalDate()),
+            Pair.of("Total Lines", kernel.getNumLines()),
+            Pair.of("Total Votes", kernel.getTotalVotes())
+        ));
+        kernelStats.setIcon(VaadinIcon.NOTEBOOK.create());
+        kernelStats.setTitleText("Notebook Stats");
+        kernelStats.addClassNames(STYLE_WIDTH_FULL);
+        kernelStats.render();
+
+        long codeCells = kernel.getCells().stream()
+            .filter(c -> c.getCellType() == CellType.CODE)
+            .count();
+        TripleStats cellStats = new TripleStats();
+        cellStats.setStats(List.of(
+            Pair.of("Total Cells", kernel.getCellCount()),
+            Pair.of("Code Cells", codeCells),
+            Pair.of("Md Cells", kernel.getCellCount() - codeCells)
+        ));
+        cellStats.setIcon(VaadinIcon.CODE.create());
+        cellStats.setTitleText("Cell Stats");
+        cellStats.addClassNames(STYLE_WIDTH_FULL);
+        cellStats.render();
+
+        Div div = new Div(kernelStats, cellStats);
+        div.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_M, STYLE_WIDTH_FULL);
+
+        return div;
+    }
+
+    private Component createBarStats() {
+        StageChart chart = new StageChart();
+        chart.setStageStats(kernel.getMainLabelStats());
+        chart.render();
+        return chart;
     }
 
     @Override

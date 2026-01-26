@@ -40,7 +40,7 @@ public class KernelEntity implements AbstractEntity {
     private String title;
 
     @Column(nullable = false, name = "TotalVotes")
-    private int totalVotes;
+    private Integer totalVotes;
 
     @Column(nullable = false, name = "TotalViews")
     private int totalViews;
@@ -102,7 +102,7 @@ public class KernelEntity implements AbstractEntity {
         return title;
     }
 
-    public int getTotalVotes() {
+    public Integer getTotalVotes() {
         return totalVotes;
     }
 

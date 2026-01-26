@@ -54,7 +54,7 @@ public class StageChart extends Div implements HasRender {
     private Component createChart() {
         DivWithTooltip chartContainer = new DivWithTooltip(".bar");
         chartContainer.addClassNames(STYLE_PADDING_M, STYLE_FLEX_ROW, STYLE_FLEX_JUSTIFY_CENTER,
-            STYLE_GAP_S, STYLE_HEIGHT_150PX,
+            STYLE_GAP_S, STYLE_HEIGHT_150PX, STYLE_BOX_SHADOW,
             STYLE_BORDER_WIDTH_S, STYLE_BORDER_COLOR_GRAY, STYLE_BORDER_RADIUS_S, STYLE_BORDER_STYLE_SOLID);
         chartContainer.render();
 
