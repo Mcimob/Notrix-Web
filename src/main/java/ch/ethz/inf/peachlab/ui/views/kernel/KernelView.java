@@ -12,9 +12,11 @@ import ch.ethz.inf.peachlab.ui.components.CellColumn;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.StageChart;
+import ch.ethz.inf.peachlab.ui.components.TextWithIcon;
 import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
 import ch.ethz.inf.peachlab.ui.components.TripleStats;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
+import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
@@ -25,7 +27,6 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
@@ -35,12 +36,17 @@ import org.springframework.data.util.Pair;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MAX_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_COLOR_GRAY;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_RADIUS_S;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_STYLE_SOLID;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_WIDTH_S;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BOX_SHADOW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ALIGN_CENTER;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_BETWEEN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_CENTER;
@@ -49,9 +55,11 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MAX_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_0;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_OVERFLOW_SCROLL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_LINK;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_200;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
@@ -149,15 +157,31 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         columnDiv.render();
         columnDiv.add(cellColumn);
 
-        Div div = new Div(createToc(), columnDiv, grid);
-        div.addClassNames(STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0, STYLE_WIDTH_FULL,
-            STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_FLEX_ALIGN_CENTER,
-            STYLE_BACKGROUND_WHITE, STYLE_PADDING_M);
+        Div div = new Div();
+        div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_PADDING_M, STYLE_FLEX_COLUMN, STYLE_GAP_S,
+            STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+
+        Div container = new Div();
+        createToc().ifPresent(toc -> {
+            container.add(toc);
+            toc.setVisible(false);
+
+            ToggleButton button = new ToggleButton();
+            button.addValueChangeListener(toggle -> toc.setVisible(toggle.getValue()));
+            Div toggleDiv = new Div(button, new TextWithIcon(VaadinIcon.LIST.create(), "Table of Contents"));
+            toggleDiv.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_FLEX_ALIGN_CENTER);
+
+            div.add(toggleDiv);
+        });
+        container.add(columnDiv, grid);
+        container.addClassNames(STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0, STYLE_WIDTH_FULL,
+            STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_FLEX_ALIGN_CENTER);
+        div.add(container);
 
         return div;
     }
     
-    private Component createToc() {
+    private Optional<Component> createToc() {
         List<TocElement> tocElements = kernel.getCells().stream()
             .filter(c -> c.getCellType() != CellType.CODE)
             .map(c ->
@@ -179,10 +203,15 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
             .toList();
 
         List<Toc> tocParts = Toc.buildTocTree(tocElements);
+        if (tocParts.isEmpty()) {
+            return Optional.empty();
+        }
         Component list = createTocRecursive(tocParts);
-        list.addClassNames(STYLE_MAX_HEIGHT_FULL, STYLE_WIDTH_200, STYLE_OVERFLOW_SCROLL);
+        list.addClassNames(STYLE_MAX_HEIGHT_FULL, STYLE_WIDTH_200, STYLE_OVERFLOW_SCROLL, STYLE_BOX_SHADOW,
+            STYLE_PADDING_S, STYLE_BORDER_STYLE_SOLID, STYLE_BORDER_RADIUS_S, STYLE_BORDER_COLOR_GRAY, STYLE_BORDER_WIDTH_S);
 
-        return list;
+
+        return Optional.of(list);
     }
 
     private UnorderedList createTocRecursive(List<Toc> tocParts) {
@@ -201,7 +230,6 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
 
         return list;
     }
-
 
     private Component createStats() {
         Div div = new Div(createNumStats(), createBarStats());
