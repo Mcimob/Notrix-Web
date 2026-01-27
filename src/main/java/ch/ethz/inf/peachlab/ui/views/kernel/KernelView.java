@@ -2,6 +2,7 @@ package ch.ethz.inf.peachlab.ui.views.kernel;
 
 import ch.ethz.inf.peachlab.backend.service.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
+import ch.ethz.inf.peachlab.model.Notebook;
 import ch.ethz.inf.peachlab.model.entity.CellEntity;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.enums.CellType;
@@ -16,10 +17,12 @@ import ch.ethz.inf.peachlab.ui.components.TextWithIcon;
 import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
 import ch.ethz.inf.peachlab.ui.components.TripleStats;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.ListItem;
@@ -70,13 +73,15 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
     private static final Pattern PATTERN = Pattern.compile("^(#+) ([^\\n]*)\\n*");
     private static final String HTML_PATTERN = "<\\s*[^>]*>";
     private final KernelService kernelService;
+    private final ObjectMapper objectMapper;
 
     private final ContentGrid grid = new ContentGrid();
 
     private KernelEntity kernel;
 
-    public KernelView(KernelService kernelService) {
+    public KernelView(KernelService kernelService, ObjectMapper objectMapper) {
         this.kernelService = kernelService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -127,13 +132,20 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
             ));
         }
 
-        Div iconsDiv = new Div();
-        iconsDiv.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S);
         Icon download = VaadinIcon.DOWNLOAD.create();
         download.setSize("32px");
+        Anchor downloadLink = new Anchor();
+        downloadLink.setHref(event -> {
+            event.setFileName(kernel.getId() + ".ipynb");
+            event.getOutputStream().write(objectMapper.writeValueAsBytes(Notebook.ofKernel(kernel)));
+        });
+        downloadLink.add(download);
+
         Icon bookmark = VaadinIcon.BOOKMARK_O.create();
         bookmark.setSize("32px");
-        iconsDiv.add(download, bookmark);
+
+        Div iconsDiv = new Div(downloadLink, bookmark);
+        iconsDiv.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S);
 
         Div div = new Div(textDiv, iconsDiv);
         div.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_BETWEEN, STYLE_FLEX_ALIGN_CENTER,
