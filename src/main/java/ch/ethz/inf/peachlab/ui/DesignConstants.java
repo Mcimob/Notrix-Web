@@ -11,10 +11,14 @@ public final class DesignConstants {
     public static final String STYLE_BACKGROUND_WHITE = "background-white";
 
     public static final String STYLE_WIDTH_FULL = "width-full";
+    public static final String STYLE_WIDTH_200 = "width-200";
     public static final String STYLE_HEIGHT_FULL = "height-full";
     public static final String STYLE_HEIGHT_150PX = "height-150px";
 
+    public static final String STYLE_MAX_HEIGHT_FULL = "max-height-full";
     public static final String STYLE_MIN_HEIGHT_0 = "min-height-0";
+
+    public static final String STYLE_OVERFLOW_SCROLL = "overflow-scroll";
 
     public static final String STYLE_POSITION_RELATIVE = "position-relative";
     public static final String STYLE_POSITION_ABSOLUTE = "position-absolute";
@@ -63,6 +67,7 @@ public final class DesignConstants {
 
     public static final String STYLE_TEXT_COLOR_WHITE = "text-color-white";
     public static final String STYLE_TEXT_COLOR_GRAY = "text-color-gray";
+    public static final String STYLE_TEXT_LINK = "text-link";
 
     public static final String STYLE_CELL = "cell";
 

@@ -20,16 +20,26 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.ListItem;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.WildcardParameter;
 import org.springframework.data.util.Pair;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MAX_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ALIGN_CENTER;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_BETWEEN;
@@ -39,13 +49,20 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_OVERFLOW_SCROLL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_LINK;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_200;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "code", layout = MainLayout.class)
 public class KernelView extends AbstractView implements HasUrlParameter<String> {
 
+    private static final Pattern PATTERN = Pattern.compile("^(#+) ([^\\n]*)\\n*");
+    private static final String HTML_PATTERN = "<\\s*[^>]*>";
     private final KernelService kernelService;
+
+    private final ContentGrid grid = new ContentGrid();
 
     private KernelEntity kernel;
 
@@ -115,9 +132,8 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
     }
 
     private Component createGrid() {
-        ContentGrid grid = new ContentGrid();
         grid.setItems(kernel.getCells());
-
+        
         CellColumn cellColumn = new CellColumn();
         cellColumn.setKernel(kernel);
         cellColumn.addCellClickListener(idx -> {
@@ -129,11 +145,57 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         columnDiv.render();
         columnDiv.add(cellColumn);
 
-        Div div = new Div(columnDiv, grid);
+        Div div = new Div(createToc(), columnDiv, grid);
         div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL, STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_BACKGROUND_WHITE, STYLE_PADDING_M, STYLE_FLEX_ALIGN_CENTER);
 
         return div;
     }
+    
+    private Component createToc() {
+        List<TocElement> tocElements = kernel.getCells().stream()
+            .filter(c -> c.getCellType() != CellType.CODE)
+            .map(c ->
+                Arrays.stream(c.getSource().split("\\n")).map(source -> {
+                        Matcher matcher = PATTERN.matcher(source);
+                        if (!matcher.find() || matcher.groupCount() < 2) {
+                            return null;
+                        }
+                        return matcher;
+                    })
+                    .filter(Objects::nonNull)
+                    .map(matcher -> new TocElement(
+                        matcher.group(1).length(),
+                        matcher.group(2).replaceAll(HTML_PATTERN, ""),
+                        c
+                    )))
+            .flatMap(Function.identity())
+            .filter(Objects::nonNull)
+            .toList();
+
+        List<Toc> tocParts = Toc.buildTocTree(tocElements);
+        Component list = createTocRecursive(tocParts);
+        list.addClassNames(STYLE_MAX_HEIGHT_FULL, STYLE_WIDTH_200, STYLE_OVERFLOW_SCROLL);
+
+        return list;
+    }
+
+    private UnorderedList createTocRecursive(List<Toc> tocParts) {
+        UnorderedList list = new UnorderedList();
+        tocParts.forEach(part -> {
+            Span span = new Span(part.title());
+            span.addClassNames(STYLE_TEXT_LINK);
+            span.addClickListener(click -> {
+                grid.scrollToItem(part.cell());
+                grid.select(part.cell());
+            });
+            list.add(new ListItem(span));
+            if (!part.children().isEmpty())
+                list.add(createTocRecursive(part.children()));
+        });
+
+        return list;
+    }
+
 
     private Component createStats() {
         Div div = new Div(createNumStats(), createBarStats());
