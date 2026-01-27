@@ -49,6 +49,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_0;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_OVERFLOW_SCROLL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_LINK;
@@ -145,7 +146,9 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         columnDiv.add(cellColumn);
 
         Div div = new Div(createToc(), columnDiv, grid);
-        div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL, STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_BACKGROUND_WHITE, STYLE_PADDING_M, STYLE_FLEX_ALIGN_CENTER);
+        div.addClassNames(STYLE_HEIGHT_FULL, STYLE_MIN_HEIGHT_0, STYLE_WIDTH_FULL,
+            STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_FLEX_ALIGN_CENTER,
+            STYLE_BACKGROUND_WHITE, STYLE_PADDING_M);
 
         return div;
     }
