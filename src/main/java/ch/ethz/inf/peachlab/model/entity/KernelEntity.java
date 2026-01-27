@@ -161,6 +161,10 @@ public class KernelEntity implements AbstractEntity {
         return cells.stream().filter(Objects::nonNull).toList();
     }
 
+    public String getUrlParameter() {
+        return "%s/%s".formatted(authorUserName, currentUrlSlug);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this) {

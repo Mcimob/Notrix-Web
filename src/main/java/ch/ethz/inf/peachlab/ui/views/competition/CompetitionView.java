@@ -26,6 +26,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.BeforeEvent;
@@ -47,6 +48,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_0;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_LINK;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "competitions", layout = MainLayout.class)
@@ -168,8 +170,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
             return;
         }
         KernelEntity kernel = response.getEntity().get();
-        String param = "%s/%s".formatted(kernel.getAuthorUserName(), kernel.getCurrentUrlSlug());
-        UI.getCurrent().navigate(KernelView.class, param);
+        UI.getCurrent().navigate(KernelView.class, kernel.getUrlParameter());
     }
 
     private void onNewMatrixData(ServiceResponse<PageImpl<KernelEntity>> response) {
@@ -190,7 +191,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     private Component createGrid() {
         grid.setId("kernel-grid"); // unique DOM id
 
-        grid.addColumn(KernelEntity::getTitle)
+        grid.addComponentColumn(this::createTitleLink)
                 .setHeader("Title")
                 .setSortable(true)
                 .setSortProperty("title")
@@ -246,6 +247,14 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
 
         return div;
+    }
+
+    private Component createTitleLink(KernelEntity kernel) {
+        Span span = new Span(kernel.getTitle());
+        span.addClassNames(STYLE_TEXT_LINK);
+        span.addClickListener(click -> UI.getCurrent().navigate(KernelView.class, kernel.getUrlParameter()));
+
+        return span;
     }
 
     @Override

@@ -12,6 +12,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.router.Route;
@@ -21,6 +22,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_LINK;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "/", layout = MainLayout.class)
@@ -71,20 +73,22 @@ public class HomeView extends AbstractView {
 
     private Component createGrid() {
         Grid<CompetitionEntity> grid = new Grid<>();
-        grid.addColumn(CompetitionEntity::getTitle)
-                .setHeader("Competition Title")
-                .setSortable(true)
-                .setSortProperty("title");
+        grid.addComponentColumn(this::createTitleLink)
+            .setHeader("Competition Title")
+            .setSortable(true)
+            .setSortProperty("title");
         grid.addColumn(CompetitionEntity::getTotalSubmissions)
-                .setHeader("# Submissions")
-                .setSortable(true)
-                .setSortProperty("totalSubmissions");
-        grid.addColumn(CompetitionEntity::getDeadlineDate)
-                .setHeader("Deadline Date")
-                .setSortable(true)
-                .setSortProperty("deadlineDate");
-        grid.addComponentColumn(this::createCompetitionNavigation)
-                .setHeader("Navigate");
+            .setHeader("# Submissions")
+            .setSortable(true)
+            .setSortProperty("totalSubmissions");
+        grid.addColumn(c -> "%.2f".formatted(c.getAvgLinesPerKernel()))
+                .setHeader("Avg Notebook Lines")
+            .setSortable(true)
+            .setSortProperty("avgLinesPerKernel");
+        grid.addColumn(c -> c.getDeadlineDate().toLocalDate())
+            .setHeader("Deadline Date")
+            .setSortable(true)
+            .setSortProperty("deadlineDate");
 
         grid.addSelectionListener(event -> {
             competitionDescriptionBox.setCompetition(event.getFirstSelectedItem().orElse(null));
@@ -97,6 +101,16 @@ public class HomeView extends AbstractView {
         grid.setHeightFull();
 
         return grid;
+    }
+
+    private Component createTitleLink(CompetitionEntity competition) {
+        Span span = new Span(competition.getTitle());
+        span.addClassNames(STYLE_TEXT_LINK);
+        span.addClickListener(e -> UI.getCurrent().navigate(
+            CompetitionView.class,
+            competition.getSlug()));
+
+        return span;
     }
 
     private Component createCompetitionNavigation(CompetitionEntity competition) {
