@@ -65,6 +65,10 @@ vaadin-button{
     overflow: scroll;
 }
 
+.overflow-hidden {
+    overflow: hidden;
+}
+
 .position-relative {
     position: relative;
 }
@@ -225,6 +229,7 @@ vaadin-button{
 .cell {
     position: relative;
     overflow: visible;
+    cursor: pointer;
 }
 
 .cell:hover {
