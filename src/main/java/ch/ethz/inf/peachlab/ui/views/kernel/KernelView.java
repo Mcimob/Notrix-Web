@@ -142,6 +142,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
             grid.select(cell);
         });
         DivWithTooltip columnDiv = new DivWithTooltip(".cell");
+        columnDiv.addClassNames(STYLE_OVERFLOW_SCROLL, STYLE_MAX_HEIGHT_FULL);
         columnDiv.render();
         columnDiv.add(cellColumn);
 
@@ -253,15 +254,15 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
             return;
         }
         String[] parts = parameter.split("/");
-        if (parts.length < 2) {
-            add(new Text("Invalid!"));
-            return;
-        }
-        String user = parts[0];
-        String slug = parts[1];
         KernelFilter filter = new KernelFilter();
-        filter.setUser(user);
-        filter.setSlug(slug);
+        if (parts.length == 1) {
+            filter.setId(Long.valueOf(parts[0]));
+        } else {
+            String user = parts[0];
+            String slug = parts[1];
+            filter.setUser(user);
+            filter.setSlug(slug);
+        }
 
         ServiceResponse<KernelEntity> response = kernelService.fetchOne(filter, KernelLoadType.WITH_CELLS);
 

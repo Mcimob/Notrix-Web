@@ -162,6 +162,8 @@ public class KernelEntity implements AbstractEntity {
     }
 
     public String getUrlParameter() {
+        if (authorDisplayName == null || currentUrlSlug == null)
+            return id.toString();
         return "%s/%s".formatted(authorUserName, currentUrlSlug);
     }
 

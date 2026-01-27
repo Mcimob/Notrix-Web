@@ -6,6 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class KernelFilter extends AbstractFilter<KernelEntity> {
 
+    private Long id;
     private CompetitionEntity competition;
     private String user;
     private String slug;
@@ -13,6 +14,9 @@ public class KernelFilter extends AbstractFilter<KernelEntity> {
     @Override
     public Specification<KernelEntity> getSpecification() {
         Specification<KernelEntity> spec = super.getSpecification();
+        if (id != null) {
+            return spec.and(hasId(id));
+        }
         if (competition != null) {
             spec = spec.and(isOfCompetition(competition));
         }
@@ -26,6 +30,10 @@ public class KernelFilter extends AbstractFilter<KernelEntity> {
         }
 
         return spec;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public void setCompetition(CompetitionEntity competition) {
@@ -50,6 +58,10 @@ public class KernelFilter extends AbstractFilter<KernelEntity> {
 
     public void setSlug(String slug) {
         this.slug = slug;
+    }
+
+    private Specification<KernelEntity> hasId(Long id) {
+        return (root, cq, cb) -> cb.equal(root.get("id"), id);
     }
 
     private Specification<KernelEntity> isOfCompetition(CompetitionEntity competition) {
