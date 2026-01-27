@@ -243,6 +243,16 @@ vaadin-button{
     white-space: pre;
 }
 
+.legend-box {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--size-m);
+    padding: var(--size-m);
+    width: 100%;
+
+    align-items: end;
+}
+
 vaadin-grid::part(hover-highlight) {
     background-color: var(--lumo-contrast-20pct);
 }

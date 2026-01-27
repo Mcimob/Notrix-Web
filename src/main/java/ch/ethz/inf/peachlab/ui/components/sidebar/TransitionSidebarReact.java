@@ -1,4 +1,4 @@
-package ch.ethz.inf.peachlab.ui.components;
+package ch.ethz.inf.peachlab.ui.components.sidebar;
 
 import ch.ethz.inf.peachlab.model.dto.LabelCountDTO;
 import ch.ethz.inf.peachlab.model.dto.MainLabelDTO;

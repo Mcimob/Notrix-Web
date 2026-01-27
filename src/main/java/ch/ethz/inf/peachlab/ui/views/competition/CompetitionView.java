@@ -14,7 +14,7 @@ import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.OverviewBox;
-import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
+import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
 import ch.ethz.inf.peachlab.ui.provider.KernelProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.Filterbar;
@@ -39,7 +39,6 @@ import org.springframework.data.domain.Sort;
 import java.util.stream.Stream;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_CENTER;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
@@ -96,17 +95,14 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     private Component createSidebar() {
-        TransitionSidebarReact sidebar = new TransitionSidebarReact();
-        sidebar.setData(competition.getMainLabelStats(), competition.getTransitionMatrix());
+        TransitionSidebar sidebar = new TransitionSidebar();
+        sidebar.setStageFrequencies(competition.getMainLabelStats());
+        sidebar.setTransitionMatrix(competition.getTransitionMatrix());
         sidebar.setOpacityTargets(new String[]{"notebook-matrix .cell"});
-        sidebar.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
-        DivWithTooltip div = new DivWithTooltip(".with-hover");
-        div.render();
-        div.add(sidebar);
-        div.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_CENTER, STYLE_BACKGROUND_WHITE);
-        div.setWidth("50%");
+        sidebar.setWidth("50%");
+        sidebar.render();
 
-        return div;
+        return sidebar;
     }
 
     private Component createTitleBox() {

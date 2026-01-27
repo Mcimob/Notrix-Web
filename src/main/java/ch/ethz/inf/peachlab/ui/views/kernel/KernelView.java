@@ -14,8 +14,8 @@ import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.StageChart;
 import ch.ethz.inf.peachlab.ui.components.TextWithIcon;
-import ch.ethz.inf.peachlab.ui.components.TransitionSidebarReact;
 import ch.ethz.inf.peachlab.ui.components.TripleStats;
+import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.componentfactory.ToggleButton;
@@ -52,7 +52,6 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_WIDTH_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BOX_SHADOW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ALIGN_CENTER;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_BETWEEN;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_CENTER;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
@@ -105,17 +104,14 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
 
 
     private Component createSidebar() {
-        TransitionSidebarReact sidebar = new TransitionSidebarReact();
-        sidebar.setData(kernel.getMainLabelStats(), kernel.getTransitionMatrix());
+        TransitionSidebar sidebar = new TransitionSidebar();
+        sidebar.setStageFrequencies(kernel.getMainLabelStats());
+        sidebar.setTransitionMatrix(kernel.getTransitionMatrix());
         sidebar.setOpacityTargets(new String[]{"cell-column-element .cell"});
-        sidebar.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
-        DivWithTooltip div = new DivWithTooltip(".with-hover");
-        div.render();
-        div.add(sidebar);
-        div.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_CENTER, STYLE_BACKGROUND_WHITE);
-        div.setWidth("50%");
+        sidebar.render();
+        sidebar.setWidth("50%");
 
-        return div;
+        return sidebar;
     }
 
     private Component createHeader() {
