@@ -108,13 +108,16 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
     private Component createHeader() {
         Div textDiv = new Div();
         textDiv.addClassNames(STYLE_FLEX_COLUMN, STYLE_GAP_S);
-        textDiv.add(new ComponentWithLink(
-            new H2(kernel.getTitle()),
-            "https://kaggle.com/code/" + kernel.getUrlParameter()));
-        textDiv.add(new ComponentWithLink(
-            new Text("By " + kernel.getAuthorDisplayName()),
+        H2 title = new H2(kernel.getTitle());
+        textDiv.add(kernel.getUrlParameter().equals(kernel.getId().toString())
+            ? title
+            : new ComponentWithLink(title, "https://kaggle.com/code/" + kernel.getUrlParameter()));
+        if (kernel.getAuthorUserName() != null) {
+            textDiv.add(new ComponentWithLink(
+                new Text("By " + kernel.getAuthorDisplayName()),
                 "https://kaggle.com/%s".formatted(kernel.getAuthorUserName())
-        ));
+            ));
+        }
 
         Div iconsDiv = new Div();
         iconsDiv.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S);
