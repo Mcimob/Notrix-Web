@@ -47,7 +47,6 @@ public class TransitionSidebar extends DivWithTooltip {
         TransitionSidebarReact sidebar = new TransitionSidebarReact();
         sidebar.setData(stageFrequencies, transitionMatrix);
         sidebar.setOpacityTargets(opacityTargets);
-        sidebar.setOpacityTargets(new String[]{"cell-column-element .cell"});
         sidebar.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
 
         return sidebar;
