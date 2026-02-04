@@ -3,6 +3,8 @@ class CellColumns:
     SOURCE_LINES_COUNT = "SourceLineCount"
     
 class KernelColumns:
+    KERNEL_VERSION_ID = "KernelVersionId"
+    SOURCE_COMPETITION_ID = "SourceCompetitionId"
     LABEL_STATS = "MainLabelStats"
     LABEL_STATS_NORM = "MainLabelStatsNorm"
     LABEL_SEQUENCE = "LabelSequence"
@@ -12,6 +14,8 @@ class KernelColumns:
     CELL_COUNT = "CellCount"
     TOTAL_VOTES = "TotalVotes"
     COMPLEXITY_FEATURES_NORM = "ComplexitiFeaturesNorm"
+    N_GRAMS = "NGrams"
+    CLUSTER_ID = "ClusterId"
 
 class CompetitionColumns:
     LABEL_STATS = KernelColumns.LABEL_STATS
