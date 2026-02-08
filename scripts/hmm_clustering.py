@@ -408,6 +408,16 @@ def main():
         kernels_clustered[KernelColumns.CLUSTER_ID]
     )))[0]
     
+    print("Dumping JSON columns...")
+    for col_name in [KernelColumns.LABEL_STATS_NORM, KernelColumns.COMPLEXITY_FEATURES_NORM, KernelColumns.TRANSITION_MATRIX_NORM, KernelColumns.LABEL_SEQUENCE]:
+        kernels_clustered[col_name] = kernels_clustered[col_name].apply(lambda l: l.tolist())
+        
+    kernels_clustered[KernelColumns.N_GRAMS] = kernels_clustered[KernelColumns.N_GRAMS].apply(list)
+    
+    for col_name in [KernelColumns.LABEL_SEQUENCE, KernelColumns.LABEL_STATS_NORM, KernelColumns.COMPLEXITY_FEATURES_NORM, KernelColumns.TRANSITION_MATRIX_NORM, KernelColumns.N_GRAMS]:
+        kernels_clustered[col_name] = kernels_clustered[col_name].apply(json.dumps)
+    print("Finished dumping JSON columns")
+    
     kernels_clustered.to_csv("AllCompetitionKernels_clustered.csv", index=False)
 
 if __name__ == "__main__":
