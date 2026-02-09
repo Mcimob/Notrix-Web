@@ -397,7 +397,7 @@ def main():
             how="left")
     )
     
-    cluster_map = kernels_clustered[[ClusterColumns.CLUSTER_ID, ClusterColumns.LOCAL_CLUSTER_ID]]
+    cluster_map = kernels_clustered[[ClusterColumns.CLUSTER_ID, ClusterColumns.LOCAL_CLUSTER_ID]].drop_duplicates()
     save_clusters(cluster_map, "Clusters.csv")
     
     save_kernels(all_kernels_with_clusters, "AllCompetitionKernels_clustered.csv")

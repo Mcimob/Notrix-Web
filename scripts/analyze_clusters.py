@@ -365,12 +365,25 @@ def main():
     
     print("🤖 Querying GPT for analysis (this may take a moment)...")
     responses = []
+    old_responses = None
+    try:
+        with open("gpt_responses.pkl", "rb") as f:
+            old_responses = pkl.load(f)
+    except Exception as e:
+        print("Could not find previous gpt responses")
+        old_responses = []
+    
+    response_index = 0
     try:
         for p in tqdm(prompts, desc="Querying..."):
             if p:
-                gpt_response = query_gpt5(p, api_key)
-                result = save_analysis_result(gpt_response)
-                responses.append(result)
+                if len(old_responses) > response_index:
+                    responses.append(old_responses[response_index])
+                else:
+                    gpt_response = query_gpt5(p, api_key)
+                    result = save_analysis_result(gpt_response)
+                    responses.append(result)
+                response_index += 1
     except Exception as e:
         print(f"Encountered exception {e}")
         
