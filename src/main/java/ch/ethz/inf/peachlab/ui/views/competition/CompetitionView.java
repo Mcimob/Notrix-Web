@@ -14,6 +14,7 @@ import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.OverviewBox;
+import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
 import ch.ethz.inf.peachlab.ui.provider.KernelProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
@@ -26,7 +27,6 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.BeforeEvent;
@@ -47,7 +47,6 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_0;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_LINK;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "competitions", layout = MainLayout.class)
@@ -187,7 +186,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     private Component createGrid() {
         grid.setId("kernel-grid"); // unique DOM id
 
-        grid.addComponentColumn(this::createTitleLink)
+        grid.addComponentColumn(TitleLink::new)
                 .setHeader("Title")
                 .setSortable(true)
                 .setSortProperty("title")
@@ -243,14 +242,6 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
 
         return div;
-    }
-
-    private Component createTitleLink(KernelEntity kernel) {
-        Span span = new Span(kernel.getTitle());
-        span.addClassNames(STYLE_TEXT_LINK);
-        span.addClickListener(click -> UI.getCurrent().navigate(KernelView.class, kernel.getUrlParameter()));
-
-        return span;
     }
 
     @Override

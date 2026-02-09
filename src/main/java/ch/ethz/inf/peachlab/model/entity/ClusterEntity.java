@@ -38,7 +38,7 @@ public class ClusterEntity implements AbstractEntity {
     private Map<Integer, Integer> mainLabelStats;
 
     @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "cluster_id")
+    @JoinColumn(name = "ClusterId")
     private List<KernelEntity> kernels;
 
     @ManyToOne(fetch = FetchType.LAZY)

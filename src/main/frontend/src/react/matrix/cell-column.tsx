@@ -40,15 +40,13 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
         let className = `width-full cell stage-${cell.mainLabel}`;
 
         if (cell.mainLabel != -1 && labelSequence.length != 0) {
-            if (labelSequence[sequenceIndex] != cell.mainLabel) {
-                sequenceIndex++;
-            }
             if (sequenceIndex + 1 < labelSequence.length) {
                 className = className.concat(` transition-${labelSequence[sequenceIndex]}-${labelSequence[sequenceIndex + 1]}`);
             }
             if (sequenceIndex - 1 >= 0) {
                 className = className.concat(` transition-${labelSequence[sequenceIndex - 1]}-${labelSequence[sequenceIndex]}`);
             }
+            sequenceIndex++;
         }
 
         result.push(<Cell

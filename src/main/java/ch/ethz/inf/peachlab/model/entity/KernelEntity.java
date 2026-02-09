@@ -79,6 +79,9 @@ public class KernelEntity implements AbstractEntity {
     @JoinColumn(name = "SourceCompetitionId")
     private CompetitionEntity competition;
 
+    @Column(name = "ClusterId")
+    private Long clusterId;
+
     @OneToMany
     @JoinColumn(name = "KernelVersionId")
     @OrderColumn(name = "CellId")
@@ -155,6 +158,10 @@ public class KernelEntity implements AbstractEntity {
 
     public CompetitionEntity getCompetition() {
         return competition;
+    }
+
+    public Long getClusterId() {
+        return clusterId;
     }
 
     public List<CellEntity> getCells() {

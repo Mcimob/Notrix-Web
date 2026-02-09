@@ -1,19 +1,23 @@
 package ch.ethz.inf.peachlab.ui.views.kernel;
 
+import ch.ethz.inf.peachlab.backend.service.ClusterService;
 import ch.ethz.inf.peachlab.backend.service.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.Notebook;
 import ch.ethz.inf.peachlab.model.entity.CellEntity;
+import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.enums.CellType;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
+import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.CellColumn;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.StageChart;
 import ch.ethz.inf.peachlab.ui.components.TextWithIcon;
+import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.components.TripleStats;
 import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
@@ -22,6 +26,7 @@ import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
@@ -54,6 +59,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ALIGN_CENTER;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_BETWEEN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FONT_SIZE_L;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
@@ -72,14 +78,16 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
     private static final Pattern PATTERN = Pattern.compile("^(#+) ([^\\n]*)\\n*");
     private static final String HTML_PATTERN = "<\\s*[^>]*>";
     private final KernelService kernelService;
+    private final ClusterService clusterService;
     private final ObjectMapper objectMapper;
 
     private final ContentGrid grid = new ContentGrid();
 
     private KernelEntity kernel;
 
-    public KernelView(KernelService kernelService, ObjectMapper objectMapper) {
+    public KernelView(KernelService kernelService, ClusterService clusterService, ObjectMapper objectMapper) {
         this.kernelService = kernelService;
+        this.clusterService = clusterService;
         this.objectMapper = objectMapper;
     }
 
@@ -95,8 +103,8 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         Div center = new Div(createHeader(), createGrid());
         center.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_M);
 
-        Div right = new Div(createStats());
-        right.addClassNames(STYLE_HEIGHT_FULL);
+        Div right = new Div(createStats(), createClusterGrid());
+        right.addClassNames(STYLE_HEIGHT_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_M);
         right.setWidth("50%");
 
         add(createSidebar(), center, right);
@@ -284,6 +292,34 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         chart.setStageStats(kernel.getMainLabelStats());
         chart.render();
         return chart;
+    }
+
+    private Component createClusterGrid() {
+        Span gridTitle = new Span("Similar Notebooks");
+        gridTitle.addClassNames(STYLE_FONT_SIZE_L, STYLE_PADDING_S);
+        Grid<KernelEntity> grid = new Grid<>();
+        grid.addComponentColumn(TitleLink::new)
+            .setHeader("Title")
+            .setSortable(true)
+            .setFlexGrow(1);
+        grid.setEmptyStateText("Loading kernels in same cluster...");
+        grid.setHeightFull();
+
+        UiAsyncUtils.callServiceAsync(
+            () -> clusterService.fetchById(kernel.getClusterId()),
+            UI.getCurrent(),
+            res -> res.getEntity()
+                .map(ClusterEntity::getKernels)
+                .ifPresentOrElse(items -> {
+                    items.remove(kernel);
+                    grid.setItems(items);
+                    },
+                    () -> grid.setEmptyStateText("Could not find any kernels in the same cluster"))
+        );
+
+        Div div = new Div(gridTitle, grid);
+        div.addClassNames(STYLE_FLEX_COLUMN, STYLE_BACKGROUND_WHITE, STYLE_HEIGHT_FULL);
+        return div;
     }
 
     @Override
