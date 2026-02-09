@@ -329,7 +329,7 @@ class HMMClusterer:
                 sub_distance_matrix = distance_matrix[np.ix_(cluster_indices, cluster_indices)]
                 
                 # Try to split into 2 sub-clusters
-                n_subclusters = 2
+                n_subclusters = int(len(cluster_indices) / self.max_cluster_size) + 1
                 #print(f"  Split into {n_subclusters} sub-clusters")
                 sub_condensed = squareform(sub_distance_matrix)
                 sub_linkage = linkage(sub_condensed, method=self.linkage_method)
@@ -342,7 +342,7 @@ class HMMClusterer:
                     next_cluster_id += 1
         
         #print(f"After refinement: {len(np.unique(refined_labels))} clusters")
-        return refined_labels, linkage_matrix
+        return refined_labels
 
 def main():
     """Main function to run the enhanced HMM clustering analysis"""
@@ -364,12 +364,12 @@ def main():
             
             # Perform adaptive clustering with refinement
             #print("Performing adaptive clustering with refinement...")
-            cluster_labels, linkage_matrix = clusterer.cluster_notebooks(distance_matrix)
+            cluster_labels = clusterer.cluster_notebooks(distance_matrix)
             
             #print(f"Found {len(np.unique(cluster_labels))} clusters")
             
             # Save results
-            group[KernelColumns.CLUSTER_ID] = cluster_labels
+            group[KernelColumns.LOCAL_CLUSTER_ID] = cluster_labels
             #print("Saving results...")
             #results_df = clusterer.add_results(group, cluster_labels)
             
@@ -405,7 +405,7 @@ def main():
     
     kernels_clustered[KernelColumns.CLUSTER_ID] = pd.factorize(list(zip(
         kernels_clustered[KernelColumns.SOURCE_COMPETITION_ID],
-        kernels_clustered[KernelColumns.CLUSTER_ID]
+        kernels_clustered[KernelColumns.LOCAL_CLUSTER_ID]
     )))[0]
     
     print("Dumping JSON columns...")

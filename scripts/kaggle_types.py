@@ -15,6 +15,7 @@ class KernelColumns:
     TOTAL_VOTES = "TotalVotes"
     COMPLEXITY_FEATURES_NORM = "ComplexitiFeaturesNorm"
     N_GRAMS = "NGrams"
+    LOCAL_CLUSTER_ID = "LocalClusterId"
     CLUSTER_ID = "ClusterId"
 
 class CompetitionColumns:
