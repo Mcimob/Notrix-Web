@@ -319,11 +319,18 @@ def compute_periodicity(sequence):
 def get_competition_label_transition_stats(kernels: pd.DataFrame) -> dict[int, list[list[int]]]:    
     kernels = kernels.copy()
 
+    def sum_matrices(arrs: pd.Series):
+        arrs = arrs.dropna()
+        if len(arrs) == 0:
+            return np.nan
+        stacked = np.stack(arrs.values)
+        return np.nan_to_num(stacked).sum(axis=0).astype(int)
+
+
     comp_df = (
         kernels
         .groupby(KernelColumns.SOURCE_COMPETITION_ID)[KernelColumns.TRANSITION_MATRIX]
-        .apply(apply_safe(lambda arrs: sum(arrs)))  # element-wise sum of arrays
-        .apply(apply_safe(lambda l: l.astype(int)))
+        .apply(apply_safe(sum_matrices))
         .reset_index()
     )
     
@@ -425,8 +432,8 @@ def main():
     
     print("Saving CSVs...")
     competitions.to_csv("Competitions_stats_tmp.csv", index=False)
-    save_kernels(kernels, "AllCompetitionKernels_tmp.csv")
-    cells.to_csv(FILE_BASE + "Cells_predicted_tmp.csv", index=False)
+    #save_kernels(kernels, "AllCompetitionKernels_tmp.csv")
+    #cells.to_csv(FILE_BASE + "Cells_predicted_tmp.csv", index=False)
     print("Finished saving CSVs")
     
 

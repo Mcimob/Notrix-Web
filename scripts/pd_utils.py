@@ -12,7 +12,11 @@ def json_dumps_safe(l):
     
 
 def is_valid_val(x):
-    return type(x) in [np.ndarray, list, dict, pd.Series] or not pd.isna(x)
+    if x is None:
+        return False
+    if isinstance(x, (np.ndarray, list, dict, pd.Series)):
+        return True
+    return not pd.isna(x)
 
 def str_to_np(str):
     return np.array(json.loads(str))
