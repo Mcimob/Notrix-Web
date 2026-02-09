@@ -25,6 +25,7 @@ from scipy.cluster.hierarchy import linkage, fcluster
 import Levenshtein
 import warnings
 from tqdm import tqdm
+from pd_utils import JSON_COLUMNS, NP_COLUMNS, load_all_kernels, save_kernels
 from kaggle_types import KernelColumns
 from joblib import Parallel, delayed
 warnings.filterwarnings('ignore')
@@ -136,24 +137,12 @@ class HMMClusterer:
             self.state_names = [f"state_{i}" for i in range(12)]
             print(f"Warning: Could not load class_mapping.json, using fallback state names: {self.state_names}")
     
-    def load_notebook_sequences(self, file_base):
+    def load_valid_notebook_sequences(self, file_base):
+        kernels = (
+            load_all_kernels(file_base + "AllCompetitionKernels_tmp.csv")
+        )
         
-        def str_to_np(str):
-            return np.array(json.loads(str))
-        
-        """Load notebook sequences from CSV file"""
-        return pd.read_csv(file_base + "AllCompetitionKernels_tmp.csv",
-                            dtype={
-                                KernelColumns.KERNEL_VERSION_ID: "Int32",
-                                KernelColumns.SOURCE_COMPETITION_ID: "Int32",
-                                },
-                            converters={
-                                KernelColumns.LABEL_SEQUENCE: str_to_np,
-                                KernelColumns.TRANSITION_MATRIX_NORM: str_to_np,
-                                KernelColumns.LABEL_STATS_NORM: str_to_np,
-                                KernelColumns.COMPLEXITY_FEATURES_NORM: str_to_np,
-                                KernelColumns.N_GRAMS: lambda str: set(json.loads(str))}
-                            ).dropna()
+        return kernels.dropna(subset=JSON_COLUMNS)
   
     def calculate_transition_similarity(self, trans1, trans2, method='frobenius'):
         """Calculate similarity between two transition matrices"""
@@ -336,6 +325,41 @@ class HMMClusterer:
         
         return refined_labels
 
+def get_clustered_kernels(kernels: pd.DataFrame, clusterer: HMMClusterer) -> pd.DataFrame:
+    groups = [group for _, group in kernels.groupby(KernelColumns.SOURCE_COMPETITION_ID)]
+    results = []
+    for group in groups:
+        clustered_group = cluster_for_competition(group, clusterer)
+        results.append(clustered_group)
+
+    kernels_clustered = pd.concat(results, ignore_index=True)
+    
+    kernels_clustered[KernelColumns.CLUSTER_ID] = pd.factorize(list(zip(
+        kernels_clustered[KernelColumns.SOURCE_COMPETITION_ID],
+        kernels_clustered[KernelColumns.LOCAL_CLUSTER_ID]
+    )))[0]
+    
+    return kernels_clustered
+
+def cluster_for_competition(group: pd.DataFrame, clusterer: HMMClusterer) -> pd.DataFrame:
+    group = group.copy()
+    print(f"Starting clustering for competition {group[KernelColumns.SOURCE_COMPETITION_ID].iloc[0]}")
+    if len(group) >= 2:
+        # Compute enhanced distance matrix
+        distance_matrix = clusterer.compute_distance_matrix(group)
+        distance_matrix = np.nan_to_num(distance_matrix)
+        
+        # Perform adaptive clustering with refinement
+        cluster_labels = clusterer.cluster_notebooks(distance_matrix)
+        
+        # Save results
+        group[KernelColumns.LOCAL_CLUSTER_ID] = cluster_labels
+        print(f"Found {len(np.unique(cluster_labels))} clusters")
+    else:
+        print("Not enough notebooks for clustering analysis")
+        
+    return group[[KernelColumns.LOCAL_CLUSTER_ID, KernelColumns.KERNEL_VERSION_ID, KernelColumns.SOURCE_COMPETITION_ID]]
+
 def main():
     """Main function to run the enhanced HMM clustering analysis"""
     
@@ -344,25 +368,6 @@ def main():
     
     # Initialize clusterer with config
     clusterer = HMMClusterer(config=config)
-    
-    def cluster_for_competition(group: pd.DataFrame) -> pd.DataFrame:
-        group = group.copy()
-        print(f"Starting clustering for competition {group[KernelColumns.SOURCE_COMPETITION_ID].iloc[0]}")
-        if len(group) >= 2:
-            # Compute enhanced distance matrix
-            distance_matrix = clusterer.compute_distance_matrix(group)
-            distance_matrix = np.nan_to_num(distance_matrix)
-            
-            # Perform adaptive clustering with refinement
-            cluster_labels = clusterer.cluster_notebooks(distance_matrix)
-            
-            # Save results
-            group[KernelColumns.LOCAL_CLUSTER_ID] = cluster_labels
-            print(f"Found {len(np.unique(cluster_labels))} clusters")
-        else:
-            print("Not enough notebooks for clustering analysis")
-            
-        return group
     
     # Set random seed from config
     random_seed = config['random_seed']
@@ -375,33 +380,23 @@ def main():
     
     # Load notebooks with enhanced features
     print("Loading notebook sequences with enhanced features...")
-    kernels = clusterer.load_notebook_sequences("")
+    kernels = clusterer.load_valid_notebook_sequences("")
     print(f"Loaded {len(kernels)} valid notebook sequences")
     
-    groups = [group for _, group in kernels.groupby(KernelColumns.SOURCE_COMPETITION_ID)]
-    results = []
-    for group in groups:
-        clustered_group = cluster_for_competition(group)
-        results.append(clustered_group)
-
-    kernels_clustered = pd.concat(results, ignore_index=True)
+    kernels_clustered = get_clustered_kernels(kernels, clusterer)
     
-    kernels_clustered[KernelColumns.CLUSTER_ID] = pd.factorize(list(zip(
-        kernels_clustered[KernelColumns.SOURCE_COMPETITION_ID],
-        kernels_clustered[KernelColumns.LOCAL_CLUSTER_ID]
-    )))[0]
+    all_kernels = load_all_kernels("AllCompetitionKernels_tmp.csv")
+    all_kernels_with_clusters = (
+        all_kernels
+        .merge(kernels_clustered[[
+                KernelColumns.CLUSTER_ID, 
+                KernelColumns.LOCAL_CLUSTER_ID, 
+                KernelColumns.KERNEL_VERSION_ID]], 
+            on=KernelColumns.KERNEL_VERSION_ID,
+            how="left")
+    )
     
-    print("Dumping JSON columns...")
-    for col_name in [KernelColumns.LABEL_STATS_NORM, KernelColumns.COMPLEXITY_FEATURES_NORM, KernelColumns.TRANSITION_MATRIX_NORM, KernelColumns.LABEL_SEQUENCE]:
-        kernels_clustered[col_name] = kernels_clustered[col_name].apply(lambda l: l.tolist())
-        
-    kernels_clustered[KernelColumns.N_GRAMS] = kernels_clustered[KernelColumns.N_GRAMS].apply(list)
-    
-    for col_name in [KernelColumns.LABEL_SEQUENCE, KernelColumns.LABEL_STATS_NORM, KernelColumns.COMPLEXITY_FEATURES_NORM, KernelColumns.TRANSITION_MATRIX_NORM, KernelColumns.N_GRAMS]:
-        kernels_clustered[col_name] = kernels_clustered[col_name].apply(json.dumps)
-    print("Finished dumping JSON columns")
-    
-    kernels_clustered.to_csv("AllCompetitionKernels_clustered.csv", index=False)
+    save_kernels(all_kernels_with_clusters, "AllCompetitionKernels_clustered.csv")
 
 if __name__ == "__main__":
     main()

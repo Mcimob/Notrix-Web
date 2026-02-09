@@ -5,6 +5,7 @@ from collections import Counter
 from pandarallel import pandarallel
 
 from kaggle_types import CellColumns, KernelColumns, CompetitionColumns
+from pd_utils import apply_safe, is_valid_val, save_kernels
 
 pandarallel.initialize(progress_bar=True)
 
@@ -28,32 +29,28 @@ def add_stats_to_kernels(cells: pd.DataFrame, kernels: pd.DataFrame) -> pd.DataF
     line_counts = get_kernel_num_lines(cells)
     cell_counts = get_kernel_num_cells(cells)
     
-    for df, col_name, lmda in [
-        (label_stats, KernelColumns.LABEL_STATS, fillna_dict), 
-        (label_sequences, KernelColumns.LABEL_SEQUENCE, fillna_list), 
-        (label_transitions, KernelColumns.TRANSITION_MATRIX, fillna_matrix), 
-        (line_counts, KernelColumns.NUM_LINES, fillna_zero), 
-        (cell_counts, KernelColumns.CELL_COUNT, fillna_zero)]:
+    for df in [
+        label_stats, 
+        label_sequences, 
+        label_transitions, 
+        line_counts, 
+        cell_counts]:
         kernels = kernels.merge(
             df,
             on=KernelColumns.KERNEL_VERSION_ID,
             how="left"
         )
-        kernels[col_name] = (
-            kernels[col_name]
-            .apply(lmda)
-        )
     
     kernels[KernelColumns.TRANSITION_MATRIX_NORM] = (
         kernels[KernelColumns.TRANSITION_MATRIX]
-        .apply(np.array)
-        .apply(normalize_transition_matrix))
-    kernels[KernelColumns.LABEL_STATS_NORM] = kernels[KernelColumns.LABEL_STATS].apply(normalize_stats)
+        .apply(apply_safe(np.array))
+        .apply(apply_safe(normalize_transition_matrix)))
+    kernels[KernelColumns.LABEL_STATS_NORM] = kernels[KernelColumns.LABEL_STATS].apply(apply_safe(normalize_stats))
     kernels[KernelColumns.COMPLEXITY_FEATURES_NORM] = (
         kernels[[KernelColumns.LABEL_SEQUENCE, KernelColumns.TRANSITION_MATRIX_NORM, KernelColumns.LABEL_STATS_NORM]]
         .parallel_apply(compute_complexity_features, axis=1)
-        .apply(lambda row: row / (np.linalg.norm(row) + 1e-10)))
-    kernels[KernelColumns.N_GRAMS] = kernels[KernelColumns.LABEL_SEQUENCE].apply(compute_ngrams)
+        .apply(apply_safe(lambda row: row / (np.linalg.norm(row) + 1e-10))))
+    kernels[KernelColumns.N_GRAMS] = kernels[KernelColumns.LABEL_SEQUENCE].apply(apply_safe(compute_ngrams))
     
     return kernels
     
@@ -64,12 +61,12 @@ def add_stats_to_competitions(kernels: pd.DataFrame, competitions: pd.DataFrame)
     avg_lines = get_competition_avg_num_lines(kernels)
     avg_total_votes = get_competition_avg_votes(kernels)
 
-    for df, col_name, lmda in [
-        (label_stats, CompetitionColumns.LABEL_STATS, fillna_dict),
-        (label_transitions, CompetitionColumns.TRANSITION_MATRIX, fillna_matrix),
-        (avg_cells, CompetitionColumns.AVG_CELLS, fillna_zero),
-        (avg_lines, CompetitionColumns.AVG_LINES, fillna_zero),
-        (avg_total_votes, CompetitionColumns.AVG_TOTAL_VOTES, fillna_zero)]:
+    for df in [
+        label_stats,
+        label_transitions,
+        avg_cells,
+        avg_lines,
+        avg_total_votes]:
         competitions = competitions.merge(
             df,
             left_on="Id",
@@ -77,10 +74,6 @@ def add_stats_to_competitions(kernels: pd.DataFrame, competitions: pd.DataFrame)
             how="left"
         )
         competitions.drop(columns=[KernelColumns.SOURCE_COMPETITION_ID], inplace=True)
-        competitions[col_name] = (
-            competitions[col_name]
-            .apply(lmda)
-        )
     
     return competitions
 
@@ -180,8 +173,10 @@ def compute_complexity_features(row):
     sequence = row[KernelColumns.LABEL_SEQUENCE]
     matrix = row[KernelColumns.TRANSITION_MATRIX_NORM]
     stats_normalized = row[KernelColumns.LABEL_STATS_NORM]
+    if (not (is_valid_val(sequence) and is_valid_val(matrix) and is_valid_val(stats_normalized))):
+        return np.nan
     if len(sequence) == 0:
-        return np.zeros(15)
+        return np.nan
     
     features = []
     
@@ -327,8 +322,8 @@ def get_competition_label_transition_stats(kernels: pd.DataFrame) -> dict[int, l
     comp_df = (
         kernels
         .groupby(KernelColumns.SOURCE_COMPETITION_ID)[KernelColumns.TRANSITION_MATRIX]
-        .apply(lambda arrs: sum(arrs))  # element-wise sum of arrays
-        .apply(lambda l: l.astype(int))
+        .apply(apply_safe(lambda arrs: sum(arrs)))  # element-wise sum of arrays
+        .apply(apply_safe(lambda l: l.astype(int)))
         .reset_index()
     )
     
@@ -342,7 +337,7 @@ def get_competition_label_stats(kernels: pd.DataFrame) -> pd.DataFrame:
         .apply(lambda s: dict(sum((Counter(d) for d in s if isinstance(d, dict)), Counter())))
         .unstack(fill_value=0)
         .apply(
-            lambda r: {str(k): int(v) for k, v in r.items() if v > 0},
+            apply_safe(lambda r: {str(k): int(v) for k, v in r.items() if v > 0}),
             axis=1
         )
         .reset_index(name=CompetitionColumns.LABEL_STATS)
@@ -419,26 +414,18 @@ def main():
     
     print("=" * 30)
     
-    print("Dumping JSON columns...")
-    for col_name in [KernelColumns.LABEL_STATS_NORM, KernelColumns.COMPLEXITY_FEATURES_NORM, KernelColumns.TRANSITION_MATRIX, KernelColumns.TRANSITION_MATRIX_NORM]:
-        kernels[col_name] = kernels[col_name].apply(lambda l: l.tolist())
-        
-    kernels[KernelColumns.N_GRAMS] = kernels[KernelColumns.N_GRAMS].apply(list)
-    
-    for col_name in [KernelColumns.TRANSITION_MATRIX, KernelColumns.LABEL_SEQUENCE, KernelColumns.LABEL_STATS, KernelColumns.LABEL_STATS_NORM, KernelColumns.COMPLEXITY_FEATURES_NORM, KernelColumns.TRANSITION_MATRIX_NORM, KernelColumns.N_GRAMS]:
-        kernels[col_name] = kernels[col_name].apply(json.dumps)
-    
-    competitions[CompetitionColumns.TRANSITION_MATRIX] = competitions[CompetitionColumns.TRANSITION_MATRIX].apply(lambda x: x.tolist())
+    print("Dumping JSON columns...")    
+    competitions[CompetitionColumns.TRANSITION_MATRIX] = competitions[CompetitionColumns.TRANSITION_MATRIX].apply(apply_safe(lambda x: x.tolist()))
     
     for col_name in [CompetitionColumns.LABEL_STATS, CompetitionColumns.TRANSITION_MATRIX]:
-        competitions[col_name] = competitions[col_name].apply(json.dumps)
+        competitions[col_name] = competitions[col_name].apply(lambda l: json.dumps(l) if is_valid_val(l) else "")
     print("Finished dumping JSON columns")
     
     print("=" * 30)
     
     print("Saving CSVs...")
     competitions.to_csv("Competitions_stats_tmp.csv", index=False)
-    kernels.to_csv("AllCompetitionKernels_tmp.csv", index=False)
+    save_kernels(kernels, "AllCompetitionKernels_tmp.csv")
     cells.to_csv(FILE_BASE + "Cells_predicted_tmp.csv", index=False)
     print("Finished saving CSVs")
     
