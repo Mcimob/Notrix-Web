@@ -20,10 +20,10 @@ public class ClusterEntity implements AbstractEntity {
     @Column(name = "ClusterId")
     private Long id;
 
-    @Column(nullable = true, name = "Summary")
+    @Column(nullable = true, name = "Summary", columnDefinition = "text")
     private String summary;
 
-    @Column(nullable = false, name = "LocalClusterId")
+    @Column(nullable = true, name = "LocalClusterId")
     private Long localClusterId;
 
     @Column(nullable = false, name = "ClusterSize")
