@@ -8,11 +8,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -69,8 +71,9 @@ public class CompetitionEntity implements AbstractEntity {
     private Set<KernelEntity> kernels;
 
     @OneToMany
-    @JoinColumn(name = "CompetitionId")
-    private Set<ClusterEntity> clusters;
+    @JoinColumn(name = "SourceCompetitionId")
+    @OrderColumn(name = "LocalClusterId")
+    private List<ClusterEntity> clusters;
 
     @Override
     public Long getId() {
@@ -141,7 +144,7 @@ public class CompetitionEntity implements AbstractEntity {
         return kernels;
     }
 
-    public Set<ClusterEntity> getClusters() {
+    public List<ClusterEntity> getClusters() {
         return clusters;
     }
 

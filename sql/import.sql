@@ -26,14 +26,19 @@ ALTER TABLE competition_tags
 
 CREATE TABLE cluster_entity
 (
-    id             BIGINT NOT NULL,
-    description    VARCHAR(255),
-    competition_id BIGINT,
-    CONSTRAINT pk_clusterentity PRIMARY KEY (id)
+    cluster_id            BIGINT NOT NULL,
+    summary               VARCHAR(255),
+    local_cluster_id      BIGINT NOT NULL,
+    cluster_size          BIGINT NOT NULL,
+    transition_matrix     JSONB,
+    main_label_stats      JSONB,
+    source_competition_id BIGINT,
+    CONSTRAINT pk_clusterentity PRIMARY KEY (cluster_id)
 );
 
 ALTER TABLE cluster_entity
-    ADD CONSTRAINT FK_CLUSTERENTITY_ON_COMPETITIONID FOREIGN KEY (competition_id) REFERENCES competition_entity (id);
+    ADD CONSTRAINT FK_CLUSTERENTITY_ON_SOURCECOMPETITIONID FOREIGN KEY (source_competition_id) REFERENCES competition_entity (id);
+
 
 CREATE TABLE kernel_entity
 (
@@ -51,14 +56,18 @@ CREATE TABLE kernel_entity
     cell_count            INTEGER                     NOT NULL,
     label_sequence        JSONB,
     transition_matrix     JSONB,
+    transition_matrix_norm JSONB,
     main_label_stats      JSONB,
+    main_label_stats_norm JSONB,
+    complexiti_features_norm JSONB,
+    n_grams JSONB,
     source_competition_id BIGINT,
     cluster_id            BIGINT,
     CONSTRAINT pk_kernelentity PRIMARY KEY (kernel_version_id)
 );
 
 ALTER TABLE kernel_entity
-    ADD CONSTRAINT FK_KERNELENTITY_ON_CLUSTER FOREIGN KEY (cluster_id) REFERENCES cluster_entity (id);
+    ADD CONSTRAINT FK_KERNELENTITY_ON_CLUSTER FOREIGN KEY (cluster_id) REFERENCES cluster_entity (cluster_id);
 
 ALTER TABLE kernel_entity
     ADD CONSTRAINT FK_KERNELENTITY_ON_SOURCECOMPETITIONID FOREIGN KEY (source_competition_id) REFERENCES competition_entity (id);
@@ -83,5 +92,6 @@ alter table cell_entity
 
 \copy competition_entity(id, title, subtitle, overview, slug, total_submissions, deadline_date, main_label_stats, transition_matrix, avg_cells_per_kernel, avg_lines_per_kernel, avg_votes) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/Competitions_stats_tmp.csv' DELIMITER ',' CSV HEADER
 \copy competition_tags(competition_id, slug) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/CompetitionTags.csv' DELIMITER ',' CSV HEADER
+\copy cluster_entity(cluster_id, local_cluster_id, cluster_size, main_label_stats, transition_matrix, competition_id)
 \copy kernel_entity(kernel_version_id, source_competition_id, creation_date, version_number, title, total_votes, total_views, total_comments, current_url_slug, author_user_name, author_display_name, main_label_stats, label_sequence, transition_matrix, num_lines, cell_count) FROM '/home/tim/IdeaProjects/kaggle-vis/scripts/AllCompetitionKernels_tmp.csv' DELIMITER ',' CSV HEADER
 \copy cell_entity(id, kernel_version_id, cell_id, source, cell_type, main_label, source_line_count) FROM '/media/tim/Data/Thesis/Cells_predicted_tmp.csv' DELIMITER ',' CSV HEADER
