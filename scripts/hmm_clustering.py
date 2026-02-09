@@ -25,8 +25,8 @@ from scipy.cluster.hierarchy import linkage, fcluster
 import Levenshtein
 import warnings
 from tqdm import tqdm
-from pd_utils import JSON_COLUMNS, NP_COLUMNS, load_all_kernels, save_kernels
-from kaggle_types import KernelColumns
+from pd_utils import KERNEL_JSON_COLUMNS, load_all_kernels, save_clusters, save_kernels
+from kaggle_types import ClusterColumns, KernelColumns
 from joblib import Parallel, delayed
 warnings.filterwarnings('ignore')
 
@@ -142,7 +142,7 @@ class HMMClusterer:
             load_all_kernels(file_base + "AllCompetitionKernels_tmp.csv")
         )
         
-        return kernels.dropna(subset=JSON_COLUMNS)
+        return kernels.dropna(subset=KERNEL_JSON_COLUMNS)
   
     def calculate_transition_similarity(self, trans1, trans2, method='frobenius'):
         """Calculate similarity between two transition matrices"""
@@ -334,6 +334,8 @@ def get_clustered_kernels(kernels: pd.DataFrame, clusterer: HMMClusterer) -> pd.
 
     kernels_clustered = pd.concat(results, ignore_index=True)
     
+    kernels_clustered = kernels_clustered[[KernelColumns.LOCAL_CLUSTER_ID, KernelColumns.KERNEL_VERSION_ID, KernelColumns.SOURCE_COMPETITION_ID]]
+    
     kernels_clustered[KernelColumns.CLUSTER_ID] = pd.factorize(list(zip(
         kernels_clustered[KernelColumns.SOURCE_COMPETITION_ID],
         kernels_clustered[KernelColumns.LOCAL_CLUSTER_ID]
@@ -358,7 +360,7 @@ def cluster_for_competition(group: pd.DataFrame, clusterer: HMMClusterer) -> pd.
     else:
         print("Not enough notebooks for clustering analysis")
         
-    return group[[KernelColumns.LOCAL_CLUSTER_ID, KernelColumns.KERNEL_VERSION_ID, KernelColumns.SOURCE_COMPETITION_ID]]
+    return group
 
 def main():
     """Main function to run the enhanced HMM clustering analysis"""
@@ -389,12 +391,14 @@ def main():
     all_kernels_with_clusters = (
         all_kernels
         .merge(kernels_clustered[[
-                KernelColumns.CLUSTER_ID, 
-                KernelColumns.LOCAL_CLUSTER_ID, 
+                KernelColumns.CLUSTER_ID,
                 KernelColumns.KERNEL_VERSION_ID]], 
             on=KernelColumns.KERNEL_VERSION_ID,
             how="left")
     )
+    
+    cluster_map = kernels_clustered[[ClusterColumns.CLUSTER_ID, ClusterColumns.LOCAL_CLUSTER_ID]]
+    save_clusters(cluster_map, "Clusters.csv")
     
     save_kernels(all_kernels_with_clusters, "AllCompetitionKernels_clustered.csv")
 

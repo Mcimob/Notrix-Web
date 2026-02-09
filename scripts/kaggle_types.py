@@ -18,6 +18,13 @@ class KernelColumns:
     LOCAL_CLUSTER_ID = "LocalClusterId"
     CLUSTER_ID = "ClusterId"
 
+class ClusterColumns:
+    CLUSTER_ID = KernelColumns.CLUSTER_ID
+    LOCAL_CLUSTER_ID = "LocalClusterId"
+    CLUSTER_SIZE = "ClusterSize"
+    LABEL_STATS = KernelColumns.LABEL_STATS
+    TRANSITION_MATRIX = KernelColumns.TRANSITION_MATRIX
+
 class CompetitionColumns:
     LABEL_STATS = KernelColumns.LABEL_STATS
     TRANSITION_MATRIX = KernelColumns.TRANSITION_MATRIX
