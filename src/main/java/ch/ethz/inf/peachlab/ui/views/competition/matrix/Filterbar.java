@@ -23,6 +23,22 @@ public class Filterbar extends Div implements HasRender {
         addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_BETWEEN);
     }
 
+    private Component createLeftButtons() {
+        Div div = new Div();
+        div.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_FLEX_ALIGN_CENTER);
+
+        div.add(createClusterButton());
+        return div;
+    }
+
+    private Component createClusterButton() {
+        ToggleButton button = new ToggleButton("Cluster");
+        button.addValueChangeListener(change ->
+            fireEvent(new ClusterEvent(change.getValue(), this, change.isFromClient())));
+
+        return button;
+    }
+
     private Component createRightButtons() {
         Div div = new Div();
         div.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_FLEX_ALIGN_CENTER);
@@ -52,8 +68,7 @@ public class Filterbar extends Div implements HasRender {
     @Override
     public void render() {
         removeAll();
-        add(new Div());
-        add(createRightButtons());
+        add(createLeftButtons(), createRightButtons());
     }
 
     public Registration addMarkdownButtonListener(ComponentEventListener<ShowMarkdownEvent> listener) {
@@ -62,5 +77,9 @@ public class Filterbar extends Div implements HasRender {
 
     public Registration addHeightButtonListener(ComponentEventListener<ShowHeightEvent> listener) {
         return addListener(ShowHeightEvent.class, listener);
+    }
+
+    public Registration addClusterListener(ComponentEventListener<ClusterEvent> listener) {
+        return addListener(ClusterEvent.class, listener);
     }
 }

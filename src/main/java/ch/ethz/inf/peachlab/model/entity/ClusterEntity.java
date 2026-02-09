@@ -6,15 +6,29 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.OneToMany;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Entity
+@NamedEntityGraph(name = ClusterEntity.WITH_KERNELS_AND_CELLS,
+attributeNodes = {
+    @NamedAttributeNode(value = "kernels", subgraph = KernelEntity.WITH_CELLS)
+},
+subgraphs = {
+    @NamedSubgraph(name = KernelEntity.WITH_CELLS, attributeNodes = {
+        @NamedAttributeNode("cells")
+    })
+})
 public class ClusterEntity implements AbstractEntity {
+
+    public static final String WITH_KERNELS_AND_CELLS = "withKernelsAndCells";
 
     @Id
     @Column(name = "ClusterId")
@@ -39,7 +53,7 @@ public class ClusterEntity implements AbstractEntity {
 
     @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "ClusterId")
-    private List<KernelEntity> kernels;
+    private Set<KernelEntity> kernels;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SourceCompetitionId")
@@ -94,11 +108,11 @@ public class ClusterEntity implements AbstractEntity {
         this.mainLabelStats = mainLabelStats;
     }
 
-    public List<KernelEntity> getKernels() {
+    public Set<KernelEntity> getKernels() {
         return kernels;
     }
 
-    public void setKernels(List<KernelEntity> kernels) {
+    public void setKernels(Set<KernelEntity> kernels) {
         this.kernels = kernels;
     }
 }

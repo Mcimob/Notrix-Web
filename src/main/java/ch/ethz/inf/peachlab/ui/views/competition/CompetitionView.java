@@ -1,13 +1,18 @@
 package ch.ethz.inf.peachlab.ui.views.competition;
 
+import ch.ethz.inf.peachlab.backend.service.ClusterService;
 import ch.ethz.inf.peachlab.backend.service.CompetitionService;
 import ch.ethz.inf.peachlab.backend.service.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
+import ch.ethz.inf.peachlab.model.dto.ClusterDTO;
 import ch.ethz.inf.peachlab.model.dto.KernelDTO;
+import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
+import ch.ethz.inf.peachlab.model.filter.ClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
+import ch.ethz.inf.peachlab.model.loadtype.ClusterLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
@@ -16,8 +21,10 @@ import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.OverviewBox;
 import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
+import ch.ethz.inf.peachlab.ui.provider.ClusterProvider;
 import ch.ethz.inf.peachlab.ui.provider.KernelProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
+import ch.ethz.inf.peachlab.ui.views.competition.matrix.ClusterMatrix;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.Filterbar;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.NotebookMatrix;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
@@ -54,23 +61,32 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private final transient CompetitionService competitionService;
     private final transient KernelService kernelService;
+    private final ClusterService clusterService;
 
     private CompetitionEntity competition;
 
     private final NotebookMatrix matrix = new NotebookMatrix();
+    private final ClusterMatrix cLusterMatrix = new ClusterMatrix();
     private final Grid<KernelEntity> grid = new Grid<>();
     private final KernelFilter filter = new KernelFilter();
+    private final ClusterFilter clusterFilter = new ClusterFilter();
     private final ConfigurableFilterDataProvider<KernelEntity, Void, KernelFilter> provider =
             new KernelProvider().withConfigurableFilter();
+    private final ConfigurableFilterDataProvider<ClusterEntity, Void, ClusterFilter> clusterProvider =
+        new ClusterProvider().withConfigurableFilter();
 
-    public CompetitionView(CompetitionService competitionService, KernelService kernelService) {
+    public CompetitionView(CompetitionService competitionService, KernelService kernelService, ClusterService clusterService) {
         this.competitionService = competitionService;
         this.kernelService = kernelService;
+        this.clusterService = clusterService;
     }
 
     private void initProvider() {
         filter.setCompetition(competition);
         provider.setFilter(filter);
+
+        clusterFilter.setCompetition(competition);
+        clusterProvider.setFilter(clusterFilter);
     }
 
     @Override
@@ -133,18 +149,36 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         UiAsyncUtils.callServiceAsync(
             () -> kernelService.fetch(Pageable.unpaged(), filter, KernelLoadType.WITH_CELLS),
             UI.getCurrent(),
-            this::onNewMatrixData);
+            this::onNewKernelMatrixData);
+
+        cLusterMatrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+        cLusterMatrix.addKernelClickedListener(this::onKernelClicked);
+        cLusterMatrix.setVisible(false);
+        UiAsyncUtils.callServiceAsync(
+            () -> clusterService.fetch(Pageable.unpaged(), clusterFilter, ClusterLoadType.WITH_KERNELS_AND_CELLS),
+            UI.getCurrent(),
+            this::onNewClusterMatrixData
+        );
+
 
         Filterbar bar = new Filterbar();
         bar.render();
-        bar.addMarkdownButtonListener(event ->
-            matrix.getStyle().set("--display-md", event.getShow() ? "block" : "none"));
+        bar.addMarkdownButtonListener(event -> {
+            cLusterMatrix.getStyle().set("--display-md", event.getShow() ? "block" : "none");
+            matrix.getStyle().set("--display-md", event.getShow() ? "block" : "none");
+        });
         bar.addHeightButtonListener(event -> {
             if (event.getShow()) {
                 matrix.getStyle().set("--cell-height", "initial");
+                cLusterMatrix.getStyle().set("--cell-height", "initial");
             } else {
                 matrix.getStyle().set("--cell-height", "5px");
+                cLusterMatrix.getStyle().set("--cell-height", "5px");
             }
+        });
+        bar.addClusterListener(event -> {
+            matrix.setVisible(!event.isCluster());
+            cLusterMatrix.setVisible(event.isCluster());
         });
 
         DivWithTooltip div = new DivWithTooltip(".cell");
@@ -152,7 +186,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
                 STYLE_FLEX_COLUMN, STYLE_GAP_S);
         div.render();
         div.add(bar);
-        div.add(matrix);
+        div.add(matrix, cLusterMatrix);
         return div;
     }
 
@@ -168,13 +202,23 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         UI.getCurrent().navigate(KernelView.class, kernel.getUrlParameter());
     }
 
-    private void onNewMatrixData(ServiceResponse<PageImpl<KernelEntity>> response) {
+    private void onNewKernelMatrixData(ServiceResponse<PageImpl<KernelEntity>> response) {
         matrix.setItems(
             response.getEntity()
                 .map(PageImpl::stream)
                 .orElse(Stream.empty())
                 .map(KernelDTO::ofKernel)
                 .toList());
+    }
+
+    private void onNewClusterMatrixData(ServiceResponse<PageImpl<ClusterEntity>> response) {
+        cLusterMatrix.setItems(
+            response.getEntity()
+                .map(PageImpl::stream)
+                .orElse(Stream.empty())
+                .map(ClusterDTO::ofCluster)
+                .toList()
+        );
     }
 
     private Component createStats() {
@@ -235,7 +279,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
             UiAsyncUtils.callServiceAsync(
                 () -> kernelService.fetch(Pageable.unpaged(sortOrders), filter, KernelLoadType.WITH_CELLS),
                 UI.getCurrent(),
-                this::onNewMatrixData);
+                this::onNewKernelMatrixData);
         });
 
         Div div = new Div(grid);

@@ -2,7 +2,7 @@ package ch.ethz.inf.peachlab.model.loadtype;
 
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 
-public enum KernelLoadType implements HasLoadType{
+public enum KernelLoadType implements HasLoadType {
 
     WITH_CELLS(KernelEntity.WITH_CELLS);
 
