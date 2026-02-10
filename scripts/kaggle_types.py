@@ -19,11 +19,15 @@ class KernelColumns:
     CLUSTER_ID = "ClusterId"
 
 class ClusterColumns:
+    SOURCE_COMPETITION_ID=KernelColumns.SOURCE_COMPETITION_ID
     CLUSTER_ID = KernelColumns.CLUSTER_ID
     LOCAL_CLUSTER_ID = "LocalClusterId"
     CLUSTER_SIZE = "ClusterSize"
     LABEL_STATS = KernelColumns.LABEL_STATS
     TRANSITION_MATRIX = KernelColumns.TRANSITION_MATRIX
+    AVG_LINES = "AvgLinesPerKernel"
+    AVG_CELLS = "AvgCellsPerKernel"
+    AVG_TOTAL_VOTES = "AvgTotalVotes"
 
 class CompetitionColumns:
     LABEL_STATS = KernelColumns.LABEL_STATS

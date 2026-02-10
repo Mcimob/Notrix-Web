@@ -99,6 +99,86 @@ def top10_indices(matrices):
 
     return result
 
+def get_cluster_avg_cells(kernels: pd.DataFrame) -> pd.DataFrame:
+    return (
+        kernels
+        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.CELL_COUNT]
+        .mean()
+        .reset_index(name=ClusterColumns.AVG_CELLS)
+    )
+
+def get_cluster_avg_num_lines(kernels: pd.DataFrame) -> pd.DataFrame:
+    return (
+        kernels
+        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.NUM_LINES]
+        .mean()
+        .reset_index(name=ClusterColumns.AVG_LINES)
+    )
+
+def get_cluster_avg_votes(kernels: pd.DataFrame) -> pd.DataFrame:
+    return (
+        kernels
+        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.TOTAL_VOTES]
+        .mean()
+        .reset_index(name=ClusterColumns.AVG_TOTAL_VOTES)
+    )
+    
+def get_cluster_size(kernels: pd.DataFrame) -> pd.DataFrame:
+    return (
+        kernels
+        .groupby(KernelColumns.CLUSTER_ID)
+        .size()
+        .rename(ClusterColumns.CLUSTER_SIZE)
+    )
+    
+def get_cluster_label_stats(kernels: pd.DataFrame) -> pd.DataFrame:
+    return (
+        kernels
+        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.LABEL_STATS]
+        .apply(lambda s: dict(sum((Counter(d) for d in s if isinstance(d, dict)), Counter())))
+        .unstack(fill_value=0)
+        .apply(
+            lambda r: {str(k): int(v) for k, v in r.items() if v > 0},
+            axis=1
+        )
+        .reset_index(name=ClusterColumns.LABEL_STATS)
+    )
+
+def get_cluster_transition_matrix(kernels: pd.DataFrame) -> pd.DataFrame:
+    return (
+        kernels
+        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.TRANSITION_MATRIX]
+        .apply(lambda arrs: sum(arrs))
+        .apply(lambda l: l.astype(int))
+        .reset_index()
+    )
+
+def get_cluster_sample_sequence(kernels: pd.DataFrame) -> pd.DataFrame:
+    class_mapping = load_class_mapping()
+    return (
+        kernels
+        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.LABEL_SEQUENCE]
+        .agg("first")
+        .apply(lambda lst: " → ".join([class_mapping[i] for i in lst[:10]]) + ("..." if len(lst) > 10 else ""))
+        .rename("SampleSequence")
+    )
+
+def get_cluster_sample_sequence_length(kernels: pd.DataFrame) -> pd.DataFrame:
+    return (
+        kernels
+        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.LABEL_SEQUENCE]
+        .agg("first")
+        .apply(len)
+        .rename("SampleSequenceLength")
+    )
+
+def get_cluster_competition(kernels: pd.DataFrame) -> pd.DataFrame:
+    return (
+        kernels.groupby(KernelColumns.CLUSTER_ID)[KernelColumns.SOURCE_COMPETITION_ID]
+        .agg("first")
+        .rename(ClusterColumns.SOURCE_COMPETITION_ID)
+    )
+
 def generate_analysis_prompt(
     clusters: pd.DataFrame, competition_transition_stats
 ) -> List[str]:
@@ -286,12 +366,11 @@ def save_analysis_result(
 def main():
     """Main execution function."""
     
-    print("🔧 Loading environment and configuration...")
+    print("🔧 Loading environment...")
     api_key = load_environment()
-    class_mapping = load_class_mapping()
     
     kernels = load_all_kernels("AllCompetitionKernels_clustered.csv").dropna(subset=KERNEL_JSON_COLUMNS + [KernelColumns.SOURCE_COMPETITION_ID, KernelColumns.CLUSTER_ID])
-    clusters = load_clusters("Clusters.csv")
+    clusters = load_clusters("Clusters_analyzed.csv")
     
     competition_transition_stats = (
         kernels
@@ -301,64 +380,18 @@ def main():
         .reset_index()    
     )
     
-    cluster_sizes = (
-        kernels
-        .groupby(KernelColumns.CLUSTER_ID)
-        .size()
-        .rename(ClusterColumns.CLUSTER_SIZE)
-    )
-    
-    cluster_label_stats = (
-        kernels
-        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.LABEL_STATS]
-        .apply(lambda s: dict(sum((Counter(d) for d in s if isinstance(d, dict)), Counter())))
-        .unstack(fill_value=0)
-        .apply(
-            lambda r: {str(k): int(v) for k, v in r.items() if v > 0},
-            axis=1
-        )
-        .reset_index(name=ClusterColumns.LABEL_STATS)
-    )
-    
-    cluster_transition_matrix = (
-        kernels
-        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.TRANSITION_MATRIX]
-        .apply(lambda arrs: sum(arrs))
-        .apply(lambda l: l.astype(int))
-        .reset_index()
-    )
-    
-    cluster_sample_sequence = (
-        kernels
-        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.LABEL_SEQUENCE]
-        .agg("first")
-        .apply(lambda lst: " → ".join([class_mapping[i] for i in lst[:10]]) + ("..." if len(lst) > 10 else ""))
-        .rename("SampleSequence")
-    )
-    
-    cluster_sample_sequence_size = (
-        kernels
-        .groupby(KernelColumns.CLUSTER_ID)[KernelColumns.LABEL_SEQUENCE]
-        .agg("first")
-        .apply(len)
-        .rename("SampleSequenceLength")
-    )
-    
-    cluster_competition = (
-        kernels.groupby(KernelColumns.CLUSTER_ID)[KernelColumns.SOURCE_COMPETITION_ID]
-        .agg("first")
-        .rename(KernelColumns.SOURCE_COMPETITION_ID)
-    )
-    
-    clusters = (
-        clusters
-        .merge(cluster_sizes, on=KernelColumns.CLUSTER_ID)
-        .merge(cluster_label_stats, on=KernelColumns.CLUSTER_ID)
-        .merge(cluster_transition_matrix, on=KernelColumns.CLUSTER_ID)
-        .merge(cluster_sample_sequence, on=KernelColumns.CLUSTER_ID)
-        .merge(cluster_sample_sequence_size, on=KernelColumns.CLUSTER_ID)
-        .merge(cluster_competition, on=KernelColumns.CLUSTER_ID)
-    )
+    for df in [
+        get_cluster_avg_cells(kernels),
+        get_cluster_avg_num_lines(kernels),
+        get_cluster_avg_votes(kernels),
+        get_cluster_size(kernels),
+        get_cluster_label_stats(kernels),
+        get_cluster_transition_matrix(kernels),
+        get_cluster_sample_sequence(kernels),
+        get_cluster_sample_sequence_length(kernels),
+        get_cluster_competition(kernels)
+    ]:
+        clusters = clusters.merge(df, on=KernelColumns.CLUSTER_ID)
     
     print("✍️  Generating GPT analysis prompt...")
     prompts = generate_analysis_prompt(clusters, competition_transition_stats)
