@@ -8,6 +8,7 @@ import ch.ethz.inf.peachlab.model.dto.ClusterDTO;
 import ch.ethz.inf.peachlab.model.dto.KernelDTO;
 import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
+import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.filter.ClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
@@ -30,10 +31,12 @@ import ch.ethz.inf.peachlab.ui.views.competition.matrix.NotebookMatrix;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
 import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.BeforeEvent;
@@ -68,6 +71,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     private final NotebookMatrix matrix = new NotebookMatrix();
     private final ClusterMatrix cLusterMatrix = new ClusterMatrix();
     private final Grid<KernelEntity> grid = new Grid<>();
+    private final TreeGrid<HasKernelData> clusterGrid = new TreeGrid<>();
     private final KernelFilter filter = new KernelFilter();
     private final ClusterFilter clusterFilter = new ClusterFilter();
     private final ConfigurableFilterDataProvider<KernelEntity, Void, KernelFilter> provider =
@@ -103,7 +107,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         center.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
         center.getStyle().setMinWidth("0");
 
-        Div right = new Div(createStats(), createGrid());
+        Div right = new Div(createStats(), createGrids());
         right.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
 
         add(createSidebar(), center, right);
@@ -155,7 +159,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         cLusterMatrix.addKernelClickedListener(this::onKernelClicked);
         cLusterMatrix.setVisible(false);
         UiAsyncUtils.callServiceAsync(
-            () -> clusterService.fetch(Pageable.unpaged(), clusterFilter, ClusterLoadType.WITH_KERNELS_AND_CELLS),
+            () -> clusterService.fetch(Pageable.unpaged(Sort.by("LocalClusterId")), clusterFilter, ClusterLoadType.WITH_KERNELS_AND_CELLS),
             UI.getCurrent(),
             this::onNewClusterMatrixData
         );
@@ -177,8 +181,10 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
             }
         });
         bar.addClusterListener(event -> {
+            grid.setVisible(!event.isCluster());
             matrix.setVisible(!event.isCluster());
             cLusterMatrix.setVisible(event.isCluster());
+            clusterGrid.setVisible(event.isCluster());
         });
 
         DivWithTooltip div = new DivWithTooltip(".cell");
@@ -219,6 +225,9 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
                 .map(ClusterDTO::ofCluster)
                 .toList()
         );
+        response.getEntity()
+            .map(PageImpl::stream)
+            .ifPresent(list -> clusterGrid.setItems(list.map(o -> (HasKernelData) o).toList(), HasKernelData::getChildren));
     }
 
     private Component createStats() {
@@ -227,7 +236,14 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         return stats;
     }
 
-    private Component createGrid() {
+    private Component createGrids() {
+        Div div = new Div(createKernelGrid(), createClusterGrid());
+        div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+
+        return div;
+    }
+
+    private Component createKernelGrid() {
         grid.setId("kernel-grid"); // unique DOM id
 
         grid.addComponentColumn(TitleLink::new)
@@ -282,10 +298,35 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
                 this::onNewKernelMatrixData);
         });
 
-        Div div = new Div(grid);
-        div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+        return grid;
+    }
 
-        return div;
+    private Component createClusterGrid() {
+        clusterGrid.addComponentHierarchyColumn(this::createTitleElement)
+                .setHeader("Title")
+            .setFlexGrow(1);
+        clusterGrid.addColumn(HasKernelData::getVotes)
+            .setHeader("# Votes")
+            .setFlexGrow(0);
+        clusterGrid.addColumn(HasKernelData::getNumCells)
+            .setHeader("# Cells")
+            .setFlexGrow(0);
+        clusterGrid.addColumn(HasKernelData::getLines)
+            .setHeader("# Lines")
+            .setFlexGrow(0);
+        clusterGrid.setHeightFull();
+
+        clusterGrid.setVisible(false);
+        return clusterGrid;
+    }
+
+    private Component createTitleElement(HasKernelData kernelData) {
+        if (kernelData instanceof KernelEntity kernel) {
+            return new TitleLink(kernel);
+        } else if (kernelData instanceof ClusterEntity cluster) {
+            return new Text("Cluster " + cluster.getLocalClusterId());
+        }
+        return new Div();
     }
 
     @Override

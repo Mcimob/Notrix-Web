@@ -15,6 +15,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
     attributeNodes = {
         @NamedAttributeNode("cells")
     })
-public class KernelEntity implements AbstractEntity {
+public class KernelEntity implements AbstractEntity, HasKernelData {
 
     public static final String WITH_CELLS = "withCells";
 
@@ -164,8 +165,27 @@ public class KernelEntity implements AbstractEntity {
         return clusterId;
     }
 
+    @Override
+    public Double getLines() {
+        return numLines.doubleValue();
+    }
+
+    public Double getNumCells() {
+        return cellCount.doubleValue();
+    }
+
     public List<CellEntity> getCells() {
         return cells.stream().filter(Objects::nonNull).toList();
+    }
+
+    @Override
+    public Double getVotes() {
+        return totalVotes.doubleValue();
+    }
+
+    @Override
+    public Collection<HasKernelData> getChildren() {
+        return List.of();
     }
 
     public String getUrlParameter() {

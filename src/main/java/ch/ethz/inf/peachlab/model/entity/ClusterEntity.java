@@ -13,6 +13,7 @@ import jakarta.persistence.OneToMany;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,7 +27,7 @@ subgraphs = {
         @NamedAttributeNode("cells")
     })
 })
-public class ClusterEntity implements AbstractEntity {
+public class ClusterEntity implements AbstractEntity, HasKernelData {
 
     public static final String WITH_KERNELS_AND_CELLS = "withKernelsAndCells";
 
@@ -42,6 +43,15 @@ public class ClusterEntity implements AbstractEntity {
 
     @Column(nullable = false, name = "ClusterSize")
     private Long clusterSize;
+
+    @Column(nullable = false)
+    private Double avgCellsPerKernel;
+
+    @Column(nullable = false)
+    private Double avgVotes;
+
+    @Column(nullable = false)
+    private Double avgLinesPerKernel;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "TransitionMatrix", columnDefinition = "jsonb")
@@ -115,4 +125,38 @@ public class ClusterEntity implements AbstractEntity {
     public void setKernels(Set<KernelEntity> kernels) {
         this.kernels = kernels;
     }
+
+    public Double getAvgCellsPerKernel() {
+        return avgCellsPerKernel;
+    }
+
+    public Double getAvgVotes() {
+        return avgVotes;
+    }
+
+    public Double getAvgLinesPerKernel() {
+        return avgLinesPerKernel;
+    }
+
+    @Override
+    public Double getLines() {
+        return avgLinesPerKernel;
+    }
+
+    @Override
+    public Double getNumCells() {
+        return avgCellsPerKernel;
+    }
+
+    @Override
+    public Double getVotes() {
+        return avgVotes;
+    }
+
+    @Override
+    public Collection<HasKernelData> getChildren() {
+        return kernels.stream().map(o -> (HasKernelData) o).toList();
+    }
+
+
 }

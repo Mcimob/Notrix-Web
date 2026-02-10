@@ -5,6 +5,7 @@ import ch.ethz.inf.peachlab.model.enums.MainLabel;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 
 public record KernelDTO(
     Long id,
@@ -19,7 +20,7 @@ public record KernelDTO(
             kernel.getId(),
             kernel.getTitle(),
             kernel.getCurrentUrlSlug(),
-            Arrays.stream(kernel.getLabelSequence())
+            Arrays.stream(Optional.ofNullable(kernel.getLabelSequence()).orElse(new MainLabel[]{}))
                 .map(MainLabel::ordinal)
                 .toArray(Integer[]::new),
             kernel.getCells().stream()
