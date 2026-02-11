@@ -25,8 +25,10 @@ import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
 import ch.ethz.inf.peachlab.ui.provider.ClusterProvider;
 import ch.ethz.inf.peachlab.ui.provider.KernelProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
+import ch.ethz.inf.peachlab.ui.views.competition.matrix.ClusterClickEvent;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.ClusterMatrix;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.Filterbar;
+import ch.ethz.inf.peachlab.ui.views.competition.matrix.KernelClickEvent;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.NotebookMatrix;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
 import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
@@ -46,6 +48,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
@@ -121,7 +124,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         TransitionSidebar sidebar = new TransitionSidebar();
         sidebar.setStageFrequencies(competition.getMainLabelStats());
         sidebar.setTransitionMatrix(competition.getTransitionMatrix());
-        sidebar.setOpacityTargets(new String[]{"notebook-matrix .cell"});
+        sidebar.setOpacityTargets(new String[]{"notebook-matrix .cell", "cluster-matrix .cell"});
         sidebar.setWidth("50%");
         sidebar.render();
 
@@ -157,7 +160,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private Component createNotebookMatrix() {
         matrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
-        matrix.addClickedListener(this::onKernelClicked);
+        matrix.addKernelClickedListener(this::onKernelClicked);
         UiAsyncUtils.callServiceAsync(
             () -> kernelService.fetch(Pageable.unpaged(), filter, KernelLoadType.WITH_CELLS),
             UI.getCurrent(),
@@ -205,7 +208,8 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         return div;
     }
 
-    private void onKernelClicked(Long kernelId) {
+    private void onKernelClicked(KernelClickEvent e) {
+        Long kernelId = e.getKernelId();
         ServiceResponse<KernelEntity> response = kernelService.fetchById(kernelId);
         if (response.hasErrorMessages() || response.getEntity().isEmpty()) {
             response.getErrorMessages().stream()
@@ -217,24 +221,33 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         UI.getCurrent().navigate(KernelView.class, kernel.getUrlParameter());
     }
 
-    private void onClusterClicked(Long clusterId) {
-        if (clusterId == -1) {
+    private void onClusterClicked(ClusterClickEvent event) {
+        Long localClusterId = event.getLocalClusterId();
+        if (localClusterId == -1) {
             clusterOverview.setVisible(false);
             competitionOverview.setVisible(true);
             title.setText(competition.getTitle());
             return;
         }
-        UiAsyncUtils.callServiceAsync(() -> clusterService.fetchById(clusterId),
+        ClusterFilter filter = new ClusterFilter();
+        filter.setCompetition(competition);
+        filter.setLocalClusterId(localClusterId);
+        UiAsyncUtils.callServiceAsync(() -> clusterService.fetch(Pageable.unpaged(), filter),
             UI.getCurrent(),
             this::onClusterResponse);
     }
 
-    private void onClusterResponse(ServiceResponse<ClusterEntity> response) {
-        response.getEntity().ifPresent(c -> {
+    private void onClusterResponse(ServiceResponse<PageImpl<ClusterEntity>> response) {
+        response.getEntity()
+            .map(PageImpl::toList)
+            .map(List::getFirst)
+            .ifPresent(c -> {
             competitionOverview.setVisible(false);
             clusterOverview.setCluster(c);
             clusterOverview.render();
             clusterOverview.setVisible(true);
+            clusterGrid.expand(c);
+            clusterGrid.scrollToIndex(c.getLocalClusterId().intValue() - 1, 0);
             title.setText("Cluster " + c.getLocalClusterId());
         });
     }
@@ -336,13 +349,13 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         clusterGrid.addComponentHierarchyColumn(this::createTitleElement)
                 .setHeader("Title")
             .setFlexGrow(1);
-        clusterGrid.addColumn(HasKernelData::getVotes)
+        clusterGrid.addColumn(k -> "%.2f".formatted(k.getVotes()))
             .setHeader("# Votes")
             .setFlexGrow(0);
-        clusterGrid.addColumn(HasKernelData::getNumCells)
+        clusterGrid.addColumn(k -> "%.2f".formatted(k.getNumCells()))
             .setHeader("# Cells")
             .setFlexGrow(0);
-        clusterGrid.addColumn(HasKernelData::getLines)
+        clusterGrid.addColumn(k -> "%.2f".formatted(k.getLines()))
             .setHeader("# Lines")
             .setFlexGrow(0);
         clusterGrid.setHeightFull();

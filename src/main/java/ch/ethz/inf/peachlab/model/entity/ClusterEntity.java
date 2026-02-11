@@ -16,6 +16,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -168,4 +169,31 @@ public class ClusterEntity implements AbstractEntity, HasKernelData {
     }
 
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof ClusterEntity that)) {
+            return false;
+        }
+        return Objects.equals(id, that.id)
+            && Objects.equals(summary, that.summary)
+            && Objects.equals(localClusterId, that.localClusterId)
+            && Objects.equals(clusterSize, that.clusterSize)
+            && Objects.equals(avgCellsPerKernel, that.avgCellsPerKernel)
+            && Objects.equals(avgVotes, that.avgVotes)
+            && Objects.equals(avgLinesPerKernel, that.avgLinesPerKernel);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id,
+            summary,
+            localClusterId,
+            clusterSize,
+            avgCellsPerKernel,
+            avgVotes,
+            avgLinesPerKernel);
+    }
 }

@@ -6,11 +6,11 @@ import ch.ethz.inf.peachlab.model.dto.SimpleMainLabelDTO;
 import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
 import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
-import com.vaadin.flow.function.SerializableConsumer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -35,8 +35,8 @@ public class NotebookMatrix extends ReactAdapterComponent implements HasLogger, 
         getStyle().set("--cell-height", "5px");
     }
 
-    public void addClickedListener(SerializableConsumer<Long> listener) {
-        addStateChangeListener("clickedId", Long.class, listener);
+    public void addKernelClickedListener(ComponentEventListener<KernelClickEvent> listener) {
+        addListener(KernelClickEvent.class, listener);
     }
 
     @Override

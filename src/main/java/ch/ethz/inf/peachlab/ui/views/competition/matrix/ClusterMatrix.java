@@ -5,11 +5,11 @@ import ch.ethz.inf.peachlab.model.dto.ClusterDTO;
 import ch.ethz.inf.peachlab.model.dto.SimpleMainLabelDTO;
 import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
-import com.vaadin.flow.function.SerializableConsumer;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,11 +33,11 @@ public class ClusterMatrix extends ReactAdapterComponent implements HasLogger, H
         getStyle().set("--cell-height", "5px");
     }
 
-    public void addKernelClickedListener(SerializableConsumer<Long> listener) {
-        addStateChangeListener("clickedKernelId", Long.class, listener);
+    public void addKernelClickedListener(ComponentEventListener<KernelClickEvent> listener) {
+        addListener(KernelClickEvent.class, listener);
     }
 
-    public void addClusterClickedListener(SerializableConsumer<Long> listener) {
-        addStateChangeListener("clickedClusterId", Long.class, listener);
+    public void addClusterClickedListener(ComponentEventListener<ClusterClickEvent> listener) {
+        addListener(ClusterClickEvent.class, listener);
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 public class ClusterFilter extends AbstractFilter<ClusterEntity> {
 
     private CompetitionEntity competition;
+    private Long localClusterId;
 
     @Override
     public Specification<ClusterEntity> getSpecification() {
@@ -16,6 +17,10 @@ public class ClusterFilter extends AbstractFilter<ClusterEntity> {
             spec = spec.and(isOfCompetition(competition));
         }
 
+        if (localClusterId != null) {
+            spec = spec.and(hasLocalClusterId(localClusterId));
+        }
+
         return spec;
     }
 
@@ -23,7 +28,15 @@ public class ClusterFilter extends AbstractFilter<ClusterEntity> {
         return (root, cq, cb) -> cb.equal(root.get("competition"), competition);
     }
 
+    public Specification<ClusterEntity> hasLocalClusterId(Long localClusterId) {
+        return (root, cq, cb) -> cb.equal(root.get("localClusterId"), localClusterId);
+    }
+
     public void setCompetition(CompetitionEntity competition) {
         this.competition = competition;
+    }
+
+    public void setLocalClusterId(Long localClusterId) {
+        this.localClusterId = localClusterId;
     }
 }

@@ -15,7 +15,7 @@ class NotebookMatrix extends ReactAdapterElement {
     protected render(hooks: RenderHooks): React.ReactElement | null {
         const [items, _setItems] = hooks.useState<KernelData[]>("items", []);
         const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", [])
-        const [_clickedId, setClickedId] = hooks.useState<number>("clickedId", -1);
+        const fireKernelClick = hooks.useCustomEvent<string>("kernel-click")
 
         const getLabel = (id: number) => labelData.find(l => l.id == id) || DEFAULT_LABEL;
 
@@ -28,7 +28,7 @@ class NotebookMatrix extends ReactAdapterElement {
                 kernel={item}
                 getLabel={getLabel}
                 getTooltip={(kernel, cell) => `Stage: ${getLabel(cell.mainLabel).title}<br/>Title: ${kernel.title}<br/>Lines: ${cell.sourceLinesCount}`}
-                clickListener={() => setClickedId(item.id)}
+                clickListener={() => fireKernelClick(item.id.toFixed())}
                 style={style}
                 data-kernel-index={index}
             />
