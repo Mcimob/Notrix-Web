@@ -36,4 +36,8 @@ public class ClusterMatrix extends ReactAdapterComponent implements HasLogger, H
     public void addKernelClickedListener(SerializableConsumer<Long> listener) {
         addStateChangeListener("clickedKernelId", Long.class, listener);
     }
+
+    public void addClusterClickedListener(SerializableConsumer<Long> listener) {
+        addStateChangeListener("clickedClusterId", Long.class, listener);
+    }
 }

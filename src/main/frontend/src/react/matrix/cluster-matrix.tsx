@@ -16,22 +16,33 @@ class CLusterMatrix extends ReactAdapterElement {
         const [items, _setItems] = hooks.useState<ClusterData[]>("items", []);
         const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", [])
         const [_clickedKernelId, setClickedKernelId] = hooks.useState<number>("clickedKernelId", -1);
+        const [clickedClusterId, setClickedClusterId] = hooks.useState<number>("clickedClusterId", -1);
 
         const getLabel = (id: number) => labelData.find(l => l.id == id) || DEFAULT_LABEL;
 
-        const getItemSize = (index: number) => items[index].kernels.length * 24 + 12
+        const getItemSize = (index: number) => Math.max(3, items[index].kernels.length) * 24 + 12
 
         const Cluster = ({index, style} : {index: number, style: React.CSSProperties}) => {
+
             const item = items[index];
             if (!item) {
                 return <div style={style}>...</div>;
             }
+            const textColor = clickedClusterId == item.clusterId ? "green" : "black";
             return <div
                 style={style}
-                className={"flex-column flex-align-center"}>
-                <span>Cluster {item.localClusterId}</span>
-                <span>{item.kernels.length} Notebooks</span>
-                <hr />
+                className={"flex-column flex-align-center"}
+                onClick={() => {
+                    if (clickedClusterId == item.clusterId) {
+                        setClickedClusterId(-1);
+                    } else {
+                        setClickedClusterId(item.clusterId);
+                    }
+                }}
+            >
+                <span style={{color: textColor}} className={"font-size-s text-wrap-no"}>Cluster {item.localClusterId}</span>
+                <span style={{color: textColor}} className={"font-size-s text-wrap-no"}>{item.kernels.length} Notebooks</span>
+                <hr style={{backgroundColor: textColor, height: "5px"}}/>
                 <div className={"flex-row"}>
                     {item.kernels.map(kernel => <CellColumn
                         kernel={kernel}

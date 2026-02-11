@@ -68,6 +68,10 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private CompetitionEntity competition;
 
+    private final H2 title = new H2();
+    private final Div competitionOverview = new Div();
+    private final ClusterOverview clusterOverview = new ClusterOverview();
+
     private final NotebookMatrix matrix = new NotebookMatrix();
     private final ClusterMatrix cLusterMatrix = new ClusterMatrix();
     private final Grid<KernelEntity> grid = new Grid<>();
@@ -103,7 +107,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     public void render() {
         removeAll();
 
-        Div center = new Div(createTitleBox(), createDescriptionBox(), createNotebookMatrix());
+        Div center = new Div(createTitleBox(), createClusterOverview(), createDescriptionBox(), createNotebookMatrix());
         center.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
         center.getStyle().setMinWidth("0");
 
@@ -125,8 +129,9 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     private Component createTitleBox() {
+        title.setText(competition.getTitle());
         Div div = new Div(new ComponentWithLink(
-            new H2(competition.getTitle()),
+            title,
             "https://kaggle.com/competitions/" + competition.getSlug()
         ));
         div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_PADDING_M);
@@ -135,16 +140,19 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     private Component createDescriptionBox() {
-        Div div = new Div();
-        div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_PADDING_M);
-
-        div.add(new H2("Competition description"));
+        competitionOverview.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_PADDING_M);
+        competitionOverview.add(new H2("Competition description"));
 
         OverviewBox box = new OverviewBox(competition.getOverview());
         box.render();
-        div.add(box);
+        competitionOverview.add(box);
 
-        return div;
+        return competitionOverview;
+    }
+
+    private Component createClusterOverview() {
+        clusterOverview.setVisible(false);
+        return clusterOverview;
     }
 
     private Component createNotebookMatrix() {
@@ -157,6 +165,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
         cLusterMatrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         cLusterMatrix.addKernelClickedListener(this::onKernelClicked);
+        cLusterMatrix.addClusterClickedListener(this::onClusterClicked);
         cLusterMatrix.setVisible(false);
         UiAsyncUtils.callServiceAsync(
             () -> clusterService.fetch(Pageable.unpaged(Sort.by("LocalClusterId")), clusterFilter, ClusterLoadType.WITH_KERNELS_AND_CELLS),
@@ -206,6 +215,28 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         }
         KernelEntity kernel = response.getEntity().get();
         UI.getCurrent().navigate(KernelView.class, kernel.getUrlParameter());
+    }
+
+    private void onClusterClicked(Long clusterId) {
+        if (clusterId == -1) {
+            clusterOverview.setVisible(false);
+            competitionOverview.setVisible(true);
+            title.setText(competition.getTitle());
+            return;
+        }
+        UiAsyncUtils.callServiceAsync(() -> clusterService.fetchById(clusterId),
+            UI.getCurrent(),
+            this::onClusterResponse);
+    }
+
+    private void onClusterResponse(ServiceResponse<ClusterEntity> response) {
+        response.getEntity().ifPresent(c -> {
+            competitionOverview.setVisible(false);
+            clusterOverview.setCluster(c);
+            clusterOverview.render();
+            clusterOverview.setVisible(true);
+            title.setText("Cluster " + c.getLocalClusterId());
+        });
     }
 
     private void onNewKernelMatrixData(ServiceResponse<PageImpl<KernelEntity>> response) {

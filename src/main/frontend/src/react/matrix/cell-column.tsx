@@ -54,7 +54,10 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
             getLabel={getLabel}
             className={className}
             data-tooltip={getTooltip(kernel, cell)}
-            onClick={() => clickListener && clickListener(i)}
+            onClick={(e) => {
+                clickListener && clickListener(i);
+                e.stopPropagation();
+            }}
         />)
 
     }

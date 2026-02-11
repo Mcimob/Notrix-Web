@@ -1,5 +1,6 @@
 package ch.ethz.inf.peachlab.model.entity;
 
+import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,6 +17,7 @@ import org.hibernate.type.SqlTypes;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @NamedEntityGraph(name = ClusterEntity.WITH_KERNELS_AND_CELLS,
@@ -110,8 +112,15 @@ public class ClusterEntity implements AbstractEntity, HasKernelData {
         this.transitionMatrix = transitionMatrix;
     }
 
-    public Map<Integer, Integer> getMainLabelStats() {
-        return mainLabelStats;
+    public Map<MainLabel, Integer> getMainLabelStats() {
+        if (mainLabelStats == null) {
+            return Map.of();
+        }
+
+        return mainLabelStats.entrySet().stream()
+            .collect(Collectors.toMap(
+                e -> MainLabel.values()[e.getKey()],
+                Map.Entry::getValue));
     }
 
     public void setMainLabelStats(Map<Integer, Integer> mainLabelStats) {
