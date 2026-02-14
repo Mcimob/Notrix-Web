@@ -21,6 +21,8 @@ import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.components.TripleStats;
 import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.Component;
@@ -35,12 +37,14 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.page.WebStorage;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.WildcardParameter;
 import org.springframework.data.util.Pair;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -145,8 +149,9 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         });
         downloadLink.add(download);
 
-        Icon bookmark = VaadinIcon.BOOKMARK_O.create();
-        bookmark.setSize("32px");
+        KernelSaver bookmark = new KernelSaver();
+        bookmark.setKernelId(kernel.getId());
+        bookmark.render();
 
         Div iconsDiv = new Div(downloadLink, bookmark);
         iconsDiv.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S);
@@ -156,6 +161,28 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
             STYLE_WIDTH_FULL, STYLE_BACKGROUND_WHITE, STYLE_PADDING_M);
 
         return div;
+    }
+
+    private void onSavedKernels(String value) {
+        List<Long> savedKernels;
+        if (value == null) {
+            savedKernels = new ArrayList<>();
+        } else {
+            try {
+                savedKernels = objectMapper.readValue(value, new TypeReference<List<Long>>() {});
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if (savedKernels.contains(kernel.getId())) {
+            return;
+        }
+        savedKernels.add(kernel.getId());
+        try {
+            WebStorage.setItem("savedKernels", objectMapper.writeValueAsString(savedKernels));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Component createGrid() {
