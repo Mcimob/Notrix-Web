@@ -3,9 +3,9 @@ package ch.ethz.inf.peachlab.ui.views.kernel;
 import ch.ethz.inf.peachlab.app.SpringContext;
 import ch.ethz.inf.peachlab.logger.HasLogger;
 import ch.ethz.inf.peachlab.ui.HasRender;
+import ch.ethz.inf.peachlab.ui.HasSavedKernels;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
@@ -13,13 +13,11 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.page.WebStorage;
 import com.vaadin.flow.shared.Registration;
 
-import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_LINK;
 
-public class KernelSaver extends Div implements HasRender, HasLogger, HasNotification {
+public class KernelSaver extends Div implements HasRender, HasLogger, HasNotification, HasSavedKernels {
 
     private Long kernelId;
     private boolean isSaved;
@@ -49,26 +47,6 @@ public class KernelSaver extends Div implements HasRender, HasLogger, HasNotific
         initSaved();
     }
 
-    private void getSavedKernels(Consumer<Set<Long>> consumer) {
-        WebStorage.getItem("savedKernels", value -> {
-            Set<Long> savedKernels;
-            if (value == null) {
-                savedKernels = new HashSet<>();
-            } else {
-                try {
-                    savedKernels = objectMapper.readValue(value, new TypeReference<Set<Long>>() {});
-                } catch (JsonProcessingException e) {
-                    getLogger().error("Could not parse savedKernels array {}", value, e);
-                    showErrorNotification("Could not fetch saved Notebooks");
-                    clickRegistration.remove();
-                    removeClassNames(STYLE_TEXT_LINK);
-                    return;
-                }
-            }
-            consumer.accept(savedKernels);
-        });
-    }
-
     private void onSavedKernels(Set<Long> savedKernels) {
         if (isSaved) {
             savedKernels.remove(kernelId);
@@ -85,7 +63,12 @@ public class KernelSaver extends Div implements HasRender, HasLogger, HasNotific
     }
 
     private void initSaved() {
-        getSavedKernels(savedKernels -> setSaved(savedKernels.contains(kernelId)));
+        getSavedKernels(savedKernels -> setSaved(
+            savedKernels.contains(kernelId)),
+            e -> {
+                clickRegistration.remove();
+                removeClassNames(STYLE_TEXT_LINK);
+        });
     }
 
     public void setKernelId(Long kernelId) {

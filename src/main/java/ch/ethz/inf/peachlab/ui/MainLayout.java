@@ -34,7 +34,13 @@ public class MainLayout extends AppLayout {
                 "",
                 VaadinIcon.HOME.create());
 
-        Div layout = new Div(home);
+        SideNavItem saved = new SideNavItem(
+            "Saved",
+            "save",
+            VaadinIcon.BOOKMARK.create()
+        );
+
+        Div layout = new Div(home, saved);
         layout.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_ALIGN_CENTER, STYLE_PADDING_M, STYLE_GAP_M);
 
         addToNavbar(true, layout);

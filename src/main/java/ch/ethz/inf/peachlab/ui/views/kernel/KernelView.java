@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -358,7 +359,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         String[] parts = parameter.split("/");
         KernelFilter filter = new KernelFilter();
         if (parts.length == 1) {
-            filter.setId(Long.valueOf(parts[0]));
+            filter.setIds(Set.of(Long.valueOf(parts[0])));
         } else {
             String user = parts[0];
             String slug = parts[1];

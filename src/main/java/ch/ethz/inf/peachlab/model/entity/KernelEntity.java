@@ -26,9 +26,14 @@ import java.util.stream.Collectors;
     attributeNodes = {
         @NamedAttributeNode("cells")
     })
+@NamedEntityGraph(name = KernelEntity.WITH_COMPETITION,
+    attributeNodes = {
+        @NamedAttributeNode("competition")
+    })
 public class KernelEntity implements AbstractEntity, HasKernelData {
 
     public static final String WITH_CELLS = "withCells";
+    public static final String WITH_COMPETITION = "withCompetition";
 
     @Id
     @Column(nullable = false, name = "KernelVersionId")

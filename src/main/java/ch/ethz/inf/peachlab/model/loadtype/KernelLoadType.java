@@ -4,7 +4,8 @@ import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 
 public enum KernelLoadType implements HasLoadType {
 
-    WITH_CELLS(KernelEntity.WITH_CELLS);
+    WITH_CELLS(KernelEntity.WITH_CELLS),
+    WITH_COMPETITION(KernelEntity.WITH_COMPETITION);
 
     private final String name;
 
