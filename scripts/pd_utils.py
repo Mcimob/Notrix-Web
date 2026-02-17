@@ -68,7 +68,7 @@ def load_all_kernels(filename: str) -> pd.DataFrame:
     return kernels
     
     
-def save_kernels(kernels: pd.DataFrame, filename: str):    
+def dump_kernels(kernels: pd.DataFrame):
     for col_name in KERNEL_NP_COLUMNS:
         if (col_name in kernels.columns):
             kernels[col_name] = kernels[col_name].apply(apply_safe(lambda l: l.tolist()))
@@ -79,6 +79,9 @@ def save_kernels(kernels: pd.DataFrame, filename: str):
     for col_name in KERNEL_JSON_COLUMNS:
         if (col_name in kernels.columns):
             kernels[col_name] = kernels[col_name].apply(json_dumps_safe)
+    
+def save_kernels(kernels: pd.DataFrame, filename: str):    
+    dump_kernels(kernels)
     
     kernels.to_csv(filename, index=False)
     

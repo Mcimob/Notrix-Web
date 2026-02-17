@@ -9,18 +9,6 @@ FILE_BASE = "/media/tim/Data/Thesis/"
 MODEL_ID = "SShiny/Notrix"
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-class CodeCellDataset(Dataset):
-    def __init__(self, cells: list[str], tokenizer, max_length=512):
-        self.cells = cells
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-
-    def __len__(self):
-        return len(self.cells)
-
-    def __getitem__(self, idx):
-        return self.cells[idx].replace("</s>", "<slash_s>")
-
 class Predictor():
 
     def __init__(self):
@@ -34,10 +22,9 @@ class Predictor():
         dataloader = DataLoader(dataset, 
                                 batch_size=32, 
                                 collate_fn=self.collate_fn,
-                                num_workers=4,
                                 pin_memory=True)
         preds = []
-        for batch in tqdm(dataloader, unit=" batches"):
+        for batch in dataloader:
             batch = {k: v.to(DEVICE) for k, v in batch.items()}
             
             with torch.no_grad():
@@ -55,6 +42,38 @@ class Predictor():
             max_length=512,
             return_tensors="pt"
         )
+
+_predictor_instance = None
+
+def get_predictor():
+    global _predictor_instance
+    if _predictor_instance is None:
+        print("Loading model...")
+        _predictor_instance = Predictor()
+        print("Model loaded")
+    return _predictor_instance
+
+class CodeCellDataset(Dataset):
+    def __init__(self, cells: list[str], tokenizer, max_length=512):
+        self.cells = cells
+        self.tokenizer = tokenizer
+        self.max_length = max_length
+
+    def __len__(self):
+        return len(self.cells)
+
+    def __getitem__(self, idx):
+        return self.cells[idx].replace("</s>", "<slash_s>")
+
+def predcit_cells(cells):
+    code_mask = cells["CellType"] == 0
+    code_cells = cells.loc[code_mask, "Source"].astype("str")
+    
+    predictor = get_predictor()
+    preds = predictor.prefict(code_cells.to_list())
+    
+    cells.loc[code_mask, "MainLabel"] = preds
+    cells["MainLabel"] = cells["MainLabel"].astype("Int32")
 
 def main():
     print("Reading Cells.csv ...")

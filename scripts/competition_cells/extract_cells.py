@@ -66,6 +66,12 @@ def extract_code_cells(notebook_path):
         return []  # skip corrupt JSON notebooks
 
     kernel_version_id = os.path.basename(notebook_path).split('.')[0]
+
+    rows = extract_cells_from_dict(nb, kernel_version_id)
+
+    return rows
+
+def extract_cells_from_dict(nb, kernel_version_id):
     rows = []
 
     for i, cell in enumerate(nb.get("cells", [])):
@@ -81,11 +87,10 @@ def extract_code_cells(notebook_path):
             "KernelVersionId": kernel_version_id,
             "CellId": str(i),
             "Source": source.strip(),
-            "CellType": CELLTYPE_MAP[cell.get("cell_type", "code")] if cell.get("cell_type", "code") in CELLTYPE_MAP.keys else 2,
+            "CellType": CELLTYPE_MAP[cell.get("cell_type", "code")] if cell.get("cell_type", "code") in CELLTYPE_MAP.keys() else 2,
         })
-
+        
     return rows
-
 
 def extract_all_code_cells(kids, n_jobs=8) -> pd.DataFrame:
     """

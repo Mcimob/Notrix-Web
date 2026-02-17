@@ -99,18 +99,16 @@ def get_kernel_label_sequences(cells: pd.DataFrame) -> pd.DataFrame:
     kernel_sequences = (
         cells_sorted
         .groupby(KernelColumns.KERNEL_VERSION_ID)[CellColumns.MAIN_LABEL]
-        .agg(list)
+        .apply(lambda x: x.to_numpy(dtype=np.int32))
         .reset_index(name=KernelColumns.LABEL_SEQUENCE)
     )
-
-    kernel_sequences[KernelColumns.LABEL_SEQUENCE] = kernel_sequences[KernelColumns.LABEL_SEQUENCE].apply(lambda lst: [int(x) for x in lst])
     
     return kernel_sequences
 
 def get_kernel_label_transition_stats(label_sequences: pd.DataFrame) -> pd.DataFrame:
     label_sequences = label_sequences[
         label_sequences[KernelColumns.LABEL_SEQUENCE].apply(
-            lambda x: isinstance(x, (list, tuple)) and len(x) > 1
+            lambda x: isinstance(x, (list, tuple, np.ndarray)) and len(x) > 1
         )
     ].copy()
     
