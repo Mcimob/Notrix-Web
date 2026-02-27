@@ -79,6 +79,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_0;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_COLOR_GRAY;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "competitions", layout = MainLayout.class)
@@ -100,8 +101,10 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     private final Div competitionOverview = new Div();
     private final ClusterOverview clusterOverview = new ClusterOverview();
 
+    private final Div matrixDiv = new Div();
+    private final Div gridPlaceholder = new Div("Loading notebooks...");
     private final NotebookMatrix matrix = new NotebookMatrix();
-    private final ClusterMatrix cLusterMatrix = new ClusterMatrix();
+    private final ClusterMatrix clusterMatrix = new ClusterMatrix();
     private final Grid<HasKernelData<?, ?>> grid = new Grid<>();
     private final TreeGrid<HasBaseStats> clusterGrid = new TreeGrid<>();
     private final KernelFilter kernelFilter = new KernelFilter();
@@ -209,10 +212,10 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         matrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         matrix.addKernelClickedListener(this::onKernelClicked);
 
-        cLusterMatrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
-        cLusterMatrix.addKernelClickedListener(this::onKernelClicked);
-        cLusterMatrix.addClusterClickedListener(this::onClusterClicked);
-        cLusterMatrix.setVisible(false);
+        clusterMatrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+        clusterMatrix.addKernelClickedListener(this::onKernelClicked);
+        clusterMatrix.addClusterClickedListener(this::onClusterClicked);
+        clusterMatrix.setVisible(false);
         UiAsyncUtils.callServiceAsync(
             () -> clusterService.fetch(Pageable.unpaged(Sort.by("LocalClusterId")), clusterFilter, ClusterLoadType.WITH_KERNELS_AND_CELLS),
             UI.getCurrent(),
@@ -222,22 +225,22 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         Filterbar bar = new Filterbar();
         bar.render();
         bar.addMarkdownButtonListener(event -> {
-            cLusterMatrix.getStyle().set("--display-md", event.getShow() ? "block" : "none");
+            clusterMatrix.getStyle().set("--display-md", event.getShow() ? "block" : "none");
             matrix.getStyle().set("--display-md", event.getShow() ? "block" : "none");
         });
         bar.addHeightButtonListener(event -> {
             if (event.getShow()) {
                 matrix.getStyle().set("--cell-height", "initial");
-                cLusterMatrix.getStyle().set("--cell-height", "initial");
+                clusterMatrix.getStyle().set("--cell-height", "initial");
             } else {
                 matrix.getStyle().set("--cell-height", "5px");
-                cLusterMatrix.getStyle().set("--cell-height", "5px");
+                clusterMatrix.getStyle().set("--cell-height", "5px");
             }
         });
         bar.addClusterListener(event -> {
             grid.setVisible(!event.isCluster());
             matrix.setVisible(!event.isCluster());
-            cLusterMatrix.setVisible(event.isCluster());
+            clusterMatrix.setVisible(event.isCluster());
             clusterGrid.setVisible(event.isCluster());
         });
 
@@ -246,7 +249,13 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
                 STYLE_FLEX_COLUMN, STYLE_GAP_S);
         div.render();
         div.add(bar);
-        div.add(matrix, cLusterMatrix);
+
+        matrixDiv.add(matrix, clusterMatrix);
+        matrixDiv.setHeightFull();
+        matrixDiv.setVisible(false);
+
+        gridPlaceholder.addClassNames(STYLE_TEXT_COLOR_GRAY);
+        div.add(gridPlaceholder, matrixDiv);
         return div;
     }
 
@@ -312,10 +321,13 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
                 .map(KernelDTO::ofKernel)
                 .toList());
         grid.setItems(kernels);
+
+        gridPlaceholder.setVisible(false);
+        matrixDiv.setVisible(true);
     }
 
     private void onNewClusterMatrixData(ServiceResponse<PageImpl<ClusterEntity>> response) {
-        cLusterMatrix.setItems(
+        clusterMatrix.setItems(
             response.getEntity()
                 .map(PageImpl::stream)
                 .orElse(Stream.empty())
