@@ -2,7 +2,7 @@ package ch.ethz.inf.peachlab.ui.components;
 
 import ch.ethz.inf.peachlab.model.dto.KernelDTO;
 import ch.ethz.inf.peachlab.model.dto.SimpleMainLabelDTO;
-import ch.ethz.inf.peachlab.model.entity.KernelEntity;
+import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
@@ -23,7 +23,7 @@ public class CellColumn extends ReactAdapterComponent {
         getStyle().set("--cell-height", "5px");
     }
 
-    public void setKernel(KernelEntity kernel) {
+    public void setKernel(HasKernelData<?, ?> kernel) {
         setState("kernel", KernelDTO.ofKernel(kernel));
     }
 

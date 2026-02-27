@@ -1,6 +1,6 @@
 package ch.ethz.inf.peachlab.ui.views.kernel;
 
-import ch.ethz.inf.peachlab.model.entity.CellEntity;
+import ch.ethz.inf.peachlab.model.entity.HasCellData;
 import ch.ethz.inf.peachlab.model.enums.CellType;
 import com.flowingcode.vaadin.addons.syntaxhighlighter.ShLanguage;
 import com.flowingcode.vaadin.addons.syntaxhighlighter.ShStyle;
@@ -24,7 +24,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_COLOR_GRAY;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
-public class ContentGrid extends Grid<CellEntity> {
+public class ContentGrid extends Grid<HasCellData> {
 
     public ContentGrid() {
         super();
@@ -38,7 +38,7 @@ public class ContentGrid extends Grid<CellEntity> {
         setSelectionMode(SelectionMode.SINGLE);
     }
 
-    private Component createCell(CellEntity cell) {
+    private Component createCell(HasCellData cell) {
         Span indexText = new Span("[%s]".formatted(cell.getCellId()));
         indexText.addClassNames(STYLE_TEXT_COLOR_GRAY);
         Div div = new Div(indexText);
@@ -51,7 +51,7 @@ public class ContentGrid extends Grid<CellEntity> {
         return div;
     }
 
-    private Component createCodeCell(CellEntity cell) {
+    private Component createCodeCell(HasCellData cell) {
         Div div = new Div();
         div.addClassNames(STYLE_BOX_SHADOW, STYLE_PADDING_S, STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_WIDTH_FULL);
         div.getStyle().setBorderLeft(".5rem solid %s".formatted(cell.getMainLabel().getColor()));
@@ -72,7 +72,7 @@ public class ContentGrid extends Grid<CellEntity> {
         return div;
     }
 
-    private Component createMdCell(CellEntity cell) {
+    private Component createMdCell(HasCellData cell) {
         Scroller scroller = new Scroller(new Markdown(cell.getSource()));
         scroller.addClassNames(STYLE_BOX_SHADOW, STYLE_PADDING_S, STYLE_WIDTH_FULL);
         return scroller;

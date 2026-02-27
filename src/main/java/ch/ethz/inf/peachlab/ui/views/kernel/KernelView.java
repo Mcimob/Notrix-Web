@@ -3,13 +3,16 @@ package ch.ethz.inf.peachlab.ui.views.kernel;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.ClusterService;
 import ch.ethz.inf.peachlab.backend.service.db.KernelService;
+import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
 import ch.ethz.inf.peachlab.model.Notebook;
 import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
-import ch.ethz.inf.peachlab.model.entity.CellEntity;
+import ch.ethz.inf.peachlab.model.entity.HasCellData;
+import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.enums.CellType;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
+import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.CellColumn;
@@ -21,8 +24,6 @@ import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.components.TripleStats;
 import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.componentfactory.ToggleButton;
 import com.vaadin.flow.component.Component;
@@ -37,19 +38,16 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.page.WebStorage;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.WildcardParameter;
 import org.springframework.data.util.Pair;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -83,17 +81,19 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
     private static final Pattern PATTERN = Pattern.compile("^(#+) ([^\\n]*)\\n*");
     private static final String HTML_PATTERN = "<\\s*[^>]*>";
     private final KernelService kernelService;
+    private final UploadedKernelService uploadedKernelService;
     private final ClusterService clusterService;
     private final ObjectMapper objectMapper;
 
     private final ContentGrid grid = new ContentGrid();
 
-    private KernelEntity kernel;
+    private HasKernelData<?, ? extends HasCellData> kernel;
 
-    public KernelView(KernelService kernelService, ClusterService clusterService, ObjectMapper objectMapper) {
+    public KernelView(KernelService kernelService, ClusterService clusterService, ObjectMapper objectMapper, UploadedKernelService uploadedKernelService) {
         this.kernelService = kernelService;
         this.clusterService = clusterService;
         this.objectMapper = objectMapper;
+        this.uploadedKernelService = uploadedKernelService;
     }
 
     @Override
@@ -150,12 +150,16 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         });
         downloadLink.add(download);
 
-        KernelSaver bookmark = new KernelSaver();
-        bookmark.setKernelId(kernel.getId());
-        bookmark.render();
-
-        Div iconsDiv = new Div(downloadLink, bookmark);
+        Div iconsDiv = new Div(downloadLink);
         iconsDiv.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S);
+
+        if (kernel instanceof KernelEntity kernelEntity) {
+            KernelSaver bookmark = new KernelSaver();
+            bookmark.setKernelId(kernelEntity.getId());
+            bookmark.render();
+            iconsDiv.add(bookmark);
+        }
+
 
         Div div = new Div(textDiv, iconsDiv);
         div.addClassNames(STYLE_FLEX_ROW, STYLE_FLEX_BETWEEN, STYLE_FLEX_ALIGN_CENTER,
@@ -164,35 +168,13 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         return div;
     }
 
-    private void onSavedKernels(String value) {
-        List<Long> savedKernels;
-        if (value == null) {
-            savedKernels = new ArrayList<>();
-        } else {
-            try {
-                savedKernels = objectMapper.readValue(value, new TypeReference<List<Long>>() {});
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        if (savedKernels.contains(kernel.getId())) {
-            return;
-        }
-        savedKernels.add(kernel.getId());
-        try {
-            WebStorage.setItem("savedKernels", objectMapper.writeValueAsString(savedKernels));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private Component createGrid() {
-        grid.setItems(kernel.getCells());
+        grid.setItems((List<HasCellData>) kernel.getCells());
         
         CellColumn cellColumn = new CellColumn();
         cellColumn.setKernel(kernel);
         cellColumn.addCellClickListener(idx -> {
-            CellEntity cell = kernel.getCells().get(idx);
+            HasCellData cell = kernel.getCells().get(idx);
             grid.scrollToItem(cell);
             grid.select(cell);
         });
@@ -359,17 +341,24 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
             return;
         }
         String[] parts = parameter.split("/");
-        KernelFilter filter = new KernelFilter();
+
+        ServiceResponse<? extends HasKernelData<?, ?>> response;
         if (parts.length == 1) {
-            filter.setIds(Set.of(Long.valueOf(parts[0])));
+            String stringId = parts[0];
+            try {
+                long longId = Long.parseLong(stringId);
+                response = kernelService.fetchById(longId, KernelLoadType.WITH_CELLS);
+            } catch (NumberFormatException e) {
+                response = uploadedKernelService.fetchById(stringId, UploadedKernelLoadType.WITH_CELLS);
+            }
         } else {
             String user = parts[0];
             String slug = parts[1];
+            KernelFilter filter = new KernelFilter();
             filter.setUser(user);
             filter.setSlug(slug);
+            response = kernelService.fetchOne(filter, KernelLoadType.WITH_CELLS);
         }
-
-        ServiceResponse<KernelEntity> response = kernelService.fetchOne(filter, KernelLoadType.WITH_CELLS);
 
         if (response.getEntity().isEmpty() || response.hasErrorMessages()) {
             response.getErrorMessages().stream()

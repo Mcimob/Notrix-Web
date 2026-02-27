@@ -1,6 +1,5 @@
 package ch.ethz.inf.peachlab.ui.views.kernel;
 
-import ch.ethz.inf.peachlab.model.entity.CellEntity;
 import ch.ethz.inf.peachlab.model.entity.HasCellData;
 
 import java.util.ArrayDeque;
@@ -8,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-public record Toc(String title, CellEntity cell, List<Toc> children) {
+public record Toc(String title, HasCellData cell, List<Toc> children) {
 
     public static List<Toc> buildTocTree(List<TocElement> elements) {
         List<Toc> roots = new ArrayList<>();
