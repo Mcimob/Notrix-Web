@@ -7,11 +7,16 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 
+import java.io.Serial;
+
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ALIGN_CENTER;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 
 public class ComponentWithLink extends Div{
+
+    @Serial
+    private static final long serialVersionUID = -8605913676418169762L;
 
     public ComponentWithLink(Component component, String href) {
         add(component, createAnchor(href));

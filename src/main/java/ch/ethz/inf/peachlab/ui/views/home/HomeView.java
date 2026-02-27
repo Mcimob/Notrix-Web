@@ -17,6 +17,8 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.router.Route;
 
+import java.io.Serial;
+
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
@@ -28,6 +30,8 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 @Route(value = "/", layout = MainLayout.class)
 public class HomeView extends AbstractView {
 
+    @Serial
+    private static final long serialVersionUID = 8253760301668795920L;
     private final CompetitionDescriptionBox competitionDescriptionBox = new CompetitionDescriptionBox();
     private final CompetitionSearchBar searchbar = new CompetitionSearchBar();
 

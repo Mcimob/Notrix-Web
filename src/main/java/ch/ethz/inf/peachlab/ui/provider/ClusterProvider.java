@@ -12,10 +12,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import java.io.Serial;
 import java.util.stream.Stream;
 
 public class ClusterProvider extends AbstractBackEndDataProvider<ClusterEntity, ClusterFilter> {
 
+    @Serial
+    private static final long serialVersionUID = 2812842525037289551L;
     private final ClusterService clusterService;
 
     public ClusterProvider() {

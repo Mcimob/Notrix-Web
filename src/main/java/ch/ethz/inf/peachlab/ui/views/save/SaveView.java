@@ -21,6 +21,7 @@ import com.vaadin.flow.router.Route;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,6 +38,8 @@ import static java.util.function.Predicate.not;
 @Route(value = "save", layout = MainLayout.class)
 public class SaveView extends AbstractView implements HasSavedKernels, ManagesProcessingNotebooks {
 
+    @Serial
+    private static final long serialVersionUID = -399023050405817362L;
     private final KernelService kernelService;
 
     private final NotebookGrid uploadedGrid = new NotebookGrid();

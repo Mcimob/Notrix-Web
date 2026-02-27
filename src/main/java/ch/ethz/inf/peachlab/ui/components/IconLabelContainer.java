@@ -6,6 +6,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 
+import java.io.Serial;
 import java.util.Optional;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_COLOR_GRAY;
@@ -19,6 +20,8 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 
 public class IconLabelContainer extends Div implements HasRender {
 
+    @Serial
+    private static final long serialVersionUID = -7073843075240051039L;
     private Icon icon;
     private String titleText;
     private final Div container = new Div();

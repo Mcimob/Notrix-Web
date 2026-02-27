@@ -8,12 +8,17 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.shared.Registration;
 
+import java.io.Serial;
+
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ALIGN_CENTER;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_BETWEEN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 
 public class Filterbar extends Div implements HasRender {
+
+    @Serial
+    private static final long serialVersionUID = 4053307060539567671L;
 
     public Filterbar() {
         initStyles();

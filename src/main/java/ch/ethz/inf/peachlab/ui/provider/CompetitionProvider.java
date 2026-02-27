@@ -12,10 +12,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
+import java.io.Serial;
 import java.util.stream.Stream;
 
 public class CompetitionProvider extends AbstractBackEndDataProvider<CompetitionEntity, CompetitionFilter> {
 
+    @Serial
+    private static final long serialVersionUID = -2095462497869355272L;
     private final CompetitionService competitionService;
 
     public CompetitionProvider() {

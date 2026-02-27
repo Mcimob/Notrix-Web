@@ -4,6 +4,8 @@ import ch.ethz.inf.peachlab.ui.HasRender;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 
+import java.io.Serial;
+
 public class DivWithTooltip extends Div implements HasRender {
 
     private static final String JS = """
@@ -28,6 +30,8 @@ public class DivWithTooltip extends Div implements HasRender {
         tooltip.style.display = 'none';
       });
     """;
+    @Serial
+    private static final long serialVersionUID = -1098911426567764261L;
 
     private final String hoverTarget;
 

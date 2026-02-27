@@ -7,6 +7,7 @@ import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
@@ -21,6 +22,9 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 @JsModule("./src/react/sidebar/transition-sidebar-element.tsx")
 @Tag("transition-sidebar")
 public class TransitionSidebarReact extends ReactAdapterComponent {
+
+    @Serial
+    private static final long serialVersionUID = 8743351204762739076L;
 
     public TransitionSidebarReact() {
         initStyles();

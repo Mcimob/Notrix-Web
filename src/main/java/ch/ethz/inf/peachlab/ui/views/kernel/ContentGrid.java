@@ -13,6 +13,8 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 
+import java.io.Serial;
+
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BOX_SHADOW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
@@ -25,6 +27,9 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_COLOR_GRAY;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 public class ContentGrid extends Grid<HasCellData> {
+
+    @Serial
+    private static final long serialVersionUID = -1904457941711222746L;
 
     public ContentGrid() {
         super();

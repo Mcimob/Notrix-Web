@@ -1,11 +1,15 @@
 package ch.ethz.inf.peachlab.backend.service;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-public class ServiceResponse<T> {
+public class ServiceResponse<T> implements Serializable {
 
+    @Serial
+    private static final long serialVersionUID = -5154613431722712134L;
     private T entity;
     private final Set<String> infoMessages = new HashSet<>();
     private final Set<String> errorMessages = new HashSet<>();

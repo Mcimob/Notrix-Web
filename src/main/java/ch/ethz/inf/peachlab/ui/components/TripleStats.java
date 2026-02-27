@@ -5,6 +5,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import org.springframework.data.util.Pair;
 
+import java.io.Serial;
 import java.util.List;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_BETWEEN;
@@ -17,6 +18,8 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_150PX;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_WRAP_NO;
 
 public class TripleStats extends IconLabelContainer implements HasRender {
+    @Serial
+    private static final long serialVersionUID = 1484326520506977797L;
     private List<Pair<String, Object>> stats;
 
     public TripleStats() {

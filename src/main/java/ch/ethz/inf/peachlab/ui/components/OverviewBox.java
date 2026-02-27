@@ -4,6 +4,8 @@ import ch.ethz.inf.peachlab.ui.HasRender;
 import com.vaadin.flow.component.markdown.Markdown;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 
+import java.io.Serial;
+
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_COLOR_GRAY;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_RADIUS_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_STYLE_DASHED;
@@ -12,6 +14,8 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
 
 public class OverviewBox extends Scroller implements HasRender {
 
+    @Serial
+    private static final long serialVersionUID = 4034988443451737184L;
     private String content;
 
     public OverviewBox(String content) {

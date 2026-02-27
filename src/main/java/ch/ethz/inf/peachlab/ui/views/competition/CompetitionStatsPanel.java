@@ -12,6 +12,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import org.springframework.data.util.Pair;
 
+import java.io.Serial;
 import java.util.List;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
@@ -23,6 +24,8 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 public class CompetitionStatsPanel extends Div implements HasRender {
 
     public static final String DECIMAL_FORMAT = "%.2f";
+    @Serial
+    private static final long serialVersionUID = 5662163264707841558L;
 
     private final CompetitionEntity competition;
 

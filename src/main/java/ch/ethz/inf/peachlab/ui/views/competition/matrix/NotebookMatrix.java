@@ -12,6 +12,7 @@ import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,6 +23,9 @@ import java.util.List;
 @NpmPackage(value = "@types/react-window", version="1.8.8", dev = true)
 @NpmPackage(value = "react-virtualized-auto-sizer", version="2.0.2")
 public class NotebookMatrix extends ReactAdapterComponent implements HasLogger, HasNotification {
+
+    @Serial
+    private static final long serialVersionUID = -3537825270654601440L;
 
     public void setItems(List<KernelDTO> items) {
         setState("items", items);

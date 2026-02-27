@@ -8,6 +8,7 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,8 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 public class TransitionSidebar extends DivWithTooltip {
 
+    @Serial
+    private static final long serialVersionUID = -761105623022532172L;
     private Map<MainLabel, Integer> stageFrequencies;
     private Integer[][] transitionMatrix;
     private String[] opacityTargets;

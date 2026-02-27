@@ -8,6 +8,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Span;
 
+import java.io.Serial;
 import java.util.Optional;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
@@ -17,6 +18,8 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_COLOR_GRAY;
 
 public class CompetitionDescriptionBox extends Div implements HasRender {
 
+    @Serial
+    private static final long serialVersionUID = 1483883066371802213L;
     private CompetitionEntity competition;
 
     public CompetitionDescriptionBox() {

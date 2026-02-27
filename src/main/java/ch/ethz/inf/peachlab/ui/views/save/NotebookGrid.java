@@ -21,8 +21,12 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 
+import java.io.Serial;
+
 public class NotebookGrid extends TreeGrid<SavedNotebook> {
 
+    @Serial
+    private static final long serialVersionUID = -5162920712868282716L;
     private final ObjectMapper objectMapper;
     private final KernelService kernelService;
     private final UploadedKernelService uploadedKernelService;

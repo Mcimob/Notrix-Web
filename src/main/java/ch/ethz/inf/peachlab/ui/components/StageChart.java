@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 
+import java.io.Serial;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,6 +32,8 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 public class StageChart extends Div implements HasRender {
 
+    @Serial
+    private static final long serialVersionUID = -1879883436566967493L;
     private Map<MainLabel, Integer> stageStats;
 
     public StageChart() {

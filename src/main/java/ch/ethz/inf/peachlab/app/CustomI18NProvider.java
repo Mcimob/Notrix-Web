@@ -3,6 +3,7 @@ package ch.ethz.inf.peachlab.app;
 import com.vaadin.flow.i18n.I18NProvider;
 import org.springframework.stereotype.Component;
 
+import java.io.Serial;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Locale;
@@ -13,6 +14,8 @@ public class CustomI18NProvider implements I18NProvider {
 
     private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
     private static final List<Locale> SUPPORTED_LOCALES = List.of(DEFAULT_LOCALE);
+    @Serial
+    private static final long serialVersionUID = -5043264847679417854L;
 
     @Override
     public List<Locale> getProvidedLocales() {

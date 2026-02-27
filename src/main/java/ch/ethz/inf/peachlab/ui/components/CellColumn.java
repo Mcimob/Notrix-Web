@@ -9,11 +9,15 @@ import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 import com.vaadin.flow.function.SerializableConsumer;
 
+import java.io.Serial;
 import java.util.Arrays;
 
 @Tag("cell-column-element")
 @JsModule("./src/react/matrix/cell-column-element.tsx")
 public class CellColumn extends ReactAdapterComponent {
+
+    @Serial
+    private static final long serialVersionUID = 5247624746801620528L;
 
     public CellColumn() {
         setState("labelData", Arrays.stream(MainLabel.values())

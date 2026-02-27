@@ -9,12 +9,15 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.shared.Registration;
 
+import java.io.Serial;
 import java.util.Set;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_LINK;
 
 public class KernelSaver extends Div implements HasRender, HasLogger, HasNotification, HasSavedKernels {
 
+    @Serial
+    private static final long serialVersionUID = -1344450119354189778L;
     private Long kernelId;
     private boolean isSaved;
 

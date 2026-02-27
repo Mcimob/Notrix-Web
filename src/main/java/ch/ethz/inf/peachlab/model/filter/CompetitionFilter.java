@@ -4,8 +4,12 @@ import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import jakarta.persistence.criteria.JoinType;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.io.Serial;
+
 public class CompetitionFilter extends AbstractFilter<CompetitionEntity> {
 
+    @Serial
+    private static final long serialVersionUID = -5315770429422503325L;
     private String searchString;
     private String slug;
 

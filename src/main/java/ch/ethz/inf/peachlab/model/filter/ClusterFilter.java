@@ -4,8 +4,12 @@ import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.io.Serial;
+
 public class ClusterFilter extends AbstractFilter<ClusterEntity> {
 
+    @Serial
+    private static final long serialVersionUID = 5973223330744160086L;
     private CompetitionEntity competition;
     private Long localClusterId;
 

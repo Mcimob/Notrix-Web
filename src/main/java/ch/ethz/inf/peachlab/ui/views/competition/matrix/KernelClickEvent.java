@@ -5,9 +5,13 @@ import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.DomEvent;
 import com.vaadin.flow.component.EventData;
 
+import java.io.Serial;
+
 @DomEvent("kernel-click")
 public class KernelClickEvent extends ComponentEvent<Component> {
 
+    @Serial
+    private static final long serialVersionUID = 1998300473303236681L;
     private final String kernelId;
 
     /**

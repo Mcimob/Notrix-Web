@@ -6,6 +6,8 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 
+import java.io.Serial;
+
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_BG;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
@@ -14,6 +16,9 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 public abstract class AbstractView extends Div
         implements AfterNavigationObserver, HasRender, HasLogger, HasNotification {
+
+    @Serial
+    private static final long serialVersionUID = -8127654870759990625L;
 
     public AbstractView() {
         initStyles();

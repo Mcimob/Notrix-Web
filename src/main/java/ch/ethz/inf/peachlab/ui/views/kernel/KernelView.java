@@ -44,6 +44,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.WildcardParameter;
 import org.springframework.data.util.Pair;
 
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -80,6 +81,8 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
 
     private static final Pattern PATTERN = Pattern.compile("^(#+) ([^\\n]*)\\n*");
     private static final String HTML_PATTERN = "<\\s*[^>]*>";
+    @Serial
+    private static final long serialVersionUID = 9162870272207688934L;
     private final KernelService kernelService;
     private final UploadedKernelService uploadedKernelService;
     private final ClusterService clusterService;

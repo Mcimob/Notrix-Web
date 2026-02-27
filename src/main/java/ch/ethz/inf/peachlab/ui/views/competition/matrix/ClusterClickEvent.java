@@ -5,9 +5,13 @@ import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.DomEvent;
 import com.vaadin.flow.component.EventData;
 
+import java.io.Serial;
+
 @DomEvent("cluster-click")
 public class ClusterClickEvent extends ComponentEvent<Component> {
 
+    @Serial
+    private static final long serialVersionUID = -6503174148084424541L;
     private final Long localClusterId;
 
     /**

@@ -8,6 +8,8 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 
+import java.io.Serial;
+
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
@@ -16,6 +18,8 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 
 public class ClusterOverview extends Div implements HasRender {
 
+    @Serial
+    private static final long serialVersionUID = 2755752662617643984L;
     private ClusterEntity cluster;
 
     public ClusterOverview() {
