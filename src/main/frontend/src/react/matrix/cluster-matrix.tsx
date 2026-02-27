@@ -32,7 +32,7 @@ class CLusterMatrix extends ReactAdapterElement {
 
         const getItemSize = React.useCallback(
             (index: number) =>
-                Math.max(3, items[index]?.kernels.length ?? 0) * 24 + 12,
+                Math.max(3, items[index]?.kernels.length ?? 0) * 28 + 12,
             [items]
         );
 
@@ -71,7 +71,7 @@ class CLusterMatrix extends ReactAdapterElement {
                                     key={kernel.id}
                                     kernel={kernel}
                                     getLabel={getLabel}
-                                    clickListener={() => fireKernelClick(kernel.id.toFixed())}
+                                    clickListener={() => fireKernelClick(kernel.id)}
                                     getTooltip={(kernel, cell) => `Stage: ${getLabel(cell.mainLabel).title}<br/>Title: ${kernel.title}<br/>Lines: ${cell.sourceLinesCount}`}
                                     style={{}}
                                 />

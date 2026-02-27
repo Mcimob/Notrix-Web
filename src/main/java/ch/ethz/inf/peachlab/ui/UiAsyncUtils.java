@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
@@ -30,6 +31,37 @@ public class UiAsyncUtils {
                     if (err != null) {
                         LOGGER.error("An error ocurred while executing asnychronously", err);
                         response = ServiceResponse.error();
+                    }
+                    consumer.accept(response);
+                };
+
+                ui.access(() -> {
+                    if (ui.isAttached())
+                        uiTask.run();
+                });
+            });
+    }
+
+    public static <T> void callServicesAsync(
+        List<? extends Supplier<? extends ServiceResponse<? extends T>>> callables,
+        UI ui,
+        SerializableConsumer<List<? extends ServiceResponse<? extends T>>> consumer) {
+
+        List<? extends CompletableFuture<? extends ServiceResponse<? extends T>>> futures = callables.stream()
+            .map(CompletableFuture::supplyAsync)
+            .toList();
+
+        CompletableFuture
+            .allOf(futures.toArray(new CompletableFuture[0]))
+            .whenComplete((v, err) -> {
+                List<? extends ServiceResponse<? extends T>> res = futures.stream()
+                    .map(CompletableFuture::join)
+                    .toList();
+                SerializableRunnable uiTask = () -> {
+                    List<? extends ServiceResponse<? extends T>> response = res;
+                    if (err != null) {
+                        LOGGER.error("An error occurred while executing asynchronously", err);
+                        response = List.of(ServiceResponse.error());
                     }
                     consumer.accept(response);
                 };

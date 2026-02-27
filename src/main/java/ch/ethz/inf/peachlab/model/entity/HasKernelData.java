@@ -20,9 +20,6 @@ import java.util.stream.Collectors;
 @MappedSuperclass
 public abstract class HasKernelData<ID, C extends HasCellData> implements AbstractEntity<ID>, HasBaseStats {
 
-    public static final String WITH_CELLS = "withCells";
-    public static final String WITH_COMPETITION = "withCompetition";
-
     @Serial
     private static final long serialVersionUID = -8687363840493102608L;
     @Column(nullable = false, name = "CreationDate")

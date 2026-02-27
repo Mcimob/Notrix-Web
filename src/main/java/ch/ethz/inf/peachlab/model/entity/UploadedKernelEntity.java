@@ -7,6 +7,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
 
@@ -16,8 +18,19 @@ import java.util.List;
 import java.util.Map;
 
 @Entity
+@NamedEntityGraph(name = UploadedKernelEntity.WITH_CELLS_UPLOADED,
+    attributeNodes = {
+        @NamedAttributeNode("cells")
+    })
+@NamedEntityGraph(name = UploadedKernelEntity.WITH_COMPETITION_UPLOADED,
+    attributeNodes = {
+        @NamedAttributeNode("competition")
+    })
 public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEntity> {
 
+    public static final String WITH_CELLS_UPLOADED = "withCellsUploaded";
+    public static final String WITH_COMPETITION_UPLOADED = "withCompetitionUploaded";
+    
     @Serial
     private static final long serialVersionUID = -7032933906001116015L;
 

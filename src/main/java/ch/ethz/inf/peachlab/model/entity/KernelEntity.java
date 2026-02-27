@@ -14,15 +14,18 @@ import java.io.Serial;
 import java.util.List;
 
 @Entity
-@NamedEntityGraph(name = HasKernelData.WITH_CELLS,
+@NamedEntityGraph(name = KernelEntity.WITH_CELLS,
     attributeNodes = {
         @NamedAttributeNode("cells")
     })
-@NamedEntityGraph(name = HasKernelData.WITH_COMPETITION,
+@NamedEntityGraph(name = KernelEntity.WITH_COMPETITION,
     attributeNodes = {
         @NamedAttributeNode("competition")
     })
 public class KernelEntity extends HasKernelData<Long, CellEntity> {
+
+    public static final String WITH_CELLS = "withCells";
+    public static final String WITH_COMPETITION = "withCompetition";
 
     @Serial
     private static final long serialVersionUID = -4963973968059218651L;

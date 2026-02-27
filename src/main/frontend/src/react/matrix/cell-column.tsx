@@ -62,7 +62,13 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
 
     }
     return <div
-        style={{...style, width: "20px", gap: "1px", margin: "2px"}}
+        style={{...style,
+            width: "24px",
+            gap: "1px",
+            margin: "2px",
+            padding: "2px",
+            backgroundColor: kernel.isUploaded ? "var(--lumo-primary-color-50pct)" : "transparent",
+            height: "unset"}}
         className={"flex-column"}
         {...props}>
         {result}

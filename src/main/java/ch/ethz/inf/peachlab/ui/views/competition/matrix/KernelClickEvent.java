@@ -8,7 +8,7 @@ import com.vaadin.flow.component.EventData;
 @DomEvent("kernel-click")
 public class KernelClickEvent extends ComponentEvent<Component> {
 
-    private final Long kernelId;
+    private final String kernelId;
 
     /**
      * Creates a new event using the given source and indicator whether the
@@ -20,10 +20,10 @@ public class KernelClickEvent extends ComponentEvent<Component> {
      */
     public KernelClickEvent(Component source, boolean fromClient, @EventData("event.detail") String kernelId) {
         super(source, fromClient);
-        this.kernelId = Long.valueOf(kernelId);
+        this.kernelId = kernelId;
     }
 
-    public Long getKernelId() {
+    public String getKernelId() {
         return kernelId;
     }
 }

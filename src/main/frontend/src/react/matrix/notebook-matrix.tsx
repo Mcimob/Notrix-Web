@@ -5,7 +5,7 @@ import {AutoSizer, AutoSizerChildProps} from "react-virtualized-auto-sizer";
 import CellColumn from "Frontend/src/react/matrix/cell-column";
 
 export type CellData = { sourceLinesCount: number; cellType: number; mainLabel: number };
-export type KernelData = { id: number; title: string; currentUrlSlug: string; labelSequence: number[]; cells: CellData[] };
+export type KernelData = { id: string; title: string; currentUrlSlug: string; labelSequence: number[]; cells: CellData[], isUploaded: boolean };
 
 export type LabelData = {id: number, title: string};
 
@@ -28,7 +28,7 @@ class NotebookMatrix extends ReactAdapterElement {
                 kernel={item}
                 getLabel={getLabel}
                 getTooltip={(kernel, cell) => `Stage: ${getLabel(cell.mainLabel).title}<br/>Title: ${kernel.title}<br/>Lines: ${cell.sourceLinesCount}`}
-                clickListener={() => fireKernelClick(item.id.toFixed())}
+                clickListener={() => fireKernelClick(item.id)}
                 style={style}
                 data-kernel-index={index}
             />
@@ -36,7 +36,7 @@ class NotebookMatrix extends ReactAdapterElement {
 
         return <div className={"width-full height-full"}>
             <AutoSizer ChildComponent={({width, height}: AutoSizerChildProps) =>
-                (<FixedSizeList itemSize={24} height={height || 300} itemCount={items.length} width={width || 400} layout={"horizontal"}>
+                (<FixedSizeList itemSize={28} height={height || 300} itemCount={items.length} width={width || 400} layout={"horizontal"}>
                     {Column}
                 </FixedSizeList>
                 )} />

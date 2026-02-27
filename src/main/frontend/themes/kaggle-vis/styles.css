@@ -265,3 +265,7 @@ vaadin-button{
 vaadin-grid::part(hover-highlight) {
     background-color: var(--lumo-contrast-20pct);
 }
+
+vaadin-grid::part(uploaded) {
+    background-color: var(--lumo-primary-color-10pct);
+}

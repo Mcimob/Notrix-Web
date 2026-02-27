@@ -5,6 +5,7 @@ import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.ClusterService;
 import ch.ethz.inf.peachlab.backend.service.db.CompetitionService;
 import ch.ethz.inf.peachlab.backend.service.db.KernelService;
+import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
 import ch.ethz.inf.peachlab.backend.service.rest.NotebookProcessingService;
 import ch.ethz.inf.peachlab.model.dto.ClusterDTO;
 import ch.ethz.inf.peachlab.model.dto.KernelDTO;
@@ -12,13 +13,16 @@ import ch.ethz.inf.peachlab.model.dto.ProcessingNotebook;
 import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.HasBaseStats;
+import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
+import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
 import ch.ethz.inf.peachlab.model.filter.ClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
+import ch.ethz.inf.peachlab.model.filter.UploadedKernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.ClusterLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
-import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
+import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
@@ -27,7 +31,6 @@ import ch.ethz.inf.peachlab.ui.components.OverviewBox;
 import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
 import ch.ethz.inf.peachlab.ui.provider.ClusterProvider;
-import ch.ethz.inf.peachlab.ui.provider.KernelProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.ClusterClickEvent;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.ClusterMatrix;
@@ -36,6 +39,7 @@ import ch.ethz.inf.peachlab.ui.views.competition.matrix.KernelClickEvent;
 import ch.ethz.inf.peachlab.ui.views.competition.matrix.NotebookMatrix;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
 import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
+import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
@@ -50,7 +54,6 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
-import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
@@ -61,7 +64,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import java.io.Serial;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
@@ -83,6 +89,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private final transient CompetitionService competitionService;
     private final transient KernelService kernelService;
+    private final transient UploadedKernelService uploadedKernelService;
     private final transient ClusterService clusterService;
     private final transient NotebookProcessingService nbProcessingService;
 
@@ -95,28 +102,28 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
 
     private final NotebookMatrix matrix = new NotebookMatrix();
     private final ClusterMatrix cLusterMatrix = new ClusterMatrix();
-    private final Grid<KernelEntity> grid = new Grid<>();
+    private final Grid<HasKernelData<?, ?>> grid = new Grid<>();
     private final TreeGrid<HasBaseStats> clusterGrid = new TreeGrid<>();
-    private final KernelFilter filter = new KernelFilter();
+    private final KernelFilter kernelFilter = new KernelFilter();
     private final ClusterFilter clusterFilter = new ClusterFilter();
-    private final ConfigurableFilterDataProvider<KernelEntity, Void, KernelFilter> provider =
-            new KernelProvider().withConfigurableFilter();
     private final ConfigurableFilterDataProvider<ClusterEntity, Void, ClusterFilter> clusterProvider =
         new ClusterProvider().withConfigurableFilter();
 
+    private final List<UploadedKernelEntity> uploadedKernels = new ArrayList<>();
+
     public CompetitionView(CompetitionService competitionService,
-                           KernelService kernelService,
+                           KernelService kernelService, UploadedKernelService uploadedKernelService,
                            ClusterService clusterService,
                            NotebookProcessingService nbProcessingService) {
         this.competitionService = competitionService;
         this.kernelService = kernelService;
+        this.uploadedKernelService = uploadedKernelService;
         this.clusterService = clusterService;
         this.nbProcessingService = nbProcessingService;
     }
 
     private void initProvider() {
-        filter.setCompetition(competition);
-        provider.setFilter(filter);
+        kernelFilter.setCompetition(competition);
 
         clusterFilter.setCompetition(competition);
         clusterProvider.setFilter(clusterFilter);
@@ -140,6 +147,24 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         right.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
 
         add(createSidebar(), center, right);
+
+        initData();
+    }
+
+    private void initData() {
+        getUploadedNotebooks(nbs -> {
+            UploadedKernelFilter uploadedKernelFilter = new UploadedKernelFilter();
+            uploadedKernelFilter.setIds(nbs.get(competition.getId()));
+
+            UiAsyncUtils.<PageImpl<? extends HasKernelData<?, ?>>>callServicesAsync(
+                List.of(
+                    () -> uploadedKernelService.fetch(Pageable.unpaged(), uploadedKernelFilter, UploadedKernelLoadType.WITH_CELLS),
+                    () -> kernelService.fetch(Pageable.unpaged(), kernelFilter, KernelLoadType.WITH_CELLS)
+                ),
+                UI.getCurrent(),
+                this::onKernelData
+            );
+        });
     }
 
     private Component createSidebar() {
@@ -183,10 +208,6 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     private Component createNotebookMatrix() {
         matrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         matrix.addKernelClickedListener(this::onKernelClicked);
-        UiAsyncUtils.callServiceAsync(
-            () -> kernelService.fetch(Pageable.unpaged(), filter, KernelLoadType.WITH_CELLS),
-            UI.getCurrent(),
-            this::onNewKernelMatrixData);
 
         cLusterMatrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         cLusterMatrix.addKernelClickedListener(this::onKernelClicked);
@@ -230,15 +251,21 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     }
 
     private void onKernelClicked(KernelClickEvent e) {
-        Long kernelId = e.getKernelId();
-        ServiceResponse<KernelEntity> response = kernelService.fetchById(kernelId);
+        String stringId = e.getKernelId();
+        ServiceResponse<? extends HasKernelData<?, ?>> response;
+        try {
+            long longId = Long.parseLong(stringId);
+            response = kernelService.fetchById(longId);
+        } catch (NumberFormatException ex) {
+            response = uploadedKernelService.fetchById(stringId);
+        }
         if (response.hasErrorMessages() || response.getEntity().isEmpty()) {
             response.getErrorMessages().stream()
                 .map(this::getTranslation)
                 .forEach(this::showErrorNotification);
             return;
         }
-        KernelEntity kernel = response.getEntity().get();
+        HasKernelData<?, ?> kernel = response.getEntity().get();
         UI.getCurrent().navigate(KernelView.class, kernel.getUrlParameter());
     }
 
@@ -273,13 +300,18 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         });
     }
 
-    private void onNewKernelMatrixData(ServiceResponse<PageImpl<KernelEntity>> response) {
-        matrix.setItems(
-            response.getEntity()
-                .map(PageImpl::stream)
-                .orElse(Stream.empty())
+    private void onKernelData(List<? extends ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?>>>> responses) {
+        List<HasKernelData<?, ?>> kernels = responses.stream()
+            .map(ServiceResponse::getEntity)
+            .flatMap(Optional::stream)
+            .flatMap(PageImpl::stream)
+            .map(o -> (HasKernelData<?, ?>) o)
+            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+
+        matrix.setItems(kernels.stream()
                 .map(KernelDTO::ofKernel)
                 .toList());
+        grid.setItems(kernels);
     }
 
     private void onNewClusterMatrixData(ServiceResponse<PageImpl<ClusterEntity>> response) {
@@ -366,53 +398,44 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         grid.addComponentColumn(TitleLink::new)
                 .setHeader("Title")
                 .setSortable(true)
-                .setSortProperty("title")
+                .setComparator(Comparator.comparing(HasKernelData::getTitle))
                 .setKey("title")
                 .setFlexGrow(1);
-        grid.addColumn(KernelEntity::getTotalVotes)
+        grid.addColumn(HasKernelData::getTotalVotes)
                 .setHeader("# Votes")
                 .setSortable(true)
                 .setSortProperty("totalVotes")
                 .setKey("totalVotes")
                 .setFlexGrow(0);
-        grid.addColumn(KernelEntity::getTotalViews)
+        grid.addColumn(HasKernelData::getTotalViews)
                 .setHeader("# Views")
                 .setSortable(true)
                 .setSortProperty("totalViews")
                 .setKey("totalViews")
                 .setFlexGrow(0);
-        grid.addColumn(KernelEntity::getCellCount)
+        grid.addColumn(HasKernelData::getCellCount)
                 .setHeader("# Cells")
                 .setSortable(true)
                 .setSortProperty("cellCount")
                 .setKey("cellCount")
                 .setFlexGrow(0);
-        grid.addColumn(KernelEntity::getNumLines)
+        grid.addColumn(HasKernelData::getNumLines)
                 .setHeader("# Lines")
                 .setSortable(true)
                 .setSortProperty("numLines")
                 .setKey("numLines")
                 .setFlexGrow(0);
 
+        grid.setPartNameGenerator(k -> k instanceof UploadedKernelEntity ? "uploaded" : "");
+
         grid.setHeightFull();
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        filter.setCompetition(competition);
+        kernelFilter.setCompetition(competition);
 
-        grid.setDataProvider(provider);
+        grid.setEmptyStateText("Loading Notebooks...");
+
         grid.addSortListener(sort -> {
-            Sort sortOrders = Sort.by(sort.getSortOrder()
-                .stream()
-                    .map(s -> new Sort.Order(
-                        s.getDirection() == SortDirection.ASCENDING
-                            ? Sort.Direction.ASC
-                            : Sort.Direction.DESC,
-                        s.getSorted().getKey()))
-                        .toList());
-
-            UiAsyncUtils.callServiceAsync(
-                () -> kernelService.fetch(Pageable.unpaged(sortOrders), filter, KernelLoadType.WITH_CELLS),
-                UI.getCurrent(),
-                this::onNewKernelMatrixData);
+            matrix.setItems(grid.getListDataView().getItems().map(KernelDTO::ofKernel).toList());
         });
 
         return grid;

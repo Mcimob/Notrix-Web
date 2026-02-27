@@ -5,14 +5,12 @@ import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.io.Serial;
-import java.util.Set;
 
-public class KernelFilter extends AbstractFilter<KernelEntity> {
+public class KernelFilter extends AbstractKernelFilter<KernelEntity, Long> {
 
     @Serial
     private static final long serialVersionUID = -1481439654987750735L;
 
-    private Set<Long> ids;
     private CompetitionEntity competition;
     private String user;
     private String slug;
@@ -20,9 +18,6 @@ public class KernelFilter extends AbstractFilter<KernelEntity> {
     @Override
     public Specification<KernelEntity> getSpecification() {
         Specification<KernelEntity> spec = super.getSpecification();
-        if (ids != null) {
-            return spec.and(hasId(ids));
-        }
         if (competition != null) {
             spec = spec.and(isOfCompetition(competition));
         }
@@ -38,10 +33,6 @@ public class KernelFilter extends AbstractFilter<KernelEntity> {
         return spec;
     }
 
-    public void setIds(Set<Long> ids) {
-        this.ids = ids;
-    }
-
     public void setCompetition(CompetitionEntity competition) {
         this.competition = competition;
     }
@@ -52,10 +43,6 @@ public class KernelFilter extends AbstractFilter<KernelEntity> {
 
     public void setSlug(String slug) {
         this.slug = slug;
-    }
-
-    private Specification<KernelEntity> hasId(Set<Long> ids) {
-        return (root, cq, cb) -> root.get("id").in(ids);
     }
 
     private Specification<KernelEntity> isOfCompetition(CompetitionEntity competition) {
