@@ -1,30 +1,28 @@
 package ch.ethz.inf.peachlab.ui.views.save;
 
-import ch.ethz.inf.peachlab.backend.service.db.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
-import ch.ethz.inf.peachlab.model.Notebook;
+import ch.ethz.inf.peachlab.backend.service.db.KernelService;
+import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
 import ch.ethz.inf.peachlab.model.dto.SavedNotebook;
-import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
-import ch.ethz.inf.peachlab.model.entity.KernelEntity;
+import ch.ethz.inf.peachlab.model.entity.HasKernelData;
+import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
+import ch.ethz.inf.peachlab.model.filter.UploadedKernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
-import ch.ethz.inf.peachlab.ui.webstorage.HasSavedKernels;
+import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
-import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import ch.ethz.inf.peachlab.ui.webstorage.HasSavedKernels;
+import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.router.Route;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -37,16 +35,17 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 import static java.util.function.Predicate.not;
 
 @Route(value = "save", layout = MainLayout.class)
-public class SaveView extends AbstractView implements HasSavedKernels {
+public class SaveView extends AbstractView implements HasSavedKernels, ManagesProcessingNotebooks {
 
-    private final ObjectMapper objectMapper;
     private final KernelService kernelService;
 
-    private final TreeGrid<SavedNotebook> savedGrid = new TreeGrid<>();
+    private final NotebookGrid uploadedGrid = new NotebookGrid();
+    private final NotebookGrid savedGrid = new NotebookGrid();
+    private final UploadedKernelService uploadedKernelService;
 
-    public SaveView(ObjectMapper objectMapper, KernelService kernelService) {
-        this.objectMapper = objectMapper;
+    public SaveView(KernelService kernelService, UploadedKernelService uploadedKernelService) {
         this.kernelService = kernelService;
+        this.uploadedKernelService = uploadedKernelService;
     }
 
     @Override
@@ -63,29 +62,19 @@ public class SaveView extends AbstractView implements HasSavedKernels {
     }
 
     private Component createLeft() {
+        uploadedGrid.setEmptyStateText("Loading uploaded notebooks...");
+
+        getUploadedNotebooks(this::onUploadedKernels);
+
         H2 title = new H2("Your Notebooks");
         title.addClassNames(STYLE_PADDING_M);
-        Div div = new Div(title);
+        Div div = new Div(title, uploadedGrid);
         div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL, STYLE_BACKGROUND_WHITE);
         return div;
     }
 
     private Component createRight() {
-        savedGrid.addComponentHierarchyColumn(nb -> {
-            CompetitionEntity competition = nb.getCompetition();
-            if (competition != null) {
-                return new TitleLink(competition);
-            }
-            return new TitleLink(nb.getKernel());
-        })
-            .setHeader("Competition / Notebook Title");
-        savedGrid.addColumn(SavedNotebook::getNumNotebooks)
-            .setHeader("# Notebooks");
-        savedGrid.addComponentColumn(this::createDownload)
-            .setHeader("Download");
-
-        savedGrid.setEmptyStateText("Loading saved kernels...");
-        savedGrid.setHeightFull();
+        savedGrid.setEmptyStateText("Loading saved notebooks...");
 
         getSavedKernels(this::processSavedKernels);
 
@@ -96,31 +85,27 @@ public class SaveView extends AbstractView implements HasSavedKernels {
         return div;
     }
 
-    private Component createDownload(SavedNotebook nb) {
-        KernelEntity kernel = nb.getKernel();
-        if (kernel == null) {
-            return new Div();
-        }
-        Icon download = VaadinIcon.DOWNLOAD.create();
-        Anchor downloadLink = new Anchor();
-        downloadLink.setHref(event -> {
-            ServiceResponse<KernelEntity> response = kernelService.fetchById(kernel.getId(), KernelLoadType.WITH_CELLS);
-            KernelEntity k = response.getEntity().orElseThrow();
-            event.setFileName(k.getId() + ".ipynb");
-            event.getOutputStream().write(objectMapper.writeValueAsBytes(Notebook.ofKernel(k)));
-        });
-        downloadLink.add(download);
-        return downloadLink;
-    }
-
     private void processSavedKernels(Set<Long> savedKernelIds) {
         KernelFilter filter = new KernelFilter();
         filter.setIds(savedKernelIds);
-        ServiceResponse<PageImpl<KernelEntity>> kernelResponse = kernelService.fetch(Pageable.unpaged(), filter, KernelLoadType.WITH_COMPETITION);
-        kernelResponse.getEntity()
+        ServiceResponse<? extends PageImpl<? extends HasKernelData<?,?>>> kernelResponse = kernelService.fetch(Pageable.unpaged(), filter, KernelLoadType.WITH_COMPETITION);
+        updateGrid(savedGrid, kernelResponse);
+    }
+
+    private void onUploadedKernels(Map<Long, Set<String>> uploadedKernels) {
+        UploadedKernelFilter filter = new UploadedKernelFilter();
+        filter.setIds(uploadedKernels.values().stream()
+            .flatMap(Set::stream)
+            .collect(Collectors.toSet()));
+        ServiceResponse<PageImpl<UploadedKernelEntity>> kernelResponse = uploadedKernelService.fetch(Pageable.unpaged(), filter, UploadedKernelLoadType.WITH_COMPETITION);
+        updateGrid(uploadedGrid, kernelResponse);
+    }
+
+    private void updateGrid(NotebookGrid grid, ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?>>> response) {
+        response.getEntity()
             .map(PageImpl::stream)
             .map(s -> s
-                .collect(Collectors.groupingBy(KernelEntity::getCompetition))
+                .collect(Collectors.groupingBy(HasKernelData::getCompetition))
                 .entrySet()
                 .stream()
                 .map(e -> {
@@ -129,7 +114,7 @@ public class SaveView extends AbstractView implements HasSavedKernels {
                 })
                 .toList())
             .filter(not(List::isEmpty))
-            .ifPresentOrElse(items -> savedGrid.setItems(items, SavedNotebook::getChildren),
-                () -> savedGrid.setEmptyStateText("No kernels found"));
+            .ifPresentOrElse(items -> grid.setItems(items, SavedNotebook::getChildren),
+                () -> grid.setEmptyStateText("No notebooks found"));
     }
 }
