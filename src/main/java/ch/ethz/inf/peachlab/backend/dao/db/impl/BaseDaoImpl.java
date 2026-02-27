@@ -1,8 +1,8 @@
-package ch.ethz.inf.peachlab.backend.dao.impl;
+package ch.ethz.inf.peachlab.backend.dao.db.impl;
 
-import ch.ethz.inf.peachlab.backend.dao.BaseDao;
-import ch.ethz.inf.peachlab.backend.dao.exception.DaoException;
-import ch.ethz.inf.peachlab.backend.dao.exception.VersioningDaoException;
+import ch.ethz.inf.peachlab.backend.dao.db.BaseDao;
+import ch.ethz.inf.peachlab.backend.dao.DaoException;
+import ch.ethz.inf.peachlab.backend.dao.db.exception.VersioningDaoException;
 import ch.ethz.inf.peachlab.backend.repository.BaseRepository;
 import ch.ethz.inf.peachlab.model.entity.AbstractEntity;
 import ch.ethz.inf.peachlab.model.filter.AbstractFilter;
@@ -14,16 +14,15 @@ import jakarta.persistence.PersistenceException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.dao.OptimisticLockingFailureException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
-public class BaseDaoImpl<T extends AbstractEntity, F extends AbstractFilter<T>> implements BaseDao<T, F> {
+public class BaseDaoImpl<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID> implements BaseDao<T, F, ID> {
 
-    private final BaseRepository<T, F> repository;
-    public BaseDaoImpl(BaseRepository<T, F> repository) {
+    private final BaseRepository<T, F, ID> repository;
+    public BaseDaoImpl(BaseRepository<T, F, ID> repository) {
         this.repository = repository;
     }
 
@@ -58,7 +57,7 @@ public class BaseDaoImpl<T extends AbstractEntity, F extends AbstractFilter<T>> 
     }
 
     @Override
-    public Optional<T> fetchById(Long id, HasLoadType loadType) throws DaoException {
+    public Optional<T> fetchById(ID id, HasLoadType loadType) throws DaoException {
         try {
             return repository.findById(id, loadType);
         } catch (DataAccessException | PersistenceException e) {
@@ -67,7 +66,7 @@ public class BaseDaoImpl<T extends AbstractEntity, F extends AbstractFilter<T>> 
     }
 
     @Override
-    public Optional<T> fetchById(Long id) throws DaoException {
+    public Optional<T> fetchById(ID id) throws DaoException {
         return fetchById(id, BaseLoadType.NONE);
     }
 
@@ -82,7 +81,7 @@ public class BaseDaoImpl<T extends AbstractEntity, F extends AbstractFilter<T>> 
 
 
     @Override
-    public boolean existsById(Long id) throws DaoException {
+    public boolean existsById(ID id) throws DaoException {
         try {
             return repository.existsById(id);
         } catch (DataAccessException | PersistenceException e) {
@@ -131,7 +130,7 @@ public class BaseDaoImpl<T extends AbstractEntity, F extends AbstractFilter<T>> 
     }
 
     @Override
-    public void deleteById(Long id) throws DaoException {
+    public void deleteById(ID id) throws DaoException {
         try {
             repository.deleteById(id);
         } catch (DataAccessException | PersistenceException e) {

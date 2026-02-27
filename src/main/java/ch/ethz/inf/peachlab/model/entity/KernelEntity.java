@@ -1,97 +1,41 @@
 package ch.ethz.inf.peachlab.model.entity;
 
-import ch.ethz.inf.peachlab.model.enums.MainLabel;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderColumn;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
-import java.time.LocalDateTime;
-import java.util.Collection;
+import java.io.Serial;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Entity
-@NamedEntityGraph(name = KernelEntity.WITH_CELLS,
+@NamedEntityGraph(name = HasKernelData.WITH_CELLS,
     attributeNodes = {
         @NamedAttributeNode("cells")
     })
-@NamedEntityGraph(name = KernelEntity.WITH_COMPETITION,
+@NamedEntityGraph(name = HasKernelData.WITH_COMPETITION,
     attributeNodes = {
         @NamedAttributeNode("competition")
     })
-public class KernelEntity implements AbstractEntity, HasKernelData {
+public class KernelEntity extends HasKernelData<Long, CellEntity> {
 
-    public static final String WITH_CELLS = "withCells";
-    public static final String WITH_COMPETITION = "withCompetition";
+    @Serial
+    private static final long serialVersionUID = -4963973968059218651L;
 
     @Id
     @Column(nullable = false, name = "KernelVersionId")
     private Long id;
 
-    @Column(nullable = false, name = "CreationDate")
-    private LocalDateTime creationDate;
-
-    @Column(nullable = true, name = "Title")
-    private String title;
-
-    @Column(nullable = false, name = "TotalVotes")
-    private Integer totalVotes;
-
-    @Column(nullable = false, name = "TotalViews")
-    private int totalViews;
-
-    @Column(nullable = false, name = "TotalComments")
-    private int totalComments;
-
-    @Column(nullable = true, name = "CurrentUrlSlug")
-    private String currentUrlSlug;
-
-    @Column(nullable = true, name = "AuthorUserName")
-    private String authorUserName;
-
-    @Column(nullable = true, name = "AuthorDisplayName")
-    private String authorDisplayName;
-
-    @Column(nullable = false, name = "NumLines")
-    private Integer numLines;
-
-    @Column(nullable = false, name="CellCount")
-    private Integer cellCount;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "LabelSequence", columnDefinition = "jsonb")
-    private MainLabel[] labelSequence;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "TransitionMatrix", columnDefinition = "jsonb")
-    private Integer[][] transitionMatrix;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "MainLabelStats", columnDefinition = "jsonb")
-    private Map<Integer, Integer> mainLabelStats;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SourceCompetitionId")
-    private CompetitionEntity competition;
-
-    @Column(name = "ClusterId")
-    private Long clusterId;
-
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "KernelVersionId")
     @OrderColumn(name = "CellId")
     private List<CellEntity> cells;
+
 
     @Override
     public Long getId() {
@@ -103,152 +47,13 @@ public class KernelEntity implements AbstractEntity, HasKernelData {
         this.id = id;
     }
 
-    public LocalDateTime getCreationDate() {
-        return creationDate;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public Integer getTotalVotes() {
-        return totalVotes;
-    }
-
-    public int getTotalViews() {
-        return totalViews;
-    }
-
-    public int getTotalComments() {
-        return totalComments;
-    }
-
-    public String getCurrentUrlSlug() {
-        return currentUrlSlug;
-    }
-
-    public String getAuthorUserName() {
-        return authorUserName;
-    }
-
-    public String getAuthorDisplayName() {
-        return authorDisplayName;
-    }
-
-    public Integer getNumLines() {
-        return numLines;
-    }
-
-    public Integer getCellCount() {
-        return cellCount;
-    }
-
-    public MainLabel[] getLabelSequence() {
-        return labelSequence;
-    }
-
-    public Integer[][] getTransitionMatrix() {
-        return transitionMatrix;
-    }
-
-    public Map<MainLabel, Integer> getMainLabelStats() {
-        if (mainLabelStats == null) {
-            return Map.of();
-        }
-
-        return mainLabelStats.entrySet().stream()
-            .collect(Collectors.toMap(
-                e -> MainLabel.values()[e.getKey()],
-                Map.Entry::getValue));
-    }
-
-    public CompetitionEntity getCompetition() {
-        return competition;
-    }
-
-    public Long getClusterId() {
-        return clusterId;
-    }
-
     @Override
-    public Double getLines() {
-        return numLines.doubleValue();
-    }
-
-    public Double getNumCells() {
-        return cellCount.doubleValue();
-    }
-
     public List<CellEntity> getCells() {
-        return cells.stream().filter(Objects::nonNull).toList();
+        return cells;
     }
 
     @Override
-    public Double getVotes() {
-        return totalVotes.doubleValue();
-    }
-
-    @Override
-    public Collection<HasKernelData> getChildren() {
-        return List.of();
-    }
-
-    public String getUrlParameter() {
-        if (authorDisplayName == null || currentUrlSlug == null)
-            return id.toString();
-        return "%s/%s".formatted(authorUserName, currentUrlSlug);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (!(o instanceof KernelEntity that)) {
-            return false;
-        }
-        return totalVotes == that.totalVotes
-                && totalViews == that.totalViews
-                && totalComments == that.totalComments
-                && Objects.equals(id, that.id)
-                && Objects.equals(creationDate, that.creationDate)
-                && Objects.equals(title, that.title)
-                && Objects.equals(currentUrlSlug, that.currentUrlSlug)
-                && Objects.equals(authorUserName, that.authorUserName)
-                && Objects.equals(authorDisplayName, that.authorDisplayName)
-                && Objects.equals(numLines, that.numLines)
-                && Objects.equals(cellCount, that.cellCount);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id,
-                creationDate,
-                title,
-                totalVotes,
-                totalViews,
-                totalComments,
-                currentUrlSlug,
-                authorUserName,
-                authorDisplayName,
-                numLines,
-                cellCount);
-    }
-
-    @Override
-    public String toString() {
-        return "KernelEntity{"
-                + "id=" + id
-                + ", creationDate=" + creationDate
-                + ", title='" + title + '\''
-                + ", totalVotes=" + totalVotes
-                + ", totalViews=" + totalViews
-                + ", totalComments=" + totalComments
-                + ", currentUrlSlug='" + currentUrlSlug + '\''
-                + ", authorUserName='" + authorUserName + '\''
-                + ", authorDisplayName='" + authorDisplayName + '\''
-                + ", numLines=" + numLines
-                + ", cellCount=" + cellCount
-                + '}';
+    public void setCells(List<CellEntity> cells) {
+        this.cells = cells;
     }
 }

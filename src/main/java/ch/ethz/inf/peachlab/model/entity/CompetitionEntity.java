@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Entity
-public class CompetitionEntity implements AbstractEntity {
+public class CompetitionEntity implements AbstractEntity<Long> {
 
     @Id
     private Long id;

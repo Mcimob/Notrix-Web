@@ -1,6 +1,6 @@
 package ch.ethz.inf.peachlab.ui.views.save;
 
-import ch.ethz.inf.peachlab.backend.service.KernelService;
+import ch.ethz.inf.peachlab.backend.service.db.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.Notebook;
 import ch.ethz.inf.peachlab.model.dto.SavedNotebook;
@@ -8,7 +8,7 @@ import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
-import ch.ethz.inf.peachlab.ui.HasSavedKernels;
+import ch.ethz.inf.peachlab.ui.webstorage.HasSavedKernels;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
@@ -34,6 +34,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
+import static java.util.function.Predicate.not;
 
 @Route(value = "save", layout = MainLayout.class)
 public class SaveView extends AbstractView implements HasSavedKernels {
@@ -127,6 +128,7 @@ public class SaveView extends AbstractView implements HasSavedKernels {
                     return new SavedNotebook(e.getKey(), children);
                 })
                 .toList())
+            .filter(not(List::isEmpty))
             .ifPresentOrElse(items -> savedGrid.setItems(items, SavedNotebook::getChildren),
                 () -> savedGrid.setEmptyStateText("No kernels found"));
     }

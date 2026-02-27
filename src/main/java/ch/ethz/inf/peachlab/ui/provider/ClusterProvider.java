@@ -1,7 +1,7 @@
 package ch.ethz.inf.peachlab.ui.provider;
 
 import ch.ethz.inf.peachlab.app.SpringContext;
-import ch.ethz.inf.peachlab.backend.service.ClusterService;
+import ch.ethz.inf.peachlab.backend.service.db.ClusterService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
 import ch.ethz.inf.peachlab.model.filter.ClusterFilter;

@@ -7,10 +7,11 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactory;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 
 public class CustomRepositoryFactoryBean<
-        R extends BaseRepository<T, F>,
-        T extends AbstractEntity,
-        F extends AbstractFilter<T>>
-        extends JpaRepositoryFactoryBean<R, T, Long> {
+        R extends BaseRepository<T, F, ID>,
+        T extends AbstractEntity<ID>,
+        F extends AbstractFilter<T>,
+        ID>
+        extends JpaRepositoryFactoryBean<R, T, ID> {
 
     public CustomRepositoryFactoryBean(Class<? extends R> repositoryInterface) {
         super(repositoryInterface);

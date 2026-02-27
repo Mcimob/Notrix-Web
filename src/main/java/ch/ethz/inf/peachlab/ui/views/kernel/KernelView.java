@@ -1,11 +1,11 @@
 package ch.ethz.inf.peachlab.ui.views.kernel;
 
-import ch.ethz.inf.peachlab.backend.service.ClusterService;
-import ch.ethz.inf.peachlab.backend.service.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
+import ch.ethz.inf.peachlab.backend.service.db.ClusterService;
+import ch.ethz.inf.peachlab.backend.service.db.KernelService;
 import ch.ethz.inf.peachlab.model.Notebook;
-import ch.ethz.inf.peachlab.model.entity.CellEntity;
 import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
+import ch.ethz.inf.peachlab.model.entity.CellEntity;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.enums.CellType;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
@@ -227,6 +227,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
     
     private Optional<Component> createToc() {
         List<TocElement> tocElements = kernel.getCells().stream()
+            .filter(Objects::nonNull)
             .filter(c -> c.getCellType() != CellType.CODE)
             .map(c ->
                 Arrays.stream(c.getSource().split("\\n")).map(source -> {
@@ -296,6 +297,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         kernelStats.render();
 
         long codeCells = kernel.getCells().stream()
+            .filter(Objects::nonNull)
             .filter(c -> c.getCellType() == CellType.CODE)
             .count();
         TripleStats cellStats = new TripleStats();

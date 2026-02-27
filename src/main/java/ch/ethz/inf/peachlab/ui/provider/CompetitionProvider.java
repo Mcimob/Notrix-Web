@@ -1,14 +1,13 @@
 package ch.ethz.inf.peachlab.ui.provider;
 
 import ch.ethz.inf.peachlab.app.SpringContext;
-import ch.ethz.inf.peachlab.backend.service.CompetitionService;
+import ch.ethz.inf.peachlab.backend.service.db.CompetitionService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.QuerySortOrder;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;

@@ -1,15 +1,13 @@
 package ch.ethz.inf.peachlab.ui.provider;
 
 import ch.ethz.inf.peachlab.app.SpringContext;
-import ch.ethz.inf.peachlab.backend.service.KernelService;
+import ch.ethz.inf.peachlab.backend.service.db.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
-import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.QuerySortOrder;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;

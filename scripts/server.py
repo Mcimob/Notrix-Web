@@ -1,12 +1,15 @@
+import os
 from fastapi import FastAPI, BackgroundTasks
 from pydantic import BaseModel
 import uuid
 import pandas as pd
 from competition_cells.extract_cells import extract_cells_from_dict
 from kaggle_types import KernelColumns
-from pd_utils import dump_kernels
+from pd_utils import dump_kernels_to_python
 from predict import predcit_cells
 from stats import add_stats_to_cells, add_stats_to_kernels
+
+os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
 app = FastAPI()
 
@@ -28,7 +31,7 @@ def start_process_notebook(notebook: Notebook, background_tasks: BackgroundTasks
         "result": None
     }
     background_tasks.add_task(process_notebook, job_id, notebook)
-    return job_id
+    return {"job_id": job_id}
 
 @app.get("/process_notebook/{job_id}")
 def get_status(job_id: str):
@@ -51,20 +54,16 @@ def process_notebook(job_id: str, notebook: Notebook):
     predcit_cells(cells)
     
     print(f"{job_id}: Adding stats")
-    PROGRESS[job_id]["status"] = "CELLS_STATS"
+    PROGRESS[job_id]["status"] = "STATS"
     cells = add_stats_to_cells(cells)
     
     kernels = pd.DataFrame({KernelColumns.KERNEL_VERSION_ID: 0}, index=[0])
     kernels = add_stats_to_kernels(cells, kernels)
     
-    dump_kernels(kernels)
+    dump_kernels_to_python(kernels)
     
-    print(f"{job_id}: Finisged processing Notebook")
+    print(f"{job_id}: Finished processing Notebook")
+    kernel_dict = kernels.to_dict("records")[0]
+    kernel_dict["cells"] = cells.to_dict("records")
+    PROGRESS[job_id]["result"] = kernel_dict
     PROGRESS[job_id]["status"] = "DONE"
-    PROGRESS[job_id]["result"] = {
-        "cells": cells.to_dict("records"),
-        "kernel": kernels.to_dict("records")[0]
-    }
-    
-if __name__ == "__main__":
-    app.st

@@ -1,7 +1,7 @@
 package ch.ethz.inf.peachlab.ui.views.competition;
 
 import ch.ethz.inf.peachlab.app.SpringContext;
-import ch.ethz.inf.peachlab.backend.service.KernelService;
+import ch.ethz.inf.peachlab.backend.service.db.KernelService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;

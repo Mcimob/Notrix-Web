@@ -5,5 +5,5 @@ import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface KernelRepository extends BaseRepository<KernelEntity, KernelFilter> {
+public interface KernelRepository extends BaseRepository<KernelEntity, KernelFilter, Long> {
 }

@@ -13,12 +13,12 @@ import org.springframework.data.repository.NoRepositoryBean;
 import java.util.Optional;
 
 @NoRepositoryBean
-public interface BaseRepository<T extends AbstractEntity, F extends AbstractFilter<T>>
-        extends JpaRepository<T, Long>, JpaSpecificationExecutor<T> {
+public interface BaseRepository<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID>
+        extends JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
 
     Optional<T> findOne(F filter, HasLoadType loadType);
 
     PageImpl<T> findAll(F filter, Pageable pageable, HasLoadType loadType);
 
-    Optional<T> findById(Long id, HasLoadType loadType);
+    Optional<T> findById(ID id, HasLoadType loadType);
 }

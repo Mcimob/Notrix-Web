@@ -5,5 +5,5 @@ import ch.ethz.inf.peachlab.model.filter.ClusterFilter;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ClusterRepository extends BaseRepository<ClusterEntity, ClusterFilter> {
+public interface ClusterRepository extends BaseRepository<ClusterEntity, ClusterFilter, Long> {
 }

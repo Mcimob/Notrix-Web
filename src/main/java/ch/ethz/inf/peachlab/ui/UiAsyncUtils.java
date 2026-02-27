@@ -34,7 +34,7 @@ public class UiAsyncUtils {
                     consumer.accept(response);
                 };
 
-                ui.getSession().access(() -> {
+                ui.access(() -> {
                     if (ui.isAttached())
                         uiTask.run();
                 });

@@ -4,9 +4,13 @@ import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.io.Serial;
 import java.util.Set;
 
 public class KernelFilter extends AbstractFilter<KernelEntity> {
+
+    @Serial
+    private static final long serialVersionUID = -1481439654987750735L;
 
     private Set<Long> ids;
     private CompetitionEntity competition;
@@ -42,20 +46,8 @@ public class KernelFilter extends AbstractFilter<KernelEntity> {
         this.competition = competition;
     }
 
-    public CompetitionEntity getCompetition() {
-        return competition;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
     public void setUser(String user) {
         this.user = user;
-    }
-
-    public String getSlug() {
-        return slug;
     }
 
     public void setSlug(String slug) {

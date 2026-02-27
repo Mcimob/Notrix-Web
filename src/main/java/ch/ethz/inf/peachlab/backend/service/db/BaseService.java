@@ -1,16 +1,14 @@
-package ch.ethz.inf.peachlab.backend.service;
+package ch.ethz.inf.peachlab.backend.service.db;
 
+import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.logger.HasLogger;
 import ch.ethz.inf.peachlab.model.entity.AbstractEntity;
 import ch.ethz.inf.peachlab.model.filter.AbstractFilter;
 import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import java.util.concurrent.CompletableFuture;
-
-public interface BaseService<T extends AbstractEntity, F extends AbstractFilter<T>> extends HasLogger {
+public interface BaseService<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID> extends HasLogger {
 
     ServiceResponse<PageImpl<T>> fetch(Pageable pageable, F filter, HasLoadType loadType);
 
@@ -20,13 +18,13 @@ public interface BaseService<T extends AbstractEntity, F extends AbstractFilter<
 
     ServiceResponse<T> fetchOne(F filter);
 
-    ServiceResponse<T> fetchById(Long id, HasLoadType loadType);
+    ServiceResponse<T> fetchById(ID id, HasLoadType loadType);
 
-    ServiceResponse<T> fetchById(Long id);
+    ServiceResponse<T> fetchById(ID id);
 
     ServiceResponse<Boolean> exists(F filter);
 
-    ServiceResponse<Boolean> existsById(Long id);
+    ServiceResponse<Boolean> existsById(ID id);
 
     ServiceResponse<Long> count(F filter);
 
@@ -36,7 +34,7 @@ public interface BaseService<T extends AbstractEntity, F extends AbstractFilter<
 
     ServiceResponse<T> delete(T entity);
 
-    ServiceResponse<T> deleteById(Long id);
+    ServiceResponse<T> deleteById(ID id);
 
     ServiceResponse<T> deleteAll(Iterable<T> entities);
 

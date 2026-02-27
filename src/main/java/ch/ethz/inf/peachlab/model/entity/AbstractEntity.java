@@ -1,13 +1,11 @@
 package ch.ethz.inf.peachlab.model.entity;
 
-import jakarta.persistence.MappedSuperclass;
-
 import java.io.Serializable;
 
 
-public interface AbstractEntity extends Serializable {
+public interface AbstractEntity<ID> extends Serializable {
 
-    public abstract Long getId();
+    ID getId();
 
-    public abstract void setId(Long id);
+    void setId(ID id);
 }

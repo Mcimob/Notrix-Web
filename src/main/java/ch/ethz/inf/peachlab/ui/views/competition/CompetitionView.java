@@ -1,20 +1,24 @@
 package ch.ethz.inf.peachlab.ui.views.competition;
 
-import ch.ethz.inf.peachlab.backend.service.ClusterService;
-import ch.ethz.inf.peachlab.backend.service.CompetitionService;
-import ch.ethz.inf.peachlab.backend.service.KernelService;
+import ch.ethz.inf.peachlab.backend.ProcessedNotebookBroadcaster;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
+import ch.ethz.inf.peachlab.backend.service.db.ClusterService;
+import ch.ethz.inf.peachlab.backend.service.db.CompetitionService;
+import ch.ethz.inf.peachlab.backend.service.db.KernelService;
+import ch.ethz.inf.peachlab.backend.service.rest.NotebookProcessingService;
 import ch.ethz.inf.peachlab.model.dto.ClusterDTO;
 import ch.ethz.inf.peachlab.model.dto.KernelDTO;
+import ch.ethz.inf.peachlab.model.dto.ProcessingNotebook;
 import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
-import ch.ethz.inf.peachlab.model.entity.HasKernelData;
+import ch.ethz.inf.peachlab.model.entity.HasBaseStats;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.filter.ClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.ClusterLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
+import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
@@ -35,19 +39,28 @@ import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.SortDirection;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.streams.InMemoryUploadHandler;
+import com.vaadin.flow.server.streams.UploadHandler;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import java.io.Serial;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -63,13 +76,18 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "competitions", layout = MainLayout.class)
-public class CompetitionView extends AbstractView implements HasUrlParameter<String> {
+public class CompetitionView extends AbstractView implements HasUrlParameter<String>, ManagesProcessingNotebooks {
+
+    @Serial
+    private static final long serialVersionUID = 8520612132652236410L;
 
     private final transient CompetitionService competitionService;
     private final transient KernelService kernelService;
-    private final ClusterService clusterService;
+    private final transient ClusterService clusterService;
+    private final transient NotebookProcessingService nbProcessingService;
 
     private CompetitionEntity competition;
+    private byte[] uploadedData;
 
     private final H2 title = new H2();
     private final Div competitionOverview = new Div();
@@ -78,7 +96,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     private final NotebookMatrix matrix = new NotebookMatrix();
     private final ClusterMatrix cLusterMatrix = new ClusterMatrix();
     private final Grid<KernelEntity> grid = new Grid<>();
-    private final TreeGrid<HasKernelData> clusterGrid = new TreeGrid<>();
+    private final TreeGrid<HasBaseStats> clusterGrid = new TreeGrid<>();
     private final KernelFilter filter = new KernelFilter();
     private final ClusterFilter clusterFilter = new ClusterFilter();
     private final ConfigurableFilterDataProvider<KernelEntity, Void, KernelFilter> provider =
@@ -86,10 +104,14 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     private final ConfigurableFilterDataProvider<ClusterEntity, Void, ClusterFilter> clusterProvider =
         new ClusterProvider().withConfigurableFilter();
 
-    public CompetitionView(CompetitionService competitionService, KernelService kernelService, ClusterService clusterService) {
+    public CompetitionView(CompetitionService competitionService,
+                           KernelService kernelService,
+                           ClusterService clusterService,
+                           NotebookProcessingService nbProcessingService) {
         this.competitionService = competitionService;
         this.kernelService = kernelService;
         this.clusterService = clusterService;
+        this.nbProcessingService = nbProcessingService;
     }
 
     private void initProvider() {
@@ -114,7 +136,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         center.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
         center.getStyle().setMinWidth("0");
 
-        Div right = new Div(createStats(), createGrids());
+        Div right = new Div(createStats(), createUpload(), createGrids());
         right.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
 
         add(createSidebar(), center, right);
@@ -175,7 +197,6 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
             UI.getCurrent(),
             this::onNewClusterMatrixData
         );
-
 
         Filterbar bar = new Filterbar();
         bar.render();
@@ -271,13 +292,65 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         );
         response.getEntity()
             .map(PageImpl::stream)
-            .ifPresent(list -> clusterGrid.setItems(list.map(o -> (HasKernelData) o).toList(), HasKernelData::getChildren));
+            .ifPresent(list -> clusterGrid.setItems(list.map(o -> (HasBaseStats) o).toList(), HasBaseStats::getChildren));
     }
 
     private Component createStats() {
         CompetitionStatsPanel stats = new CompetitionStatsPanel(competition);
         stats.render();
         return stats;
+    }
+
+    private Component createUpload() {
+        Dialog titleDialog = new Dialog();
+        titleDialog.setHeaderTitle("Upload own solution");
+        TextField titleField = new TextField("Title");
+        titleDialog.add(new Div("Please give your submission a title"), titleField);
+
+        Dialog.DialogFooter footer = titleDialog.getFooter();
+        Button cancel = new Button("Cancel", e -> titleDialog.close());
+        cancel.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        Button confirm = new Button("Confirm", e -> {
+            titleDialog.close();
+            ServiceResponse<String> response = nbProcessingService.startNotebookProcessing(uploadedData);
+            response.getErrorMessages().forEach(this::showErrorNotification);
+            response.getEntity().ifPresent(identifier -> {
+                ProcessedNotebookBroadcaster.register(this::onNotebooksProcessingDone, identifier, UI.getCurrent());
+                getProcessingNotebooks(processingNotebooks -> {
+                    processingNotebooks.put(identifier,
+                        new ProcessingNotebook(titleField.getValue(), competition.getId()));
+                    setProcessingNotebooks(processingNotebooks);
+                    showSuccessNotification("Your notebook {0} was sent to processing. You can check its status on the 'Saved' page and will be notified, when processing completes", titleField.getValue());
+                });
+            });
+        });
+        footer.add(cancel, confirm);
+
+        InMemoryUploadHandler inMemoryHandler = UploadHandler
+            .inMemory((metadata, data) -> {
+                this.uploadedData = data;
+                titleDialog.open();
+            });
+        Upload upload = new Upload(inMemoryHandler);
+
+        upload.setAcceptedFileTypes("application/json", ".ipynb");
+        upload.addFileRejectedListener(event ->
+            showErrorNotification(event.getErrorMessage()));
+        upload.setDropAllowed(true);
+        upload.setMaxFiles(1);
+        UploadI18N i18n = new UploadI18N();
+        i18n.setAddFiles(new UploadI18N.AddFiles()
+            .setOne("Upload own Solution..."));
+        i18n.setDropFiles(new UploadI18N.DropFiles()
+            .setOne("Drop Notebook here"));
+        i18n.setError(new UploadI18N.Error()
+            .setIncorrectFileType("The provided file does not have the correct format (Python notebook)"));
+
+        upload.setI18n(i18n);
+
+        Div div = new Div(upload);
+        div.addClassNames(STYLE_PADDING_M, STYLE_BACKGROUND_WHITE);
+        return div;
     }
 
     private Component createGrids() {
@@ -364,7 +437,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
         return clusterGrid;
     }
 
-    private Component createTitleElement(HasKernelData kernelData) {
+    private Component createTitleElement(HasBaseStats kernelData) {
         if (kernelData instanceof KernelEntity kernel) {
             return new TitleLink(kernel);
         } else if (kernelData instanceof ClusterEntity cluster) {

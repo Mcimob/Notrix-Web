@@ -1,5 +1,8 @@
 package ch.ethz.inf.peachlab.model.enums;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 public enum MainLabel {
     ENVIRONMENT("#D3B484", "entity.cell.mainLabel.0", LabelCategory.ENVIRONMENT), // (浅绿色)
     DATA_EXTRACTION("#9EB9F3", "entity.cell.mainLabel.1", LabelCategory.DATA_ORIENTED), // (浅蓝色/青色)
@@ -34,5 +37,9 @@ public enum MainLabel {
 
     public LabelCategory getLabelCategory() {
         return labelCategory;
+    }
+
+    public static Optional<MainLabel> byOrdinal(int ordinal) {
+        return Arrays.stream(MainLabel.values()).filter(m -> m.ordinal() == ordinal).findFirst();
     }
 }

@@ -14,6 +14,7 @@ import jakarta.persistence.OneToMany;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.io.Serial;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
@@ -30,9 +31,11 @@ subgraphs = {
         @NamedAttributeNode("cells")
     })
 })
-public class ClusterEntity implements AbstractEntity, HasKernelData {
+public class ClusterEntity implements AbstractEntity<Long>, HasBaseStats {
 
     public static final String WITH_KERNELS_AND_CELLS = "withKernelsAndCells";
+    @Serial
+    private static final long serialVersionUID = 7054276197678850847L;
 
     @Id
     @Column(name = "ClusterId")
@@ -164,8 +167,8 @@ public class ClusterEntity implements AbstractEntity, HasKernelData {
     }
 
     @Override
-    public Collection<HasKernelData> getChildren() {
-        return kernels.stream().map(o -> (HasKernelData) o).toList();
+    public Collection<HasBaseStats> getChildren() {
+        return kernels.stream().map(o -> (HasBaseStats) o).toList();
     }
 
 

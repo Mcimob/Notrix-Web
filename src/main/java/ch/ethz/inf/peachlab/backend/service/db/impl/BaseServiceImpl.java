@@ -1,9 +1,9 @@
-package ch.ethz.inf.peachlab.backend.service.impl;
+package ch.ethz.inf.peachlab.backend.service.db.impl;
 
-import ch.ethz.inf.peachlab.backend.dao.BaseDao;
-import ch.ethz.inf.peachlab.backend.dao.exception.DaoException;
-import ch.ethz.inf.peachlab.backend.dao.exception.VersioningDaoException;
-import ch.ethz.inf.peachlab.backend.service.BaseService;
+import ch.ethz.inf.peachlab.backend.dao.db.BaseDao;
+import ch.ethz.inf.peachlab.backend.dao.DaoException;
+import ch.ethz.inf.peachlab.backend.dao.db.exception.VersioningDaoException;
+import ch.ethz.inf.peachlab.backend.service.db.BaseService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.model.entity.AbstractEntity;
 import ch.ethz.inf.peachlab.model.filter.AbstractFilter;
@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
-public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<T>> implements BaseService<T, F> {
+public class BaseServiceImpl<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID> implements BaseService<T, F, ID> {
 
     public static final String ERROR_GENERAL = "service.base.error.general";
     public static final String ERROR_NULL = "service.base.error.null";
@@ -22,9 +22,9 @@ public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<
     public static final String MESSAGE_SAVE = "service.base.message.save";
     public static final String MESSAGE_DELETE = "service.base.message.delete";
 
-    private final BaseDao<T, F> dao;
+    private final BaseDao<T, F, ID> dao;
 
-    public BaseServiceImpl(BaseDao<T, F> dao) {
+    public BaseServiceImpl(BaseDao<T, F, ID> dao) {
         this.dao = dao;
     }
 
@@ -117,7 +117,7 @@ public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<
     }
 
     @Override
-    public ServiceResponse<T> fetchById(Long id, HasLoadType loadType) {
+    public ServiceResponse<T> fetchById(ID id, HasLoadType loadType) {
         ServiceResponse<T> response = new ServiceResponse<>();
         if (handleNullCheck(response, id, loadType)) {
             return response;
@@ -133,7 +133,7 @@ public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<
     }
 
     @Override
-    public ServiceResponse<T> fetchById(Long id) {
+    public ServiceResponse<T> fetchById(ID id) {
         ServiceResponse<T> response = new ServiceResponse<>();
         if (handleNullCheck(response, id)) {
             return response;
@@ -164,7 +164,7 @@ public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<
     }
 
     @Override
-    public ServiceResponse<Boolean> existsById(Long id) {
+    public ServiceResponse<Boolean> existsById(ID id) {
         ServiceResponse<Boolean> response = new ServiceResponse<>();
         if (handleNullCheck(response, id)) {
             return response;
@@ -246,7 +246,7 @@ public class BaseServiceImpl<T extends AbstractEntity, F extends AbstractFilter<
     }
 
     @Override
-    public ServiceResponse<T> deleteById(Long id) {
+    public ServiceResponse<T> deleteById(ID id) {
         ServiceResponse<T> response = new ServiceResponse<>();
         if (handleNullCheck(response, id)) {
             return response;

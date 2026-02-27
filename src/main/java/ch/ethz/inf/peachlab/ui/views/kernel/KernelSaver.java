@@ -1,16 +1,12 @@
 package ch.ethz.inf.peachlab.ui.views.kernel;
 
-import ch.ethz.inf.peachlab.app.SpringContext;
 import ch.ethz.inf.peachlab.logger.HasLogger;
 import ch.ethz.inf.peachlab.ui.HasRender;
-import ch.ethz.inf.peachlab.ui.HasSavedKernels;
+import ch.ethz.inf.peachlab.ui.webstorage.HasSavedKernels;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.page.WebStorage;
 import com.vaadin.flow.shared.Registration;
 
 import java.util.Set;
@@ -22,15 +18,12 @@ public class KernelSaver extends Div implements HasRender, HasLogger, HasNotific
     private Long kernelId;
     private boolean isSaved;
 
-    private final ObjectMapper objectMapper;
-
     private final Icon bookmarkEmpty = VaadinIcon.BOOKMARK_O.create();
     private final Icon bookmarkFull = VaadinIcon.BOOKMARK.create();
 
     private Registration clickRegistration;
 
     public KernelSaver() {
-        this.objectMapper = SpringContext.getBean(ObjectMapper.class);
         addClassNames(STYLE_TEXT_LINK);
     }
 
@@ -53,13 +46,8 @@ public class KernelSaver extends Div implements HasRender, HasLogger, HasNotific
         } else {
             savedKernels.add(kernelId);
         }
-        try {
-            WebStorage.setItem("savedKernels", objectMapper.writeValueAsString(savedKernels));
-            setSaved(!isSaved);
-        } catch (JsonProcessingException e) {
-            getLogger().error("Could not write saved Notebooks", e);
-            showErrorNotification("Could not save saved Notebooks");
-        }
+        setSavedKernels(savedKernels);
+        setSaved(!isSaved);
     }
 
     private void initSaved() {

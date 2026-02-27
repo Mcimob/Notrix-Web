@@ -6,7 +6,6 @@ import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,8 +18,8 @@ import java.util.List;
 import java.util.Optional;
 
 @NoRepositoryBean
-public class BaseRepositoryImpl<T extends AbstractEntity, F extends AbstractFilter<T>>
-        extends SimpleJpaRepository<T, Long> implements BaseRepository<T, F> {
+public class BaseRepositoryImpl<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID>
+        extends SimpleJpaRepository<T, ID> implements BaseRepository<T, F, ID> {
 
     private final EntityManager em;
 
@@ -37,7 +36,8 @@ public class BaseRepositoryImpl<T extends AbstractEntity, F extends AbstractFilt
         return Optional.ofNullable(result);
     }
 
-    public Optional<T> findById(Long id, HasLoadType loadType) {
+    @Override
+    public Optional<T> findById(ID id, HasLoadType loadType) {
         Specification<T> specification = (root, query, cb) -> cb.equal(root.get("id"), id);
         TypedQuery<T> query = createQueryWithEntityGraph(specification, loadType.getName(), Sort.unsorted());
         T result = query.getSingleResult();

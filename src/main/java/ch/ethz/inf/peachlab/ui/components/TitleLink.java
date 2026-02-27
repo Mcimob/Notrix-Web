@@ -2,6 +2,7 @@ package ch.ethz.inf.peachlab.ui.components;
 
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
+import ch.ethz.inf.peachlab.ui.views.competition.CompetitionView;
 import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -24,7 +25,7 @@ public class TitleLink extends Span {
     }
 
     public TitleLink(CompetitionEntity competition) {
-        this(competition.getTitle(), KernelView.class, competition.getSlug());
+        this(competition.getTitle(), CompetitionView.class, competition.getSlug());
     }
 
 
