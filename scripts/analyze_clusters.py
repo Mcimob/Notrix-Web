@@ -362,15 +362,11 @@ def save_analysis_result(
     
     return output_data
 
-
-def main():
-    """Main execution function."""
+def add_cluster_data(kernels: pd.DataFrame, clusters: pd.DataFrame):
+    kernels = kernels.copy().dropna(subset=KERNEL_JSON_COLUMNS + [KernelColumns.SOURCE_COMPETITION_ID, KernelColumns.CLUSTER_ID])
     
-    print("🔧 Loading environment...")
-    api_key = load_environment()
-    
-    kernels = load_all_kernels("AllCompetitionKernels_clustered.csv").dropna(subset=KERNEL_JSON_COLUMNS + [KernelColumns.SOURCE_COMPETITION_ID, KernelColumns.CLUSTER_ID])
-    clusters = load_clusters("Clusters_analyzed.csv")
+    if KernelColumns.TOTAL_VOTES not in kernels.columns:
+        kernels[KernelColumns.TOTAL_VOTES] = 0
     
     competition_transition_stats = (
         kernels
@@ -393,29 +389,21 @@ def main():
     ]:
         clusters = clusters.merge(df, on=KernelColumns.CLUSTER_ID)
     
+    api_key = load_environment()
+    
     print("✍️  Generating GPT analysis prompt...")
     prompts = generate_analysis_prompt(clusters, competition_transition_stats)
     
     print("🤖 Querying GPT for analysis (this may take a moment)...")
     responses = []
-    old_responses = None
-    try:
-        with open("gpt_responses.pkl", "rb") as f:
-            old_responses = pkl.load(f)
-    except Exception as e:
-        print("Could not find previous gpt responses")
-        old_responses = []
     
     response_index = 0
     try:
         for p in tqdm(prompts, desc="Querying..."):
             if p:
-                if len(old_responses) > response_index:
-                    responses.append(old_responses[response_index])
-                else:
-                    gpt_response = query_gpt5(p, api_key)
-                    result = save_analysis_result(gpt_response)
-                    responses.append(result)
+                gpt_response = query_gpt5(p, api_key)
+                result = save_analysis_result(gpt_response)
+                responses.append(result)
                 response_index += 1
     except Exception as e:
         print(f"Encountered exception {e}")
@@ -426,8 +414,17 @@ def main():
         
     summaries = dict(ChainMap(*[r["analysis_sections"]["individual_summaries"]["structured"] for r in responses]))    
         
-    clusters["Summary"] = clusters[KernelColumns.CLUSTER_ID].map(summaries)
+    clusters[ClusterColumns.SUMMARY] = clusters[KernelColumns.CLUSTER_ID].map(summaries)
     clusters.drop(labels=["SampleSequence", "SampleSequenceLength"], axis=1, inplace=True)
+    
+    return clusters
+
+def main():
+    """Main execution function."""    
+    kernels = load_all_kernels("AllCompetitionKernels_clustered.csv")
+    clusters = load_clusters("Clusters_analyzed.csv")
+    
+    clusters = add_cluster_data(kernels, clusters)
     
     save_clusters(clusters, "Clusters_analyzed.csv")
     

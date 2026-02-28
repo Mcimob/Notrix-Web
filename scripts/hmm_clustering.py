@@ -48,7 +48,7 @@ def get_default_config():
         "clustering": {
             "max_cluster_size": 25,
             "min_cluster_size": 3,
-            "initial_clusters": 20,
+            "initial_clusters": 4,
             "refinement_threshold": 0.5,
             "linkage_method": "ward"
         },
@@ -325,11 +325,11 @@ class HMMClusterer:
         
         return refined_labels
 
-def get_clustered_kernels(kernels: pd.DataFrame, clusterer: HMMClusterer) -> pd.DataFrame:
+def get_clustered_kernels(kernels: pd.DataFrame) -> pd.DataFrame:
     groups = [group for _, group in kernels.groupby(KernelColumns.SOURCE_COMPETITION_ID)]
     results = []
     for group in groups:
-        clustered_group = cluster_for_competition(group, clusterer)
+        clustered_group = cluster_for_competition(group)
         results.append(clustered_group)
 
     kernels_clustered = pd.concat(results, ignore_index=True)
@@ -343,7 +343,7 @@ def get_clustered_kernels(kernels: pd.DataFrame, clusterer: HMMClusterer) -> pd.
     
     return kernels_clustered
 
-def cluster_for_competition(group: pd.DataFrame, clusterer: HMMClusterer) -> pd.DataFrame:
+def cluster_for_competition(group: pd.DataFrame) -> pd.DataFrame:
     group = group.copy()
     print(f"Starting clustering for competition {group[KernelColumns.SOURCE_COMPETITION_ID].iloc[0]}")
     if len(group) >= 2:
@@ -362,14 +362,25 @@ def cluster_for_competition(group: pd.DataFrame, clusterer: HMMClusterer) -> pd.
         
     return group
 
+def add_clusters_to_kernels(all_kernels: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    valid_kernels = all_kernels.copy().dropna(subset=KERNEL_JSON_COLUMNS)
+    kernels_clustered = get_clustered_kernels(valid_kernels)
+    
+    all_kernels_with_clusters = (
+        all_kernels
+        .merge(kernels_clustered[[
+                KernelColumns.CLUSTER_ID,
+                KernelColumns.KERNEL_VERSION_ID]], 
+            on=KernelColumns.KERNEL_VERSION_ID,
+            how="left")
+    )
+    
+    cluster_map = kernels_clustered[[ClusterColumns.CLUSTER_ID, ClusterColumns.LOCAL_CLUSTER_ID]].drop_duplicates()
+    
+    return all_kernels_with_clusters, cluster_map
+
 def main():
     """Main function to run the enhanced HMM clustering analysis"""
-    
-    # Load configuration
-    config = load_config()
-    
-    # Initialize clusterer with config
-    clusterer = HMMClusterer(config=config)
     
     # Set random seed from config
     random_seed = config['random_seed']
@@ -382,25 +393,20 @@ def main():
     
     # Load notebooks with enhanced features
     print("Loading notebook sequences with enhanced features...")
-    kernels = clusterer.load_valid_notebook_sequences("")
-    print(f"Loaded {len(kernels)} valid notebook sequences")
-    
-    kernels_clustered = get_clustered_kernels(kernels, clusterer)
-    
     all_kernels = load_all_kernels("AllCompetitionKernels_tmp.csv")
-    all_kernels_with_clusters = (
-        all_kernels
-        .merge(kernels_clustered[[
-                KernelColumns.CLUSTER_ID,
-                KernelColumns.KERNEL_VERSION_ID]], 
-            on=KernelColumns.KERNEL_VERSION_ID,
-            how="left")
-    )
+    print(f"Loaded {len(all_kernels)} valid notebook sequences")
     
-    cluster_map = kernels_clustered[[ClusterColumns.CLUSTER_ID, ClusterColumns.LOCAL_CLUSTER_ID]].drop_duplicates()
+    all_kernels_with_clusters, cluster_map = add_clusters_to_kernels(all_kernels)
+    
     save_clusters(cluster_map, "Clusters.csv")
     
     save_kernels(all_kernels_with_clusters, "AllCompetitionKernels_clustered.csv")
+
+# Load configuration
+config = load_config()
+
+# Initialize clusterer with config
+clusterer = HMMClusterer(config=config)
 
 if __name__ == "__main__":
     main()

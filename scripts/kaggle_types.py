@@ -28,6 +28,7 @@ class ClusterColumns:
     AVG_LINES = "AvgLinesPerKernel"
     AVG_CELLS = "AvgCellsPerKernel"
     AVG_TOTAL_VOTES = "AvgTotalVotes"
+    SUMMARY = "Summary"
 
 class CompetitionColumns:
     LABEL_STATS = KernelColumns.LABEL_STATS

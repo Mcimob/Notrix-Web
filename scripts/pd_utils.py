@@ -101,9 +101,7 @@ def load_clusters(filename: str):
     
 def save_clusters(clusters: pd.DataFrame, filename: str):
     clusters = clusters.copy()
-    for col in CLUSTER_NP_COLUMNS:
-        if col in clusters.columns:
-            clusters[col] = clusters[col].apply(apply_safe(lambda l: l.tolist()))
+    dump_clusters_to_python(clusters)
             
     for col in CLUSTER_JSON_COLUMNS:
         if col in clusters.columns:
@@ -111,4 +109,7 @@ def save_clusters(clusters: pd.DataFrame, filename: str):
             
     clusters.to_csv(filename, index=False)
     
-    pass
+def dump_clusters_to_python(clusters: pd.DataFrame):
+    for col in CLUSTER_NP_COLUMNS:
+        if col in clusters.columns:
+            clusters[col] = clusters[col].apply(apply_safe(lambda l: l.tolist()))
