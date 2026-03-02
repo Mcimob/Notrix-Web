@@ -6,7 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.io.Serial;
 
-public class ClusterFilter extends AbstractFilter<ClusterEntity> {
+public class ClusterFilter extends AbstractFilter<ClusterEntity, Long> {
 
     @Serial
     private static final long serialVersionUID = 5973223330744160086L;

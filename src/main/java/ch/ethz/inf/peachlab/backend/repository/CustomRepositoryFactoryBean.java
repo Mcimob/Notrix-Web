@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 public class CustomRepositoryFactoryBean<
         R extends BaseRepository<T, F, ID>,
         T extends AbstractEntity<ID>,
-        F extends AbstractFilter<T>,
+        F extends AbstractFilter<T, ID>,
         ID>
         extends JpaRepositoryFactoryBean<R, T, ID> {
 

@@ -2,32 +2,40 @@ package ch.ethz.inf.peachlab.ui.views.home;
 
 import ch.ethz.inf.peachlab.backend.broadcaster.ProcessedNotebookBroadcaster;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
+import ch.ethz.inf.peachlab.backend.service.db.CompetitionService;
+import ch.ethz.inf.peachlab.backend.service.db.UploadedCompetitionService;
 import ch.ethz.inf.peachlab.backend.service.rest.NotebookProcessingService;
 import ch.ethz.inf.peachlab.model.dto.ProcessingCompetition;
-import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
+import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
+import ch.ethz.inf.peachlab.model.entity.UploadedCompetitionEntity;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
+import ch.ethz.inf.peachlab.model.filter.UploadedCompetitionFilter;
 import ch.ethz.inf.peachlab.ui.MainLayout;
-import ch.ethz.inf.peachlab.ui.provider.CompetitionProvider;
+import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import ch.ethz.inf.peachlab.ui.views.competition.CompetitionView;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
-import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.server.streams.UploadHandler;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.util.Pair;
 
 import java.io.Serial;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
@@ -45,16 +53,21 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
     private static final long serialVersionUID = 8253760301668795920L;
 
     private final transient NotebookProcessingService processingService;
+    private final transient CompetitionService competitionService;
+    private final transient UploadedCompetitionService uploadedCompetitionService;
 
     private final CompetitionDescriptionBox competitionDescriptionBox = new CompetitionDescriptionBox();
     private final CompetitionSearchBar searchbar = new CompetitionSearchBar();
 
-    private final ConfigurableFilterDataProvider<CompetitionEntity, Void, CompetitionFilter> provider =
-            new CompetitionProvider().withConfigurableFilter();
-    private final CompetitionFilter filter = new CompetitionFilter();
+    private final Grid<HasCompetitionData<?, ?, ?>> grid = new Grid<>();
 
-    public HomeView(NotebookProcessingService processingService) {
+    private final CompetitionFilter filter = new CompetitionFilter();
+    private final UploadedCompetitionFilter uploadedFilter = new UploadedCompetitionFilter();
+
+    public HomeView(NotebookProcessingService processingService, CompetitionService competitionService, UploadedCompetitionService uploadedCompetitionService) {
         this.processingService = processingService;
+        this.competitionService = competitionService;
+        this.uploadedCompetitionService = uploadedCompetitionService;
     }
 
     @Override
@@ -78,12 +91,42 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
         bottom.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_M, STYLE_WIDTH_FULL, STYLE_HEIGHT_FULL);
 
         add(createSearchBar(), bottom);
+
+        initData();
+    }
+
+    private void initData() {
+        getUploadedCompetitions(comps -> {
+            uploadedFilter.setIds(comps);
+
+            UiAsyncUtils.<PageImpl<? extends HasCompetitionData<?, ?, ?>>>callServicesAsync(
+                List.of(
+                    () -> uploadedCompetitionService.fetch(Pageable.unpaged(), uploadedFilter),
+                    () -> competitionService.fetch(Pageable.unpaged(), filter)
+                ),
+                UI.getCurrent(),
+                this::onCompetitionData
+            );
+        });
+    }
+
+    private void onCompetitionData(List<? extends ServiceResponse<? extends PageImpl<? extends HasCompetitionData<?, ?, ?>>>> responses) {
+        List<HasCompetitionData<?, ?, ?>> competitions = responses.stream()
+            .map(ServiceResponse::getEntity)
+            .flatMap(Optional::stream)
+            .flatMap(PageImpl::stream)
+            .map(o -> (HasCompetitionData<?, ?, ?>) o)
+            .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+
+        grid.setItems(competitions);
+        grid.getDataProvider().refreshAll();
     }
 
     private Component createSearchBar() {
         searchbar.addValueChangeListener(change -> {
             filter.setSearchString(change.getValue());
-            provider.refreshAll();
+            uploadedFilter.setSearchString(change.getValue());
+            initData();
         });
         return searchbar;
     }
@@ -127,38 +170,41 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
     }
 
     private Component createGrid() {
-        Grid<CompetitionEntity> grid = new Grid<>();
         grid.addComponentColumn(this::createTitleLink)
             .setHeader("Competition Title")
             .setSortable(true)
-            .setSortProperty("title");
-        grid.addColumn(CompetitionEntity::getTotalSubmissions)
+            .setComparator(Comparator.comparing(HasCompetitionData::getTitle));
+        grid.addColumn(HasCompetitionData::getTotalSubmissions)
             .setHeader("# Submissions")
-            .setSortable(true)
-            .setSortProperty("totalSubmissions");
+            .setSortable(true);
         grid.addColumn(c -> "%.2f".formatted(c.getAvgLinesPerKernel()))
-                .setHeader("Avg Notebook Lines")
+            .setHeader("Avg Notebook Lines")
             .setSortable(true)
-            .setSortProperty("avgLinesPerKernel");
-        grid.addColumn(c -> c.getDeadlineDate().toLocalDate())
+            .setComparator(Comparator.comparing(HasCompetitionData::getAvgLinesPerKernel));
+        grid.addColumn(c -> Optional.ofNullable(c)
+                .map(HasCompetitionData::getDeadlineDate)
+                .map(LocalDateTime::toLocalDate)
+                .orElse(LocalDate.now()))
             .setHeader("Deadline Date")
-            .setSortable(true)
-            .setSortProperty("deadlineDate");
+            .setSortable(true);
 
         grid.addSelectionListener(event -> {
             competitionDescriptionBox.setCompetition(event.getFirstSelectedItem().orElse(null));
             competitionDescriptionBox.render();
         });
 
-        provider.setFilter(filter);
-        grid.setDataProvider(provider);
+        grid.setPartNameGenerator(c -> c
+            instanceof UploadedCompetitionEntity
+                ? "uploaded"
+                : "");
 
         grid.setHeightFull();
+        grid.setEmptyStateText("Loading competitions...");
 
         return grid;
     }
 
-    private Component createTitleLink(CompetitionEntity competition) {
+    private Component createTitleLink(HasCompetitionData<?, ?, ?> competition) {
         Span span = new Span(competition.getTitle());
         span.addClassNames(STYLE_TEXT_LINK);
         span.addClickListener(e -> UI.getCurrent().navigate(
@@ -166,15 +212,5 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
             competition.getSlug()));
 
         return span;
-    }
-
-    private Component createCompetitionNavigation(CompetitionEntity competition) {
-        Button button = new Button(VaadinIcon.ENTER_ARROW.create());
-        button.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ICON);
-        button.addClickListener(e -> UI.getCurrent().navigate(
-                CompetitionView.class,
-                competition.getSlug()));
-
-        return button;
     }
 }

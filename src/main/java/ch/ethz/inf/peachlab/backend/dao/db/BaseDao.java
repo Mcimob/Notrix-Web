@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
-public interface BaseDao<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID> {
+public interface BaseDao<T extends AbstractEntity<ID>, F extends AbstractFilter<T, ID>, ID> {
 
     PageImpl<T> fetch(Pageable pageable, F filter, HasLoadType loadType) throws DaoException;
 

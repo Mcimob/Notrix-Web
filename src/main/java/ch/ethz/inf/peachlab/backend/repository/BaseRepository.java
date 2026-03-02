@@ -13,7 +13,7 @@ import org.springframework.data.repository.NoRepositoryBean;
 import java.util.Optional;
 
 @NoRepositoryBean
-public interface BaseRepository<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID>
+public interface BaseRepository<T extends AbstractEntity<ID>, F extends AbstractFilter<T, ID>, ID>
         extends JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
 
     Optional<T> findOne(F filter, HasLoadType loadType);

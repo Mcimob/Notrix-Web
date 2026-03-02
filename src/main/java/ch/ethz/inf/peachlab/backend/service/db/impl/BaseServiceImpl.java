@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
-public class BaseServiceImpl<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID> implements BaseService<T, F, ID> {
+public class BaseServiceImpl<T extends AbstractEntity<ID>, F extends AbstractFilter<T, ID>, ID> implements BaseService<T, F, ID> {
 
     public static final String ERROR_GENERAL = "service.base.error.general";
     public static final String ERROR_NULL = "service.base.error.null";

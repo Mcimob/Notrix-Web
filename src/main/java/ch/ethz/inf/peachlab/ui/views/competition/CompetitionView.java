@@ -112,8 +112,6 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
     private final ConfigurableFilterDataProvider<ClusterEntity, Void, ClusterFilter> clusterProvider =
         new ClusterProvider().withConfigurableFilter();
 
-    private final List<UploadedKernelEntity> uploadedKernels = new ArrayList<>();
-
     public CompetitionView(CompetitionService competitionService,
                            KernelService kernelService, UploadedKernelService uploadedKernelService,
                            ClusterService clusterService,

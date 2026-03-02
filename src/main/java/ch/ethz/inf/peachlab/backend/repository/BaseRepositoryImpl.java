@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @NoRepositoryBean
-public class BaseRepositoryImpl<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID>
+public class BaseRepositoryImpl<T extends AbstractEntity<ID>, F extends AbstractFilter<T, ID>, ID>
         extends SimpleJpaRepository<T, ID> implements BaseRepository<T, F, ID> {
 
     private final EntityManager em;

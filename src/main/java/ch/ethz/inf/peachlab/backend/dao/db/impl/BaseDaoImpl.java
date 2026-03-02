@@ -19,7 +19,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
-public class BaseDaoImpl<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID> implements BaseDao<T, F, ID> {
+public class BaseDaoImpl<T extends AbstractEntity<ID>, F extends AbstractFilter<T, ID>, ID> implements BaseDao<T, F, ID> {
 
     private final BaseRepository<T, F, ID> repository;
     public BaseDaoImpl(BaseRepository<T, F, ID> repository) {

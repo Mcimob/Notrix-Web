@@ -1,6 +1,6 @@
 package ch.ethz.inf.peachlab.ui.views.home;
 
-import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
+import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.ui.HasRender;
 import ch.ethz.inf.peachlab.ui.components.OverviewBox;
 import com.vaadin.flow.component.Component;
@@ -20,7 +20,7 @@ public class CompetitionDescriptionBox extends Div implements HasRender {
 
     @Serial
     private static final long serialVersionUID = 1483883066371802213L;
-    private CompetitionEntity competition;
+    private HasCompetitionData<?, ?, ?> competition;
 
     public CompetitionDescriptionBox() {
         initStyles();
@@ -31,7 +31,7 @@ public class CompetitionDescriptionBox extends Div implements HasRender {
     }
 
     private Component createTitle() {
-        H2 title = new H2(Optional.ofNullable(competition).map(CompetitionEntity::getTitle).orElse("Competition Title"));
+        H2 title = new H2(Optional.ofNullable(competition).map(HasCompetitionData::getTitle).orElse("Competition Title"));
         if (competition == null) {
             title.addClassName(STYLE_TEXT_COLOR_GRAY);
         }
@@ -39,7 +39,7 @@ public class CompetitionDescriptionBox extends Div implements HasRender {
     }
 
     private Component createSubtitle() {
-        Span span = new Span(Optional.ofNullable(competition).map(CompetitionEntity::getSubtitle).orElse("Subtitle"));
+        Span span = new Span(Optional.ofNullable(competition).map(HasCompetitionData::getSubtitle).orElse("Subtitle"));
         span.addClassName(STYLE_TEXT_COLOR_GRAY);
         return span;
     }
@@ -48,12 +48,12 @@ public class CompetitionDescriptionBox extends Div implements HasRender {
     public void render() {
         removeAll();
         add(new Div(createTitle(), createSubtitle()));
-        OverviewBox overviewBox = new OverviewBox(Optional.ofNullable(competition).map(CompetitionEntity::getOverview).orElse(""));
+        OverviewBox overviewBox = new OverviewBox(Optional.ofNullable(competition).map(HasCompetitionData::getOverview).orElse(""));
         overviewBox.render();
         add(overviewBox);
     }
 
-    public void setCompetition(CompetitionEntity competition) {
+    public void setCompetition(HasCompetitionData<?, ?, ?> competition) {
         this.competition = competition;
     }
 }

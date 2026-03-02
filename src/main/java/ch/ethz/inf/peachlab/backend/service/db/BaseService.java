@@ -8,7 +8,7 @@ import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-public interface BaseService<T extends AbstractEntity<ID>, F extends AbstractFilter<T>, ID> extends HasLogger {
+public interface BaseService<T extends AbstractEntity<ID>, F extends AbstractFilter<T, ID>, ID> extends HasLogger {
 
     ServiceResponse<PageImpl<T>> fetch(Pageable pageable, F filter, HasLoadType loadType);
 
