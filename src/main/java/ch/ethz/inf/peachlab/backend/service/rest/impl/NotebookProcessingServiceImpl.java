@@ -88,14 +88,16 @@ public class NotebookProcessingServiceImpl implements NotebookProcessingService,
                 if (entry.isDirectory()) {
                     continue;
                 }
+                String[] filenameParts = entry.getName().split("/");
+                String filename = filenameParts[filenameParts.length - 1];
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 zis.transferTo(out);
-                if (entry.getName().equalsIgnoreCase("readme.md")) {
+                if (filename.equalsIgnoreCase("readme.md")) {
                     description = out.toString();
                 }
-                if (entry.getName().endsWith(".ipynb")) {
+                if (filename.endsWith(".ipynb")) {
                     UploadedNotebook nb = objectMapper.readValue(out.toByteArray(), UploadedNotebook.class);
-                    nbs.add(new UploadedNotebook(nb.cells(), entry.getName().split("\\.")[0]));
+                    nbs.add(new UploadedNotebook(nb.cells(), filename.split("\\.")[0]));
                 }
             }
 
