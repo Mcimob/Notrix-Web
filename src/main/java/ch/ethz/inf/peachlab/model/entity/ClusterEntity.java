@@ -1,6 +1,5 @@
 package ch.ethz.inf.peachlab.model.entity;
 
-import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -11,12 +10,8 @@ import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.OneToMany;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.io.Serial;
-import java.util.Collection;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,7 +26,7 @@ subgraphs = {
         @NamedAttributeNode("cells")
     })
 })
-public class ClusterEntity implements AbstractEntity<Long>, HasBaseStats {
+public class ClusterEntity extends HasClusterData<KernelEntity, CompetitionEntity> {
 
     public static final String WITH_KERNELS_AND_CELLS = "withKernelsAndCells";
     @Serial
@@ -41,136 +36,15 @@ public class ClusterEntity implements AbstractEntity<Long>, HasBaseStats {
     @Column(name = "ClusterId")
     private Long id;
 
-    @Column(nullable = true, name = "Summary", columnDefinition = "text")
-    private String summary;
-
-    @Column(nullable = true, name = "LocalClusterId")
-    private Long localClusterId;
-
-    @Column(nullable = false, name = "ClusterSize")
-    private Long clusterSize;
-
-    @Column(nullable = false)
-    private Double avgCellsPerKernel;
-
-    @Column(nullable = false)
-    private Double avgVotes;
-
-    @Column(nullable = false)
-    private Double avgLinesPerKernel;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "TransitionMatrix", columnDefinition = "jsonb")
-    private Integer[][] transitionMatrix;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "MainLabelStats", columnDefinition = "jsonb")
-    private Map<Integer, Integer> mainLabelStats;
-
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "ClusterId")
-    private Set<KernelEntity> kernels;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SourceCompetitionId")
-    private CompetitionEntity competition;
-
     @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }
-
-    public String getSummary() {
-        return summary;
-    }
-
-    public void setSummary(String summary) {
-        this.summary = summary;
-    }
-
-    public Long getLocalClusterId() {
-        return localClusterId;
-    }
-
-    public void setLocalClusterId(Long localClusterId) {
-        this.localClusterId = localClusterId;
-    }
-
-    public Long getClusterSize() {
-        return clusterSize;
-    }
-
-    public void setClusterSize(Long clusterSize) {
-        this.clusterSize = clusterSize;
-    }
-
-    public Integer[][] getTransitionMatrix() {
-        return transitionMatrix;
-    }
-
-    public void setTransitionMatrix(Integer[][] transitionMatrix) {
-        this.transitionMatrix = transitionMatrix;
-    }
-
-    public Map<MainLabel, Integer> getMainLabelStats() {
-        if (mainLabelStats == null) {
-            return Map.of();
-        }
-
-        return mainLabelStats.entrySet().stream()
-            .collect(Collectors.toMap(
-                e -> MainLabel.values()[e.getKey()],
-                Map.Entry::getValue));
-    }
-
-    public void setMainLabelStats(Map<Integer, Integer> mainLabelStats) {
-        this.mainLabelStats = mainLabelStats;
-    }
-
-    public Set<KernelEntity> getKernels() {
-        return kernels;
-    }
-
-    public void setKernels(Set<KernelEntity> kernels) {
-        this.kernels = kernels;
-    }
-
-    public Double getAvgCellsPerKernel() {
-        return avgCellsPerKernel;
-    }
-
-    public Double getAvgVotes() {
-        return avgVotes;
-    }
-
-    public Double getAvgLinesPerKernel() {
-        return avgLinesPerKernel;
-    }
-
-    @Override
-    public Double getLines() {
-        return avgLinesPerKernel;
-    }
-
-    @Override
-    public Double getNumCells() {
-        return avgCellsPerKernel;
-    }
-
-    @Override
-    public Double getVotes() {
-        return avgVotes;
-    }
-
-    @Override
-    public Collection<HasBaseStats> getChildren() {
-        return kernels.stream().map(o -> (HasBaseStats) o).toList();
-    }
-
 
     @Override
     public boolean equals(Object o) {
@@ -180,23 +54,22 @@ public class ClusterEntity implements AbstractEntity<Long>, HasBaseStats {
         if (!(o instanceof ClusterEntity that)) {
             return false;
         }
-        return Objects.equals(id, that.id)
-            && Objects.equals(summary, that.summary)
-            && Objects.equals(localClusterId, that.localClusterId)
-            && Objects.equals(clusterSize, that.clusterSize)
-            && Objects.equals(avgCellsPerKernel, that.avgCellsPerKernel)
-            && Objects.equals(avgVotes, that.avgVotes)
-            && Objects.equals(avgLinesPerKernel, that.avgLinesPerKernel);
+        if (!super.equals(o)) {
+            return false;
+        }
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id,
-            summary,
-            localClusterId,
-            clusterSize,
-            avgCellsPerKernel,
-            avgVotes,
-            avgLinesPerKernel);
+        return Objects.hash(super.hashCode(),
+            id);
+    }
+
+    @Override
+    public String toString() {
+        return "ClusterEntity{"
+            + "id=" + id
+            + "} " + super.toString();
     }
 }

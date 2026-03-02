@@ -9,6 +9,7 @@ public class NotebookProcessingConfiguration {
 
     private String baseUrl;
     private String notebookPath;
+    private String competitionPath;
 
     public String getBaseUrl() {
         return baseUrl;
@@ -24,5 +25,13 @@ public class NotebookProcessingConfiguration {
 
     public void setNotebookPath(String notebookPath) {
         this.notebookPath = notebookPath;
+    }
+
+    public String getCompetitionPath() {
+        return competitionPath;
+    }
+
+    public void setCompetitionPath(String competitionPath) {
+        this.competitionPath = competitionPath;
     }
 }

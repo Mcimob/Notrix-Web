@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 import java.io.Serial;
+import java.util.Objects;
 
 @Entity
 public class UploadedCellEntity extends HasCellData {
@@ -30,5 +31,32 @@ public class UploadedCellEntity extends HasCellData {
     @Override
     public void setId(Long id) {
         this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof UploadedCellEntity that)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(),
+            id);
+    }
+
+    @Override
+    public String toString() {
+        return "UploadedCellEntity{"
+            + "id=" + id
+            + "} " + super.toString();
     }
 }

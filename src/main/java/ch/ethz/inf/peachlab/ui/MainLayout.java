@@ -1,7 +1,8 @@
 package ch.ethz.inf.peachlab.ui;
 
 import ch.ethz.inf.peachlab.app.AppConfiguration;
-import ch.ethz.inf.peachlab.backend.ProcessedNotebookBroadcaster;
+import ch.ethz.inf.peachlab.backend.broadcaster.ProcessedNotebookBroadcaster;
+import ch.ethz.inf.peachlab.backend.service.db.UploadedCompetitionService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
 import com.vaadin.flow.component.AttachEvent;
@@ -31,10 +32,12 @@ public class MainLayout extends AppLayout implements ManagesProcessingNotebooks 
     private static final long serialVersionUID = 1794503673546931577L;
     private final transient AppConfiguration appConfiguration;
     private final UploadedKernelService kernelService;
+    private final UploadedCompetitionService competitionService;
 
-    public MainLayout(AppConfiguration appConfiguration, UploadedKernelService kernelService) {
+    public MainLayout(AppConfiguration appConfiguration, UploadedKernelService kernelService, UploadedCompetitionService competitionService) {
         this.appConfiguration = appConfiguration;
         this.kernelService = kernelService;
+        this.competitionService = competitionService;
         setPrimarySection(Section.NAVBAR);
         addHeaderContent();
     }
@@ -74,7 +77,19 @@ public class MainLayout extends AppLayout implements ManagesProcessingNotebooks 
                         .filter(Boolean::booleanValue)
                         .ifPresentOrElse(
                             c -> onNotebooksProcessingDone(identifier),
-                            () -> ProcessedNotebookBroadcaster.register(this::onNotebooksProcessingDone, identifier, ui))
+                            () -> ProcessedNotebookBroadcaster.registerNotebookListener(this::onNotebooksProcessingDone, identifier, ui))
+                )
+            )
+        );
+        getProcessingCompetitions(p -> p
+            .forEach((identifier, nb) ->
+                UiAsyncUtils.callServiceAsync(
+                    () -> competitionService.existsById(identifier),
+                    ui, res -> res.getEntity()
+                        .filter(Boolean::booleanValue)
+                        .ifPresentOrElse(
+                            c -> onCompetitionProcessingDone(identifier),
+                            () -> ProcessedNotebookBroadcaster.registerCompetitionListener(this::onCompetitionProcessingDone, identifier, ui))
                 )
             )
         );

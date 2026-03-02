@@ -4,5 +4,7 @@ import ch.ethz.inf.peachlab.backend.dao.DaoException;
 
 public interface NotebookProcessingMonitorService {
 
-    void monitorProcessing(String identifier) throws DaoException;
+    void monitorNotebookProcessing(String identifier) throws DaoException;
+
+    void monitorCompetitionProcessing(String identifier) throws DaoException;
 }

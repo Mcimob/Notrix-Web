@@ -5,5 +5,7 @@ public enum ProcessingStatus {
     EXTRACTING_CELLS,
     PREDICTING_CELLS,
     STATS,
+    CLUSTERING,
+    GPT,
     DONE
 }

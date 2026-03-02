@@ -5,8 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
@@ -16,6 +20,7 @@ import java.io.Serial;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Entity
 @NamedEntityGraph(name = UploadedKernelEntity.WITH_CELLS_UPLOADED,
@@ -36,12 +41,17 @@ public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEnti
 
     @Id
     @Column(nullable = false, name = "KernelVersionId")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "KernelVersionId")
     @OrderColumn(name = "CellId")
     private List<UploadedCellEntity> cells;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "SourceCompetitionId", insertable = false, updatable = false)
+    protected UploadedCompetitionEntity uploadedCompetition;
 
     @Override
     public String getId() {
@@ -153,5 +163,36 @@ public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEnti
     @JsonProperty("cells")
     public void setCells(List<UploadedCellEntity> cells) {
         this.cells = cells;
+    }
+
+    public UploadedCompetitionEntity getUploadedCompetition() {
+        return uploadedCompetition;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof UploadedKernelEntity that)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(),
+            id);
+    }
+
+    @Override
+    public String toString() {
+        return "UploadedKernelEntity{"
+            + "id='" + id + '\''
+            + "} " + super.toString();
     }
 }

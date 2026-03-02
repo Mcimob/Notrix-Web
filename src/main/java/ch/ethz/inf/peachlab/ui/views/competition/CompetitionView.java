@@ -1,6 +1,6 @@
 package ch.ethz.inf.peachlab.ui.views.competition;
 
-import ch.ethz.inf.peachlab.backend.ProcessedNotebookBroadcaster;
+import ch.ethz.inf.peachlab.backend.broadcaster.ProcessedNotebookBroadcaster;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.ClusterService;
 import ch.ethz.inf.peachlab.backend.service.db.CompetitionService;
@@ -359,7 +359,7 @@ public class CompetitionView extends AbstractView implements HasUrlParameter<Str
             ServiceResponse<String> response = nbProcessingService.startNotebookProcessing(uploadedData);
             response.getErrorMessages().forEach(this::showErrorNotification);
             response.getEntity().ifPresent(identifier -> {
-                ProcessedNotebookBroadcaster.register(this::onNotebooksProcessingDone, identifier, UI.getCurrent());
+                ProcessedNotebookBroadcaster.registerNotebookListener(this::onNotebooksProcessingDone, identifier, UI.getCurrent());
                 getProcessingNotebooks(processingNotebooks -> {
                     processingNotebooks.put(identifier,
                         new ProcessingNotebook(titleField.getValue(), competition.getId()));

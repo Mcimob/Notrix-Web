@@ -12,6 +12,7 @@ import jakarta.persistence.OrderColumn;
 
 import java.io.Serial;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @NamedEntityGraph(name = KernelEntity.WITH_CELLS,
@@ -58,5 +59,32 @@ public class KernelEntity extends HasKernelData<Long, CellEntity> {
     @Override
     public void setCells(List<CellEntity> cells) {
         this.cells = cells;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof KernelEntity that)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(),
+            id);
+    }
+
+    @Override
+    public String toString() {
+        return "KernelEntity{"
+            + "id=" + id
+            + "} " + super.toString();
     }
 }
