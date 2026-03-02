@@ -2,7 +2,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from kaggle_types import ClusterColumns, KernelColumns
+from kaggle_types import ClusterColumns, CompetitionColumns, KernelColumns
 
 def apply_safe(func):
     return lambda x: np.nan if not is_valid_val(x) else func(x)
@@ -53,6 +53,16 @@ CLUSTER_JSON_COLUMNS = CLUSTER_NP_COLUMNS + [
 
 CLUSTER_JSON_CONVERTERS = KERNEL_JSON_CONVERTERS
 
+COMPETITION_NP_COLUMNS = [
+    CompetitionColumns.TRANSITION_MATRIX
+]
+
+COMPETITION_JSON_COLUMNS = COMPETITION_NP_COLUMNS + [
+    CompetitionColumns.LABEL_STATS
+]
+
+COMPETITION_JSON_CONVERTERS = KERNEL_JSON_CONVERTERS
+
 def load_all_kernels(filename: str) -> pd.DataFrame:
     kernels =  pd.read_csv(filename,
         dtype={
@@ -86,7 +96,7 @@ def save_kernels(kernels: pd.DataFrame, filename: str):
     
     kernels.to_csv(filename, index=False)
     
-def load_clusters(filename: str):
+def load_clusters(filename: str) -> pd.DataFrame:
     clusters =  pd.read_csv(filename,
         dtype={
             KernelColumns.CLUSTER_ID: "Int32",
@@ -113,3 +123,26 @@ def dump_clusters_to_python(clusters: pd.DataFrame):
     for col in CLUSTER_NP_COLUMNS:
         if col in clusters.columns:
             clusters[col] = clusters[col].apply(apply_safe(lambda l: l.tolist()))
+            
+def load_competitions(filename: str) -> pd.DataFrame:
+    competitions = pd.read_csv(filename)
+    for col, converter in COMPETITION_JSON_CONVERTERS.items():
+        if col in competitions.columns:
+            competitions[col] = competitions[col].apply(apply_safe(converter))
+            
+
+def save_competitions(competitions: pd.DataFrame, filename: str):
+    competitions = competitions.copy()
+    dump_competitions_to_python(competitions)
+    
+    for col in COMPETITION_JSON_COLUMNS:
+        if col in competitions.columns:
+            competitions[col] = competitions[col].apply(json_dumps_safe)
+            
+    competitions.to_csv(filename, index=False)
+    
+
+def dump_competitions_to_python(competitions: pd.DataFrame):
+    for col in COMPETITION_NP_COLUMNS:
+        if col in competitions.columns:
+            competitions[col] = competitions[col].apply(apply_safe(lambda l: l.tolist()))

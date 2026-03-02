@@ -5,9 +5,9 @@ from collections import Counter
 from pandarallel import pandarallel
 
 from kaggle_types import CellColumns, KernelColumns, CompetitionColumns
-from pd_utils import apply_safe, is_valid_val, save_kernels
+from pd_utils import apply_safe, is_valid_val, save_competitions, save_kernels
 
-pandarallel.initialize(progress_bar=True)
+# pandarallel.initialize(progress_bar=True)
 
 FILE_BASE = "/media/tim/Data/Thesis/"
 MAX_LABEL = 13
@@ -48,7 +48,7 @@ def add_stats_to_kernels(cells: pd.DataFrame, kernels: pd.DataFrame) -> pd.DataF
     kernels[KernelColumns.LABEL_STATS_NORM] = kernels[KernelColumns.LABEL_STATS].apply(apply_safe(normalize_stats))
     kernels[KernelColumns.COMPLEXITY_FEATURES_NORM] = (
         kernels[[KernelColumns.LABEL_SEQUENCE, KernelColumns.TRANSITION_MATRIX_NORM, KernelColumns.LABEL_STATS_NORM]]
-        .parallel_apply(compute_complexity_features, axis=1)
+        .apply(compute_complexity_features, axis=1)
         .apply(apply_safe(lambda row: row / (np.linalg.norm(row) + 1e-10))))
     kernels[KernelColumns.N_GRAMS] = kernels[KernelColumns.LABEL_SEQUENCE].apply(apply_safe(compute_ngrams))
     
@@ -429,9 +429,9 @@ def main():
     print("=" * 30)
     
     print("Saving CSVs...")
-    competitions.to_csv("Competitions_stats_tmp.csv", index=False)
-    #save_kernels(kernels, "AllCompetitionKernels_tmp.csv")
-    #cells.to_csv(FILE_BASE + "Cells_predicted_tmp.csv", index=False)
+    save_competitions(competitions, "Competitions_stats_tmp.csv")
+    save_kernels(kernels, "AllCompetitionKernels_tmp.csv")
+    cells.to_csv(FILE_BASE + "Cells_predicted_tmp.csv", index=False)
     print("Finished saving CSVs")
     
 

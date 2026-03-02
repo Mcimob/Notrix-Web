@@ -5,6 +5,7 @@ class CellColumns:
 class KernelColumns:
     KERNEL_VERSION_ID = "KernelVersionId"
     SOURCE_COMPETITION_ID = "SourceCompetitionId"
+    TITLE = "Title"
     LABEL_STATS = "MainLabelStats"
     LABEL_STATS_NORM = "MainLabelStatsNorm"
     LABEL_SEQUENCE = "LabelSequence"

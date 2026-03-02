@@ -365,9 +365,6 @@ def save_analysis_result(
 def add_cluster_data(kernels: pd.DataFrame, clusters: pd.DataFrame):
     kernels = kernels.copy().dropna(subset=KERNEL_JSON_COLUMNS + [KernelColumns.SOURCE_COMPETITION_ID, KernelColumns.CLUSTER_ID])
     
-    if KernelColumns.TOTAL_VOTES not in kernels.columns:
-        kernels[KernelColumns.TOTAL_VOTES] = 0
-    
     competition_transition_stats = (
         kernels
         .groupby(KernelColumns.SOURCE_COMPETITION_ID)[KernelColumns.TRANSITION_MATRIX]

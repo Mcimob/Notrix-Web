@@ -202,11 +202,13 @@ class HMMClusterer:
             (i, min(i + block_size, n))
             for i in range(0, n, block_size)
         ]
+        
+        results = [self.compute_block(i0, i1, notebooks) for i0, i1 in blocks]
 
-        results = Parallel(n_jobs=-1, backend="loky")(
-            delayed(self.compute_block)(i0, i1, notebooks)
-            for i0, i1 in tqdm(blocks, desc="Distance matrix blocks")
-        )
+        # results = Parallel(n_jobs=-1, backend="loky")(
+        #     delayed(self.compute_block)(i0, i1, notebooks)
+        #     for i0, i1 in tqdm(blocks, desc="Distance matrix blocks")
+        # )
 
         distance_matrix = np.zeros((n, n))
         for block in results:
