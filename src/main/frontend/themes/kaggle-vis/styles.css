@@ -217,6 +217,10 @@ vaadin-button{
     font-size: larger;
 }
 
+.font-weight-bold {
+    font-weight: bold;
+}
+
 .box-shadow {
     box-shadow: rgba(0, 0, 0, 0.15) 2px 2px 3px;
 }

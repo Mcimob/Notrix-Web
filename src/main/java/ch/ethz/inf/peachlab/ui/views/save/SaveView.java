@@ -22,8 +22,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -95,16 +97,44 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
     }
 
     private void onUploadedKernels(Map<Long, Set<String>> uploadedKernels) {
+        getUploadedCompetitions(comps -> onUploadedCompetitions(comps, uploadedKernels));
+    }
+
+    private void onUploadedCompetitions(Set<String> comps, Map<Long, Set<String>> uploadedKernels) {
+        UploadedKernelFilter competitionKernelFilter = new UploadedKernelFilter();
+        competitionKernelFilter.setCompetitionIds(comps);
+        ServiceResponse<PageImpl<UploadedKernelEntity>> competitionKernelResponse = uploadedKernelService.fetch(Pageable.unpaged(), competitionKernelFilter, UploadedKernelLoadType.WITH_COMPETITION);
+
         UploadedKernelFilter filter = new UploadedKernelFilter();
         filter.setIds(uploadedKernels.values().stream()
             .flatMap(Set::stream)
             .collect(Collectors.toSet()));
         ServiceResponse<PageImpl<UploadedKernelEntity>> kernelResponse = uploadedKernelService.fetch(Pageable.unpaged(), filter, UploadedKernelLoadType.WITH_COMPETITION);
-        updateGrid(uploadedGrid, kernelResponse);
+
+        List<SavedNotebook> items = new ArrayList<>();
+        processResponse(competitionKernelResponse)
+            .map(nbs -> new SavedNotebook(nbs, "Uploaded Competitions"))
+            .ifPresent(items::add);
+        processResponse(kernelResponse)
+            .map(nbs -> new SavedNotebook(nbs, "Uploaded Notebooks"))
+            .ifPresent(items::add);
+        if (items.isEmpty()) {
+            uploadedGrid.setEmptyStateText("No notebooks found");
+        } else {
+            uploadedGrid.setItems(items, SavedNotebook::getChildren);
+            uploadedGrid.expand(items);
+        }
+
     }
 
     private void updateGrid(NotebookGrid grid, ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>> response) {
-        response.getEntity()
+        processResponse(response)
+            .ifPresentOrElse(items -> grid.setItems(items, SavedNotebook::getChildren),
+                () -> grid.setEmptyStateText("No notebooks found"));
+    }
+
+    private Optional<List<SavedNotebook>> processResponse(ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>> response) {
+        return response.getEntity()
             .map(PageImpl::stream)
             .map(s -> s
                 .collect(Collectors.groupingBy(HasKernelData::getRelevantCompetition))
@@ -115,8 +145,6 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
                     return new SavedNotebook(e.getKey(), children);
                 })
                 .toList())
-            .filter(not(List::isEmpty))
-            .ifPresentOrElse(items -> grid.setItems(items, SavedNotebook::getChildren),
-                () -> grid.setEmptyStateText("No notebooks found"));
+            .filter(not(List::isEmpty));
     }
 }

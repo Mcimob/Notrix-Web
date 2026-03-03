@@ -17,11 +17,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 
 import java.io.Serial;
+
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FONT_SIZE_L;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FONT_WEIGHT_BOLD;
 
 public class NotebookGrid extends TreeGrid<SavedNotebook> {
 
@@ -42,6 +46,11 @@ public class NotebookGrid extends TreeGrid<SavedNotebook> {
 
     private void createColumns() {
         addComponentHierarchyColumn(nb -> {
+                if (nb.getTitle() != null) {
+                    Span span = new Span(nb.getTitle());
+                    span.addClassNames(STYLE_FONT_SIZE_L, STYLE_FONT_WEIGHT_BOLD);
+                    return span;
+                }
                 HasCompetitionData<?, ?, ?> competition = nb.getCompetition();
                 if (competition != null) {
                     return TitleLink.ofCompetition(competition);

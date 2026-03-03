@@ -9,20 +9,26 @@ public class SavedNotebook {
 
     private final HasKernelData<?, ?, ?> kernel;
     private final HasCompetitionData<?, ?, ?> competition;
+    private final String title;
     private final List<SavedNotebook> children;
 
-    private SavedNotebook(HasKernelData<?, ?, ?> kernel, HasCompetitionData<?, ?, ?> competition, List<SavedNotebook> children) {
+    private SavedNotebook(HasKernelData<?, ?, ?> kernel, HasCompetitionData<?, ?, ?> competition, List<SavedNotebook> children, String title) {
         this.kernel = kernel;
         this.competition = competition;
         this.children = children;
+        this.title = title;
     }
 
     public SavedNotebook(HasKernelData<?, ?, ?> kernel) {
-        this(kernel, null, null);
+        this(kernel, null, null, null);
     }
 
     public SavedNotebook(HasCompetitionData<?, ?, ?> competition, List<SavedNotebook> children) {
-        this(null, competition, children);
+        this(null, competition, children, null);
+    }
+
+    public SavedNotebook(List<SavedNotebook> children, String title) {
+        this(null, null, children, title);
     }
 
     public String getName() {
@@ -42,6 +48,9 @@ public class SavedNotebook {
     }
 
     public String getNumNotebooks() {
+        if (title != null) {
+            return "";
+        }
         if (children != null) {
             return String.valueOf(children.size());
         }
@@ -53,5 +62,9 @@ public class SavedNotebook {
             return List.of();
         }
         return children;
+    }
+
+    public String getTitle() {
+        return title;
     }
 }

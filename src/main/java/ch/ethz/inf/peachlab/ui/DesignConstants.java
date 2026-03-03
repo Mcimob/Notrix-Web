@@ -63,6 +63,8 @@ public final class DesignConstants {
     //                         STYLE_FONT_SIZE_M is not needed, as it would just be regular font size
     public static final String STYLE_FONT_SIZE_L = "font-size-l";
 
+    public static final String STYLE_FONT_WEIGHT_BOLD = "font-weight-bold";
+
     public static final String STYLE_BOX_SHADOW = "box-shadow";
 
     public static final String STYLE_TEXT_WRAP_NO = "text-wrap-no";
