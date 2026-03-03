@@ -6,21 +6,17 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.io.Serial;
 
-public class KernelFilter extends AbstractKernelFilter<KernelEntity, Long> {
+public class KernelFilter extends AbstractKernelFilter<KernelEntity, Long, CompetitionEntity> {
 
     @Serial
     private static final long serialVersionUID = -1481439654987750735L;
 
-    private CompetitionEntity competition;
     private String user;
     private String slug;
 
     @Override
     public Specification<KernelEntity> getSpecification() {
         Specification<KernelEntity> spec = super.getSpecification();
-        if (competition != null) {
-            spec = spec.and(isOfCompetition(competition));
-        }
 
         if (user != null) {
             spec = spec.and(isFromUser(user));
@@ -33,20 +29,12 @@ public class KernelFilter extends AbstractKernelFilter<KernelEntity, Long> {
         return spec;
     }
 
-    public void setCompetition(CompetitionEntity competition) {
-        this.competition = competition;
-    }
-
     public void setUser(String user) {
         this.user = user;
     }
 
     public void setSlug(String slug) {
         this.slug = slug;
-    }
-
-    private Specification<KernelEntity> isOfCompetition(CompetitionEntity competition) {
-        return (root, cq, cb) -> cb.equal(root.get("competition"), competition);
     }
 
     private Specification<KernelEntity> isFromUser(String user) {

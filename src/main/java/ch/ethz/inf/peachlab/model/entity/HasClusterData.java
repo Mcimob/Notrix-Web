@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @MappedSuperclass
-public abstract class HasClusterData<K extends HasKernelData<?, ?>, C extends HasCompetitionData<?, K, ?>> implements AbstractEntity<Long>, HasBaseStats {
+public abstract class HasClusterData<K extends HasKernelData<?, ?, ?>, C extends HasCompetitionData<?, K, ?>> implements AbstractEntity<Long>, HasBaseStats {
     @Serial
     private static final long serialVersionUID = -2133425797254907724L;
 

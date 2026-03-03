@@ -1,6 +1,6 @@
 package ch.ethz.inf.peachlab.ui.views.competition;
 
-import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
+import ch.ethz.inf.peachlab.model.entity.HasClusterData;
 import ch.ethz.inf.peachlab.ui.HasRender;
 import ch.ethz.inf.peachlab.ui.components.IconLabelContainer;
 import ch.ethz.inf.peachlab.ui.components.StageChart;
@@ -20,7 +20,7 @@ public class ClusterOverview extends Div implements HasRender {
 
     @Serial
     private static final long serialVersionUID = 2755752662617643984L;
-    private ClusterEntity cluster;
+    private HasClusterData<?, ?> cluster;
 
     public ClusterOverview() {
         initStyles();
@@ -58,7 +58,7 @@ public class ClusterOverview extends Div implements HasRender {
         return chart;
     }
 
-    public void setCluster(ClusterEntity cluster) {
+    public void setCluster(HasClusterData<?, ?> cluster) {
         this.cluster = cluster;
     }
 }

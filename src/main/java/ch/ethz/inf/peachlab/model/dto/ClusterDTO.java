@@ -1,6 +1,6 @@
 package ch.ethz.inf.peachlab.model.dto;
 
-import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
+import ch.ethz.inf.peachlab.model.entity.HasClusterData;
 
 public record ClusterDTO(
     Long clusterId,
@@ -8,7 +8,7 @@ public record ClusterDTO(
     KernelDTO[] kernels
     ) {
 
-    public static ClusterDTO ofCluster(ClusterEntity cluster) {
+    public static ClusterDTO ofCluster(HasClusterData<?, ?> cluster) {
         return new ClusterDTO(
             cluster.getId(),
             cluster.getLocalClusterId(),

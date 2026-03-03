@@ -19,15 +19,15 @@ public class UiAsyncUtils {
     private UiAsyncUtils() {}
 
     public static <T extends Serializable> void callServiceAsync(
-        Supplier<ServiceResponse<T>> callable,
+        Supplier<ServiceResponse<? extends T>> callable,
         UI ui,
-        SerializableConsumer<ServiceResponse<T>> consumer) {
+        SerializableConsumer<ServiceResponse<? extends T>> consumer) {
 
         CompletableFuture
             .supplyAsync(callable)
             .whenComplete((res, err) -> {
                 SerializableRunnable uiTask = () -> {
-                    ServiceResponse<T> response = res;
+                    ServiceResponse<? extends T> response = res;
                     if (err != null) {
                         LOGGER.error("An error ocurred while executing asnychronously", err);
                         response = ServiceResponse.error();
@@ -42,7 +42,7 @@ public class UiAsyncUtils {
             });
     }
 
-    public static <T> void callServicesAsync(
+    public static <T extends Serializable> void callServicesAsync(
         List<? extends Supplier<? extends ServiceResponse<? extends T>>> callables,
         UI ui,
         SerializableConsumer<List<? extends ServiceResponse<? extends T>>> consumer) {

@@ -27,7 +27,7 @@ public class CellColumn extends ReactAdapterComponent {
         getStyle().set("--cell-height", "5px");
     }
 
-    public void setKernel(HasKernelData<?, ?> kernel) {
+    public void setKernel(HasKernelData<?, ?, ?> kernel) {
         setState("kernel", KernelDTO.ofKernel(kernel));
     }
 

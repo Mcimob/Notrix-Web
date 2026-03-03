@@ -2,7 +2,6 @@ package ch.ethz.inf.peachlab.model.entity;
 
 import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,12 +12,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.OrderColumn;
 
 import java.io.Serial;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -29,9 +25,10 @@ import java.util.Objects;
     })
 @NamedEntityGraph(name = UploadedKernelEntity.WITH_COMPETITION_UPLOADED,
     attributeNodes = {
+        @NamedAttributeNode("competitionEntity"),
         @NamedAttributeNode("competition")
     })
-public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEntity> {
+public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEntity, UploadedCompetitionEntity> {
 
     public static final String WITH_CELLS_UPLOADED = "withCellsUploaded";
     public static final String WITH_COMPETITION_UPLOADED = "withCompetitionUploaded";
@@ -41,17 +38,14 @@ public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEnti
 
     @Id
     @Column(nullable = false, name = "KernelVersionId")
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "KernelVersionId")
-    @OrderColumn(name = "CellId")
-    private List<UploadedCellEntity> cells;
-
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "SourceCompetitionId", insertable = false, updatable = false)
-    protected UploadedCompetitionEntity uploadedCompetition;
+    @JoinColumn(name = "CompetitionEntityId", insertable = false, updatable = false)
+    protected CompetitionEntity competitionEntity;
+
+    @Column(name = "CompetitionEntityId")
+    protected Long competitionEntityId;
 
     @Override
     public String getId() {
@@ -137,12 +131,6 @@ public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEnti
     }
 
     @Override
-    @JsonProperty("SourceCompetitionId")
-    public void setSourceCompetitionId(Long sourceCompetitionId) {
-        super.setSourceCompetitionId(sourceCompetitionId);
-    }
-
-    @Override
     @JsonProperty("KernelVersionId")
     public void setId(String id) {
         this.id = id;
@@ -154,19 +142,17 @@ public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEnti
         super.setClusterId(clusterId);
     }
 
-    @Override
-    public List<UploadedCellEntity> getCells() {
-        return cells;
+    @JsonProperty("SourceCompetitionId")
+    public void setCompetitionEntityId(Long competitionEntityId) {
+        this.competitionEntityId = competitionEntityId;
     }
 
     @Override
-    @JsonProperty("cells")
-    public void setCells(List<UploadedCellEntity> cells) {
-        this.cells = cells;
-    }
-
-    public UploadedCompetitionEntity getUploadedCompetition() {
-        return uploadedCompetition;
+    public HasCompetitionData<?, ?, ?> getRelevantCompetition() {
+        if (competitionEntity != null) {
+            return competitionEntity;
+        }
+        return competition;
     }
 
     @Override

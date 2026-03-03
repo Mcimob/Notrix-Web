@@ -6,7 +6,7 @@ import ch.ethz.inf.peachlab.backend.service.db.KernelService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
 import ch.ethz.inf.peachlab.model.Notebook;
 import ch.ethz.inf.peachlab.model.dto.SavedNotebook;
-import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
+import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
@@ -42,7 +42,7 @@ public class NotebookGrid extends TreeGrid<SavedNotebook> {
 
     private void createColumns() {
         addComponentHierarchyColumn(nb -> {
-                CompetitionEntity competition = nb.getCompetition();
+                HasCompetitionData<?, ?, ?> competition = nb.getCompetition();
                 if (competition != null) {
                     return new TitleLink(competition);
                 }
@@ -56,7 +56,7 @@ public class NotebookGrid extends TreeGrid<SavedNotebook> {
     }
 
     private Component createDownload(SavedNotebook nb) {
-        HasKernelData<?, ?> kernel = nb.getKernel();
+        HasKernelData<?, ?, ?> kernel = nb.getKernel();
         if (kernel == null) {
             return new Div();
         }
@@ -64,7 +64,7 @@ public class NotebookGrid extends TreeGrid<SavedNotebook> {
         Anchor downloadLink = new Anchor();
         downloadLink.setHref(event -> {
 
-            ServiceResponse<? extends HasKernelData<?, ?>> response;
+            ServiceResponse<? extends HasKernelData<?, ?, ?>> response;
             if (kernel instanceof UploadedKernelEntity uploadedKernel) {
                 response = uploadedKernelService.fetchById(uploadedKernel.getId(), UploadedKernelLoadType.WITH_CELLS);
             } else if (kernel instanceof KernelEntity kernelEntity) {
@@ -72,7 +72,7 @@ public class NotebookGrid extends TreeGrid<SavedNotebook> {
             } else {
                 response = new ServiceResponse<>();
             }
-            HasKernelData<?, ?> k = response.getEntity().orElseThrow();
+            HasKernelData<?, ?, ?> k = response.getEntity().orElseThrow();
             event.setFileName(k.getId() + ".ipynb");
             event.getOutputStream().write(objectMapper.writeValueAsBytes(Notebook.ofKernel(k)));
         });

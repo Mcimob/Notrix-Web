@@ -90,7 +90,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
 
     private final ContentGrid grid = new ContentGrid();
 
-    private HasKernelData<?, ? extends HasCellData> kernel;
+    private HasKernelData<?, ?, ?> kernel;
 
     public KernelView(KernelService kernelService, ClusterService clusterService, ObjectMapper objectMapper, UploadedKernelService uploadedKernelService) {
         this.kernelService = kernelService;
@@ -345,7 +345,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         }
         String[] parts = parameter.split("/");
 
-        ServiceResponse<? extends HasKernelData<?, ?>> response;
+        ServiceResponse<? extends HasKernelData<?, ?, ?>> response;
         if (parts.length == 1) {
             String stringId = parts[0];
             try {

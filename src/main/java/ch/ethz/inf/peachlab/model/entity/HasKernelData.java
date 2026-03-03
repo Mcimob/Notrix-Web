@@ -1,11 +1,14 @@
 package ch.ethz.inf.peachlab.model.entity;
 
 import ch.ethz.inf.peachlab.model.enums.MainLabel;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -18,7 +21,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @MappedSuperclass
-public abstract class HasKernelData<ID, C extends HasCellData> implements AbstractEntity<ID>, HasBaseStats {
+public abstract class HasKernelData<ID, C extends HasCellData, CO extends HasCompetitionData<?, ?, ?>> implements AbstractEntity<ID>, HasBaseStats {
 
     @Serial
     private static final long serialVersionUID = -8687363840493102608L;
@@ -65,11 +68,16 @@ public abstract class HasKernelData<ID, C extends HasCellData> implements Abstra
     protected Map<Integer, Integer> mainLabelStats;
 
     @Column(name = "SourceCompetitionId")
-    protected Long sourceCompetitionId;
+    protected ID sourceCompetitionId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "SourceCompetitionId", insertable = false, updatable = false)
-    protected CompetitionEntity competition;
+    protected CO competition;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "KernelVersionId")
+    @OrderColumn(name = "CellId")
+    private List<C> cells;
 
     @Column(name = "ClusterId")
     protected Long clusterId;
@@ -185,19 +193,19 @@ public abstract class HasKernelData<ID, C extends HasCellData> implements Abstra
         this.mainLabelStats = mainLabelStats;
     }
 
-    public Long getSourceCompetitionId() {
+    public ID getSourceCompetitionId() {
         return sourceCompetitionId;
     }
 
-    public void setSourceCompetitionId(Long sourceCompetitionId) {
+    public void setSourceCompetitionId(ID sourceCompetitionId) {
         this.sourceCompetitionId = sourceCompetitionId;
     }
 
-    public CompetitionEntity getCompetition() {
+    public CO getCompetition() {
         return competition;
     }
 
-    public void setCompetition(CompetitionEntity competition) {
+    public void setCompetition(CO competition) {
         this.competition = competition;
     }
 
@@ -209,9 +217,13 @@ public abstract class HasKernelData<ID, C extends HasCellData> implements Abstra
         this.clusterId = clusterId;
     }
 
-    public abstract List<C> getCells();
+    public List<C> getCells() {
+        return cells;
+    }
 
-    public abstract void setCells(List<C> cells);
+    public void setCells(List<C> cells) {
+        this.cells = cells;
+    }
 
     @Override
     public Double getVotes() {
@@ -239,12 +251,16 @@ public abstract class HasKernelData<ID, C extends HasCellData> implements Abstra
         return "%s/%s".formatted(authorUserName, currentUrlSlug);
     }
 
+    public HasCompetitionData<?, ?, ?> getRelevantCompetition() {
+        return competition;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == this) {
             return true;
         }
-        if (!(o instanceof HasKernelData<?, ?> that)) {
+        if (!(o instanceof HasKernelData<?, ?, ?> that)) {
             return false;
         }
         return totalViews == that.totalViews

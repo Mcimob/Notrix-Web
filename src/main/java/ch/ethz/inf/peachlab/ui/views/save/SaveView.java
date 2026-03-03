@@ -4,6 +4,7 @@ import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.KernelService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
 import ch.ethz.inf.peachlab.model.dto.SavedNotebook;
+import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
@@ -91,7 +92,7 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
     private void processSavedKernels(Set<Long> savedKernelIds) {
         KernelFilter filter = new KernelFilter();
         filter.setIds(savedKernelIds);
-        ServiceResponse<? extends PageImpl<? extends HasKernelData<?,?>>> kernelResponse = kernelService.fetch(Pageable.unpaged(), filter, KernelLoadType.WITH_COMPETITION);
+        ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>> kernelResponse = kernelService.fetch(Pageable.unpaged(), filter, KernelLoadType.WITH_COMPETITION);
         updateGrid(savedGrid, kernelResponse);
     }
 
@@ -104,11 +105,11 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
         updateGrid(uploadedGrid, kernelResponse);
     }
 
-    private void updateGrid(NotebookGrid grid, ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?>>> response) {
+    private void updateGrid(NotebookGrid grid, ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>> response) {
         response.getEntity()
             .map(PageImpl::stream)
             .map(s -> s
-                .collect(Collectors.groupingBy(HasKernelData::getCompetition))
+                .collect(Collectors.groupingBy(HasKernelData::getRelevantCompetition))
                 .entrySet()
                 .stream()
                 .map(e -> {

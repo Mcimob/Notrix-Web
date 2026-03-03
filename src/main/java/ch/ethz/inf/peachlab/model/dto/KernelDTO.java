@@ -17,7 +17,7 @@ public record KernelDTO(
     boolean isUploaded
 ) {
 
-    public static KernelDTO ofKernel(HasKernelData<?, ?> kernel) {
+    public static KernelDTO ofKernel(HasKernelData<?, ?, ?> kernel) {
         return new KernelDTO(
             kernel.getId().toString(),
             kernel.getTitle(),

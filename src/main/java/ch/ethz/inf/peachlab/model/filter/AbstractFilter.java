@@ -11,7 +11,7 @@ public abstract class AbstractFilter<T extends AbstractEntity<ID>, ID> implement
 
     @Serial
     private static final long serialVersionUID = 1918280844513433777L;
-    private Set<ID> ids;
+    protected Set<ID> ids;
 
     public Specification<T> getSpecification() {
         Specification<T> spec = Specification.unrestricted();

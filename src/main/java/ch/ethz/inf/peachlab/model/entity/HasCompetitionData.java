@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @MappedSuperclass
-public abstract class HasCompetitionData<ID, K extends HasKernelData<?, ?>, C extends HasClusterData<?, ?>> implements AbstractEntity<ID> {
+public abstract class HasCompetitionData<ID, K extends HasKernelData<?, ?, ?>, C extends HasClusterData<?, ?>> implements AbstractEntity<ID> {
     @Serial
     private static final long serialVersionUID = -7446297828210625066L;
 
@@ -124,6 +124,13 @@ public abstract class HasCompetitionData<ID, K extends HasKernelData<?, ?>, C ex
 
     public List<C> getClusters() {
         return clusters;
+    }
+
+    public String getUrlParameter() {
+        if (slug == null) {
+            return getId().toString();
+        }
+        return slug;
     }
 
     public void setAvgCellsPerKernel(Double avgCellsPerKernel) {

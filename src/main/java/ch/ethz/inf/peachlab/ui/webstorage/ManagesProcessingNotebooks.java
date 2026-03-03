@@ -33,12 +33,12 @@ public interface ManagesProcessingNotebooks extends
             }
             UploadedKernelEntity kernel = response.getEntity().get();
             kernel.setTitle(nb.name());
-            kernel.setSourceCompetitionId(nb.competitionId());
+            kernel.setCompetitionEntityId(nb.competitionId());
             kernelService.save(kernel);
 
             getUploadedNotebooks(uploadedNbs -> {
                 uploadedNbs.putIfAbsent(nb.competitionId(), new HashSet<>());
-                uploadedNbs.get(kernel.getSourceCompetitionId()).add(kernel.getId());
+                uploadedNbs.get(nb.competitionId()).add(kernel.getId());
                 setUploadedNotebooks(uploadedNbs);
             });
 

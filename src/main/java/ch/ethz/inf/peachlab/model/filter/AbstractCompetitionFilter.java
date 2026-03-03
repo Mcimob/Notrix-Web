@@ -6,7 +6,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.io.Serial;
 
-public class AbstractCompetitionFilter<T extends HasCompetitionData<ID, ?, ?>, ID> extends AbstractFilter<T, ID> {
+public abstract class AbstractCompetitionFilter<T extends HasCompetitionData<ID, ?, ?>, ID> extends AbstractFilter<T, ID> {
     @Serial
     private static final long serialVersionUID = 9216174540362903242L;
     private String searchString;
@@ -22,15 +22,7 @@ public class AbstractCompetitionFilter<T extends HasCompetitionData<ID, ?, ?>, I
         return spec;
     }
 
-    private Specification<T> matchesSearchString(String searchString) {
-        return ((root, cq, cb) ->
-            cb.or(
-                cb.like(cb.lower(root.get("title")), "%" + searchString.toLowerCase() + "%"),
-                cb.like(
-                    cb.lower(root.joinSet("tags", JoinType.LEFT)),
-                    "%" + searchString.toLowerCase() + "%")
-            ));
-    }
+    protected abstract Specification<T> matchesSearchString(String searchString);
 
     public void setSearchString(String searchString) {
         this.searchString = searchString;

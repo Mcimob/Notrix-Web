@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class NotebooksProcessingMonitorServiceImpl implements NotebookProcessingMonitorService {
@@ -78,6 +79,7 @@ public class NotebooksProcessingMonitorServiceImpl implements NotebookProcessing
             .forEach(k -> {
                 k.setCreationDate(LocalDateTime.now());
                 k.setSourceCompetitionId(null);
+                k.setId(UUID.randomUUID().toString());
             });
 
         competitionService.save(competition);

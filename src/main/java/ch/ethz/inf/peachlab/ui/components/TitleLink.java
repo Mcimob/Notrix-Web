@@ -1,6 +1,7 @@
 package ch.ethz.inf.peachlab.ui.components;
 
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
+import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.ui.views.competition.CompetitionView;
 import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
@@ -25,12 +26,12 @@ public class TitleLink extends Span {
             UI.getCurrent().navigate(target, urlParameter));
     }
 
-    public TitleLink(HasKernelData<?, ?> kernel) {
+    public TitleLink(HasKernelData<?, ?, ?> kernel) {
         this(kernel.getTitle(), KernelView.class, kernel.getUrlParameter());
     }
 
-    public TitleLink(CompetitionEntity competition) {
-        this(competition.getTitle(), CompetitionView.class, competition.getSlug());
+    public TitleLink(HasCompetitionData<?, ?, ?> competition) {
+        this(competition.getTitle(), CompetitionView.class, competition.getUrlParameter());
     }
 
 

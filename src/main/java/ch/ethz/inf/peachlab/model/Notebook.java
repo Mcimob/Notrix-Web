@@ -19,7 +19,7 @@ public record Notebook(
 
     public record Metadata() {}
 
-    public static Notebook ofKernel(HasKernelData<?, ?> kernel) {
+    public static Notebook ofKernel(HasKernelData<?, ?, ?> kernel) {
         return new Notebook(kernel.getCells().stream().map(Cell::ofCell).toList());
     }
 }

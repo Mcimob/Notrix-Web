@@ -45,7 +45,7 @@ public class NotebookProcessingServiceImpl implements NotebookProcessingService,
 
         try {
             UploadedNotebook uploadedNotebook = objectMapper.readValue(data, UploadedNotebook.class);
-            String identifier = dao.startNotebookProcessing(uploadedNotebook);
+            String identifier = dao.startNotebookProcessing(new UploadedNotebook(uploadedNotebook.cells(), ""));
             monitorService.monitorNotebookProcessing(identifier);
             response.setEntity(identifier);
         } catch (IOException e) {

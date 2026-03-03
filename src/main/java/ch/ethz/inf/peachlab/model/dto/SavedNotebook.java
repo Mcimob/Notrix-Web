@@ -1,27 +1,27 @@
 package ch.ethz.inf.peachlab.model.dto;
 
-import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
+import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 
 import java.util.List;
 
 public class SavedNotebook {
 
-    private final HasKernelData<?, ?> kernel;
-    private final CompetitionEntity competition;
+    private final HasKernelData<?, ?, ?> kernel;
+    private final HasCompetitionData<?, ?, ?> competition;
     private final List<SavedNotebook> children;
 
-    private SavedNotebook(HasKernelData<?, ?> kernel, CompetitionEntity competition, List<SavedNotebook> children) {
+    private SavedNotebook(HasKernelData<?, ?, ?> kernel, HasCompetitionData<?, ?, ?> competition, List<SavedNotebook> children) {
         this.kernel = kernel;
         this.competition = competition;
         this.children = children;
     }
 
-    public SavedNotebook(HasKernelData<?, ?> kernel) {
+    public SavedNotebook(HasKernelData<?, ?, ?> kernel) {
         this(kernel, null, null);
     }
 
-    public SavedNotebook(CompetitionEntity competition, List<SavedNotebook> children) {
+    public SavedNotebook(HasCompetitionData<?, ?, ?> competition, List<SavedNotebook> children) {
         this(null, competition, children);
     }
 
@@ -33,11 +33,11 @@ public class SavedNotebook {
         }
     }
 
-    public HasKernelData<?, ?> getKernel() {
+    public HasKernelData<?, ?, ?> getKernel() {
         return kernel;
     }
 
-    public CompetitionEntity getCompetition() {
+    public HasCompetitionData<?, ?, ?> getCompetition() {
         return competition;
     }
 

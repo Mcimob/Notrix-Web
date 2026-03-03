@@ -23,7 +23,7 @@ import java.util.Objects;
     attributeNodes = {
         @NamedAttributeNode("competition")
     })
-public class KernelEntity extends HasKernelData<Long, CellEntity> {
+public class KernelEntity extends HasKernelData<Long, CellEntity, CompetitionEntity> {
 
     public static final String WITH_CELLS = "withCells";
     public static final String WITH_COMPETITION = "withCompetition";
@@ -35,12 +35,6 @@ public class KernelEntity extends HasKernelData<Long, CellEntity> {
     @Column(nullable = false, name = "KernelVersionId")
     private Long id;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "KernelVersionId")
-    @OrderColumn(name = "CellId")
-    private List<CellEntity> cells;
-
-
     @Override
     public Long getId() {
         return id;
@@ -49,16 +43,6 @@ public class KernelEntity extends HasKernelData<Long, CellEntity> {
     @Override
     public void setId(Long id) {
         this.id = id;
-    }
-
-    @Override
-    public List<CellEntity> getCells() {
-        return cells;
-    }
-
-    @Override
-    public void setCells(List<CellEntity> cells) {
-        this.cells = cells;
     }
 
     @Override

@@ -12,14 +12,13 @@ import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.UploadedCompetitionFilter;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
+import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
-import ch.ethz.inf.peachlab.ui.views.competition.CompetitionView;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.router.Route;
@@ -43,7 +42,6 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_LINK;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "/", layout = MainLayout.class)
@@ -170,7 +168,7 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
     }
 
     private Component createGrid() {
-        grid.addComponentColumn(this::createTitleLink)
+        grid.addComponentColumn(TitleLink::new)
             .setHeader("Competition Title")
             .setSortable(true)
             .setComparator(Comparator.comparing(HasCompetitionData::getTitle));
@@ -202,15 +200,5 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
         grid.setEmptyStateText("Loading competitions...");
 
         return grid;
-    }
-
-    private Component createTitleLink(HasCompetitionData<?, ?, ?> competition) {
-        Span span = new Span(competition.getTitle());
-        span.addClassNames(STYLE_TEXT_LINK);
-        span.addClickListener(e -> UI.getCurrent().navigate(
-            CompetitionView.class,
-            competition.getSlug()));
-
-        return span;
     }
 }

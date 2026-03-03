@@ -1,15 +1,15 @@
 CREATE TABLE competition_entity
 (
-    id                   BIGINT                      NOT NULL,
-    title                VARCHAR(255)                NOT NULL,
-    subtitle             VARCHAR(255)                NOT NULL,
+    id                   BIGINT           NOT NULL,
+    title                VARCHAR(255),
+    subtitle             VARCHAR(255),
     overview             VARCHAR,
-    slug                 VARCHAR(255)                NOT NULL,
-    total_submissions    BIGINT                      NOT NULL,
-    deadline_date        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    avg_cells_per_kernel DOUBLE PRECISION            NOT NULL,
-    avg_votes            DOUBLE PRECISION            NOT NULL,
-    avg_lines_per_kernel DOUBLE PRECISION            NOT NULL,
+    slug                 VARCHAR(255),
+    total_submissions    BIGINT           NOT NULL,
+    deadline_date        TIMESTAMP WITHOUT TIME ZONE,
+    avg_cells_per_kernel DOUBLE PRECISION NOT NULL,
+    avg_votes            DOUBLE PRECISION NOT NULL,
+    avg_lines_per_kernel DOUBLE PRECISION NOT NULL,
     transition_matrix    JSONB,
     main_label_stats     JSONB,
     CONSTRAINT pk_competitionentity PRIMARY KEY (id)
@@ -26,10 +26,10 @@ ALTER TABLE competition_tags
 
 CREATE TABLE cluster_entity
 (
-    cluster_id            BIGINT NOT NULL,
+    cluster_id            BIGINT           NOT NULL,
     summary               TEXT,
     local_cluster_id      BIGINT,
-    cluster_size          BIGINT NOT NULL,
+    cluster_size          BIGINT           NOT NULL,
     avg_cells_per_kernel  DOUBLE PRECISION NOT NULL,
     avg_votes             DOUBLE PRECISION NOT NULL,
     avg_lines_per_kernel  DOUBLE PRECISION NOT NULL,
@@ -68,9 +68,6 @@ CREATE TABLE kernel_entity
     cluster_id            BIGINT,
     CONSTRAINT pk_kernelentity PRIMARY KEY (kernel_version_id)
 );
-
-ALTER TABLE kernel_entity
-    ADD CONSTRAINT FK_KERNELENTITY_ON_CLUSTER FOREIGN KEY (cluster_id) REFERENCES cluster_entity (cluster_id);
 
 ALTER TABLE kernel_entity
     ADD CONSTRAINT FK_KERNELENTITY_ON_SOURCECOMPETITIONID FOREIGN KEY (source_competition_id) REFERENCES competition_entity (id);

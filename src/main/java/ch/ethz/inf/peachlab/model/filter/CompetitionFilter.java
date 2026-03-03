@@ -23,6 +23,17 @@ public class CompetitionFilter extends AbstractCompetitionFilter<CompetitionEnti
         return spec;
     }
 
+    @Override
+    protected Specification<CompetitionEntity> matchesSearchString(String searchString) {
+        return ((root, cq, cb) ->
+            cb.or(
+                cb.like(cb.lower(root.get("title")), "%" + searchString.toLowerCase() + "%"),
+                cb.like(
+                    cb.lower(root.joinSet("tags", JoinType.LEFT)),
+                    "%" + searchString.toLowerCase() + "%")
+            ));
+    }
+
     private Specification<CompetitionEntity> matchesSlug(String slug) {
         return ((root, cq, cb) ->
                 cb.equal(root.get("slug"), slug));
