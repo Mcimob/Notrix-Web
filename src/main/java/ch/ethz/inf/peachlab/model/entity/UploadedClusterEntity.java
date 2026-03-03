@@ -5,6 +5,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 
 import java.io.Serial;
 import java.util.Map;
@@ -12,8 +15,18 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
+@NamedEntityGraph(name = UploadedClusterEntity.WITH_KERNELS_AND_CELLS_UPLOADED,
+    attributeNodes = {
+        @NamedAttributeNode(value = "kernels", subgraph = UploadedKernelEntity.WITH_CELLS_UPLOADED)
+    },
+    subgraphs = {
+        @NamedSubgraph(name = UploadedKernelEntity.WITH_CELLS_UPLOADED, attributeNodes = {
+            @NamedAttributeNode("cells")
+        })
+    })
 public class UploadedClusterEntity extends HasClusterData<UploadedKernelEntity, UploadedCompetitionEntity> {
 
+    public static final String WITH_KERNELS_AND_CELLS_UPLOADED = "withKernelsAndCellsUploaded";
     @Serial
     private static final long serialVersionUID = -7907921108806369603L;
 

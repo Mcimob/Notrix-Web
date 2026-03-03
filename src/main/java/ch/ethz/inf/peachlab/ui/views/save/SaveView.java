@@ -4,7 +4,6 @@ import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.KernelService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
 import ch.ethz.inf.peachlab.model.dto.SavedNotebook;
-import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
@@ -32,7 +31,6 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 import static java.util.function.Predicate.not;
 
@@ -83,7 +81,7 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
         getSavedKernels(this::processSavedKernels);
 
         H2 title = new H2("Saved Notebooks");
-        title.addClassNames(STYLE_PADDING_S);
+        title.addClassNames(STYLE_PADDING_M);
         Div div = new Div(title, savedGrid);
         div.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL, STYLE_BACKGROUND_WHITE);
         return div;

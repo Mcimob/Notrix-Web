@@ -1,4 +1,4 @@
-package ch.ethz.inf.peachlab.ui.views.competition;
+package ch.ethz.inf.peachlab.ui.views.competition.components;
 
 import ch.ethz.inf.peachlab.model.entity.HasClusterData;
 import ch.ethz.inf.peachlab.ui.HasRender;

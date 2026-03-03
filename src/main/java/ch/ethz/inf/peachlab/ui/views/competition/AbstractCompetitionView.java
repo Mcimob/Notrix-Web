@@ -23,11 +23,13 @@ import ch.ethz.inf.peachlab.ui.components.OverviewBox;
 import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
-import ch.ethz.inf.peachlab.ui.views.competition.matrix.ClusterClickEvent;
-import ch.ethz.inf.peachlab.ui.views.competition.matrix.ClusterMatrix;
-import ch.ethz.inf.peachlab.ui.views.competition.matrix.Filterbar;
-import ch.ethz.inf.peachlab.ui.views.competition.matrix.KernelClickEvent;
-import ch.ethz.inf.peachlab.ui.views.competition.matrix.NotebookMatrix;
+import ch.ethz.inf.peachlab.ui.views.competition.components.ClusterOverview;
+import ch.ethz.inf.peachlab.ui.views.competition.components.CompetitionStatsPanel;
+import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.ClusterClickEvent;
+import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.ClusterMatrix;
+import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.Filterbar;
+import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.KernelClickEvent;
+import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.NotebookMatrix;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
 import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
 import com.vaadin.flow.component.Component;
@@ -187,7 +189,7 @@ public abstract class AbstractCompetitionView<
         clusterMatrix.setVisible(false);
 
         UiAsyncUtils.<PageImpl<C>>callServiceAsync(
-            () -> clusterService.fetch(Pageable.unpaged(Sort.by("LocalClusterId")), clusterFilter, ClusterLoadType.WITH_KERNELS_AND_CELLS),
+            () -> clusterService.fetch(Pageable.unpaged(Sort.by("LocalClusterId")), clusterFilter, getClusterLoadType()),
             UI.getCurrent(),
             this::onNewClusterMatrixData
         );
@@ -228,6 +230,8 @@ public abstract class AbstractCompetitionView<
         div.add(gridPlaceholder, matrixDiv);
         return div;
     }
+
+    protected abstract HasLoadType getClusterLoadType();
 
     private void onKernelClicked(KernelClickEvent e) {
         String stringId = e.getKernelId();
@@ -329,7 +333,7 @@ public abstract class AbstractCompetitionView<
     private Component createKernelGrid() {
         grid.setId("kernel-grid"); // unique DOM id
 
-        grid.addComponentColumn(TitleLink::new)
+        grid.addComponentColumn(TitleLink::ofKernel)
             .setHeader("Title")
             .setSortable(true)
             .setComparator(Comparator.comparing(HasKernelData::getTitle))
@@ -396,7 +400,7 @@ public abstract class AbstractCompetitionView<
 
     private Component createTitleElement(HasBaseStats kernelData) {
         if (kernelData instanceof KernelEntity kernel) {
-            return new TitleLink(kernel);
+            return TitleLink.ofKernel(kernel);
         } else if (kernelData instanceof ClusterEntity cluster) {
             return new Text("Cluster " + cluster.getLocalClusterId());
         }

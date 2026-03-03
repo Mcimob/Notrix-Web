@@ -1,4 +1,4 @@
-package ch.ethz.inf.peachlab.ui.views.competition.matrix;
+package ch.ethz.inf.peachlab.ui.views.competition.components.matrix;
 
 import ch.ethz.inf.peachlab.ui.HasRender;
 import com.vaadin.componentfactory.ToggleButton;

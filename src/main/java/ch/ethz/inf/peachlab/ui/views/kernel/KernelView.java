@@ -313,7 +313,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         Span gridTitle = new Span("Similar Notebooks");
         gridTitle.addClassNames(STYLE_FONT_SIZE_L, STYLE_PADDING_S);
         Grid<KernelEntity> grid = new Grid<>();
-        grid.addComponentColumn(TitleLink::new)
+        grid.addComponentColumn(TitleLink::ofKernel)
             .setHeader("Title")
             .setSortable(true)
             .setFlexGrow(1);

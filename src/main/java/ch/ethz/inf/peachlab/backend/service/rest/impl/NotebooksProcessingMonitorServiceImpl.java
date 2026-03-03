@@ -9,7 +9,6 @@ import ch.ethz.inf.peachlab.backend.service.db.UploadedCompetitionService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
 import ch.ethz.inf.peachlab.backend.service.rest.NotebookProcessingMonitorService;
 import ch.ethz.inf.peachlab.model.entity.HasClusterData;
-import ch.ethz.inf.peachlab.model.entity.UploadedClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.UploadedCompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
 import ch.ethz.inf.peachlab.model.rest.ProcessingStatusResponse;
@@ -19,12 +18,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class NotebooksProcessingMonitorServiceImpl implements NotebookProcessingMonitorService {
@@ -73,14 +70,17 @@ public class NotebooksProcessingMonitorServiceImpl implements NotebookProcessing
             .map(HasClusterData::getKernels)
             .mapToLong(Collection::size)
             .sum());
-        competition.getClusters().stream()
+        Set<UploadedKernelEntity> kernels = competition.getClusters().stream()
             .map(HasClusterData::getKernels)
             .flatMap(Collection::stream)
-            .forEach(k -> {
+            .collect(Collectors.toSet());
+        competition.setKernels(kernels);
+        kernels.forEach(k -> {
                 k.setCreationDate(LocalDateTime.now());
                 k.setSourceCompetitionId(null);
                 k.setId(UUID.randomUUID().toString());
             });
+
 
         competitionService.save(competition);
 

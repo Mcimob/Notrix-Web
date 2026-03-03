@@ -58,7 +58,7 @@ public abstract class HasCompetitionData<ID, K extends HasKernelData<?, ?, ?>, C
     @Column(name = "MainLabelStats", columnDefinition = "jsonb")
     protected Map<Integer, Integer> mainLabelStats;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "SourceCompetitionId")
     protected Set<K> kernels;
 

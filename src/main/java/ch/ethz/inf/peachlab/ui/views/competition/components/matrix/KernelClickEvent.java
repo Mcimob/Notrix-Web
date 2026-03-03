@@ -1,4 +1,4 @@
-package ch.ethz.inf.peachlab.ui.views.competition.matrix;
+package ch.ethz.inf.peachlab.ui.views.competition.components.matrix;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
@@ -7,12 +7,12 @@ import com.vaadin.flow.component.EventData;
 
 import java.io.Serial;
 
-@DomEvent("cluster-click")
-public class ClusterClickEvent extends ComponentEvent<Component> {
+@DomEvent("kernel-click")
+public class KernelClickEvent extends ComponentEvent<Component> {
 
     @Serial
-    private static final long serialVersionUID = -6503174148084424541L;
-    private final Long localClusterId;
+    private static final long serialVersionUID = 1998300473303236681L;
+    private final String kernelId;
 
     /**
      * Creates a new event using the given source and indicator whether the
@@ -22,12 +22,12 @@ public class ClusterClickEvent extends ComponentEvent<Component> {
      * @param fromClient <code>true</code> if the event originated from the client
      *                   side, <code>false</code> otherwise
      */
-    public ClusterClickEvent(Component source, boolean fromClient, @EventData("event.detail") String clusterId) {
+    public KernelClickEvent(Component source, boolean fromClient, @EventData("event.detail") String kernelId) {
         super(source, fromClient);
-        this.localClusterId = Long.valueOf(clusterId);
+        this.kernelId = kernelId;
     }
 
-    public Long getLocalClusterId() {
-        return localClusterId;
+    public String getKernelId() {
+        return kernelId;
     }
 }

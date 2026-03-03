@@ -142,7 +142,6 @@ public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEnti
         super.setClusterId(clusterId);
     }
 
-    @JsonProperty("SourceCompetitionId")
     public void setCompetitionEntityId(Long competitionEntityId) {
         this.competitionEntityId = competitionEntityId;
     }

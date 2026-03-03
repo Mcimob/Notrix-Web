@@ -44,9 +44,9 @@ public class NotebookGrid extends TreeGrid<SavedNotebook> {
         addComponentHierarchyColumn(nb -> {
                 HasCompetitionData<?, ?, ?> competition = nb.getCompetition();
                 if (competition != null) {
-                    return new TitleLink(competition);
+                    return TitleLink.ofCompetition(competition);
                 }
-                return new TitleLink(nb.getKernel());
+                return TitleLink.ofKernel(nb.getKernel());
             })
             .setHeader("Competition / Notebook Title");
         addColumn(SavedNotebook::getNumNotebooks)

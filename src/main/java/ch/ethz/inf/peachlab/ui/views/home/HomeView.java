@@ -160,7 +160,7 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
             .setOne("Upload own solution set..."));
         i18n.setDropFiles(new UploadI18N.DropFiles()
             .setOne("Drop zip here"));
-
+        upload.setI18n(i18n);
 
         Div div = new Div(upload);
         div.addClassNames(STYLE_PADDING_M, STYLE_BACKGROUND_WHITE);
@@ -168,7 +168,7 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
     }
 
     private Component createGrid() {
-        grid.addComponentColumn(TitleLink::new)
+        grid.addComponentColumn(TitleLink::ofCompetition)
             .setHeader("Competition Title")
             .setSortable(true)
             .setComparator(Comparator.comparing(HasCompetitionData::getTitle));

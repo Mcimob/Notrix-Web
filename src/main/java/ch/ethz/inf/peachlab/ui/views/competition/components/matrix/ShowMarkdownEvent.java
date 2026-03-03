@@ -1,4 +1,4 @@
-package ch.ethz.inf.peachlab.ui.views.competition.matrix;
+package ch.ethz.inf.peachlab.ui.views.competition.components.matrix;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
