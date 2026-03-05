@@ -112,6 +112,7 @@ public abstract class AbstractCompetitionView<
 
     private void initFilters() {
         clusterFilter.setCompetition(competition);
+        kernelFilter.setCompetition(competition);
     }
 
     @Override
@@ -368,7 +369,6 @@ public abstract class AbstractCompetitionView<
 
         grid.setHeightFull();
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        kernelFilter.setCompetition(competition);
 
         grid.setEmptyStateText("Loading Notebooks...");
 
