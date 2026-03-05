@@ -70,6 +70,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MAX_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_0;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_OVERFLOW_SCROLL;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_L;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_LINK;
@@ -238,7 +239,8 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         }
         Component list = createTocRecursive(tocParts);
         list.addClassNames(STYLE_MAX_HEIGHT_FULL, STYLE_WIDTH_200, STYLE_OVERFLOW_SCROLL, STYLE_BOX_SHADOW,
-            STYLE_PADDING_S, STYLE_BORDER_STYLE_SOLID, STYLE_BORDER_RADIUS_S, STYLE_BORDER_COLOR_GRAY, STYLE_BORDER_WIDTH_S);
+            STYLE_PADDING_S, STYLE_BORDER_STYLE_SOLID, STYLE_BORDER_RADIUS_S, STYLE_BORDER_COLOR_GRAY, STYLE_BORDER_WIDTH_S,
+            STYLE_PADDING_L);
 
 
         return Optional.of(list);
