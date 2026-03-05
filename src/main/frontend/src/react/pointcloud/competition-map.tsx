@@ -11,16 +11,18 @@ export type Competition = {
 type Props = {
     data: Competition[];
     clickListener: (identifier: string) => void;
-    width?: number;
-    height?: number;
+    closestChangeListener: (identifier: string) => void;
+    width: number;
+    height: number;
 };
 
 const CompetitionMap: React.FC<Props> = (
     {
         data,
         clickListener,
-        width = 1000,
-        height = 800
+        closestChangeListener,
+        width,
+        height
      }) => {
     const svgRef = useRef<SVGSVGElement | null>(null);
 
@@ -97,6 +99,7 @@ const CompetitionMap: React.FC<Props> = (
 
         svg.call(zoom);
 
+        let lastClosest : Competition;
         svg.on("mousemove", (event) => {
 
             const [mx, my] = d3.pointer(event);
@@ -107,20 +110,19 @@ const CompetitionMap: React.FC<Props> = (
             const closest = quadtree.find(tx, ty, 40);
 
             if (closest) {
+                if (lastClosest != closest) {
+                    closestChangeListener(closest.id)
+                    lastClosest = closest;
+                    titleText.text(closest.title);
 
-                titleText.text(closest.title);
-
-                highlight
-                    .attr("cx", xScale(closest.coordinateX))
-                    .attr("cy", yScale(closest.coordinateY))
-                    .style("opacity", 1);
-
+                    highlight
+                        .attr("cx", xScale(closest.coordinateX))
+                        .attr("cy", yScale(closest.coordinateY))
+                        .style("opacity", 1);
+                }
             } else {
-
                 highlight.style("opacity", 0);
-
             }
-
         });
 
     }, [data, width, height]);

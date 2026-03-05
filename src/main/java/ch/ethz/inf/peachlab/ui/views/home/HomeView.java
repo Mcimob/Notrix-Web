@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
@@ -68,6 +69,8 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
 
     private final CompetitionFilter filter = new CompetitionFilter();
     private final UploadedCompetitionFilter uploadedFilter = new UploadedCompetitionFilter();
+
+    private final List<HasCompetitionData<?, ?, ?>> competitions = new ArrayList<>();
 
     public HomeView(NotebookProcessingService processingService, CompetitionService competitionService, UploadedCompetitionService uploadedCompetitionService) {
         this.processingService = processingService;
@@ -112,17 +115,20 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
     }
 
     private void onCompetitionData(List<? extends ServiceResponse<? extends PageImpl<? extends HasCompetitionData<?, ?, ?>>>> responses) {
-        List<HasCompetitionData<?, ?, ?>> competitions = responses.stream()
+        List<HasCompetitionData<?, ?, ?>> comps = responses.stream()
             .map(ServiceResponse::getEntity)
             .flatMap(Optional::stream)
             .flatMap(PageImpl::stream)
             .map(o -> (HasCompetitionData<?, ?, ?>) o)
             .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
 
-        grid.setItems(competitions);
+        grid.setItems(comps);
         grid.getDataProvider().refreshAll();
 
-        cloud.setCompetitions(competitions.stream().map(CompetitionDTO::ofCompetition).toList());
+        cloud.setCompetitions(comps.stream().map(CompetitionDTO::ofCompetition).toList());
+
+        competitions.clear();
+        competitions.addAll(comps);
     }
 
     private Component createSearchBar() {
@@ -219,6 +225,21 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
             } catch (NumberFormatException ex) {
                 UI.getCurrent().navigate(UploadedCompetitionView.class, stringId);
             }
+        });
+
+        cloud.addCompetitionClosestListener(e -> {
+            Predicate<HasCompetitionData<?, ?, ?>> predicate;
+            String stringId = e.getCompetitionId();
+            try {
+                long longId = Long.parseLong(stringId);
+                predicate = c -> c.getId().equals(longId);
+            } catch (NumberFormatException ex) {
+                predicate = c -> c.getId().equals(stringId);
+            }
+            competitions.stream()
+                .filter(predicate)
+                .findFirst()
+                .ifPresent(grid::scrollToItem);
         });
 
         return cloud;

@@ -8,12 +8,14 @@ class CompetitionMapElement extends ReactAdapterElement {
     protected render(hooks: RenderHooks): React.ReactElement | null {
         const [competitions, _setCompetitions] = hooks.useState<Competition[]>("competitions", []);
         const fireCompetitionClick = hooks.useCustomEvent<string>("competition-click");
+        const fireCompetitionClosest = hooks.useCustomEvent<string>("competition-closest");
         return <div className={"width-full height-full"}>
             <AutoSizer ChildComponent={({width, height}: AutoSizerChildProps) =>
                 <CompetitionMap
-                    clickListener={id => fireCompetitionClick(id)}
-                    width={width}
-                    height={height}
+                    clickListener={fireCompetitionClick}
+                    closestChangeListener={fireCompetitionClosest}
+                    width={width || 300}
+                    height={height || 500}
                     data={competitions}
                 />}/>
         </div>;

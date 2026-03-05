@@ -39,4 +39,8 @@ public class CompetitionCloud extends ReactAdapterComponent {
     public void addCompetitionClickedListener(ComponentEventListener<CompetitionClickEvent> listener) {
         addListener(CompetitionClickEvent.class, listener);
     }
+
+    public void addCompetitionClosestListener(ComponentEventListener<CompetitionClosestEvent> listener) {
+        addListener(CompetitionClosestEvent.class, listener);
+    }
 }
