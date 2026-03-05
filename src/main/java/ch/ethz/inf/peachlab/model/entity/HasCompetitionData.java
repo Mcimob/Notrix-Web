@@ -50,6 +50,12 @@ public abstract class HasCompetitionData<ID, K extends HasKernelData<?, ?, ?>, C
     @Column(nullable = false)
     protected Double avgLinesPerKernel;
 
+    @Column(name = "CoordinateX")
+    protected Double coordinateX;
+
+    @Column(name = "CoordinateY")
+    protected Double coordinateY;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "TransitionMatrix", columnDefinition = "jsonb")
     protected Integer[][] transitionMatrix;
@@ -101,6 +107,14 @@ public abstract class HasCompetitionData<ID, K extends HasKernelData<?, ?, ?>, C
 
     public Double getAvgLinesPerKernel() {
         return avgLinesPerKernel;
+    }
+
+    public Double getCoordinateX() {
+        return coordinateX;
+    }
+
+    public Double getCoordinateY() {
+        return coordinateY;
     }
 
     public Integer[][] getTransitionMatrix() {

@@ -32,6 +32,11 @@ class ClusterColumns:
     SUMMARY = "Summary"
 
 class CompetitionColumns:
+    TITLE = "Title"
+    SUBTITLE = "Subtitle"
+    OVERVIEW = "Overview"
+    COORDINATE_X = "CoordinateX"
+    COORDINATE_Y = "CoordinateY"
     LABEL_STATS = KernelColumns.LABEL_STATS
     TRANSITION_MATRIX = KernelColumns.TRANSITION_MATRIX
     AVG_LINES = "AvgLinesPerKernel"

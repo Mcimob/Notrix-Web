@@ -130,6 +130,8 @@ def load_competitions(filename: str) -> pd.DataFrame:
         if col in competitions.columns:
             competitions[col] = competitions[col].apply(apply_safe(converter))
             
+    return competitions
+            
 
 def save_competitions(competitions: pd.DataFrame, filename: str):
     competitions = competitions.copy()

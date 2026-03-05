@@ -5,7 +5,9 @@ import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.CompetitionService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedCompetitionService;
 import ch.ethz.inf.peachlab.backend.service.rest.NotebookProcessingService;
+import ch.ethz.inf.peachlab.model.dto.CompetitionDTO;
 import ch.ethz.inf.peachlab.model.dto.ProcessingCompetition;
+import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.UploadedCompetitionEntity;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
@@ -14,6 +16,9 @@ import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
+import ch.ethz.inf.peachlab.ui.views.competition.CompetitionView;
+import ch.ethz.inf.peachlab.ui.views.competition.UploadedCompetitionView;
+import ch.ethz.inf.peachlab.ui.views.home.cloud.CompetitionCloud;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
@@ -54,6 +59,8 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
     private final transient CompetitionService competitionService;
     private final transient UploadedCompetitionService uploadedCompetitionService;
 
+    private final CompetitionCloud cloud = new CompetitionCloud();
+
     private final CompetitionDescriptionBox competitionDescriptionBox = new CompetitionDescriptionBox();
     private final CompetitionSearchBar searchbar = new CompetitionSearchBar();
 
@@ -78,14 +85,10 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
     public void render() {
         removeAll();
 
-        CompetitionCloud cloud = new CompetitionCloud();
-        cloud.addClassNames(STYLE_WIDTH_FULL, STYLE_HEIGHT_FULL);
-        cloud.render();
-
         Div right = new Div(createDescriptionDiv(), createUpload(), createGrid());
         right.addClassNames(STYLE_FLEX_COLUMN, STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_HEIGHT_FULL);
 
-        Div bottom = new Div(cloud, right);
+        Div bottom = new Div(createCloud(), right);
         bottom.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_M, STYLE_WIDTH_FULL, STYLE_HEIGHT_FULL);
 
         add(createSearchBar(), bottom);
@@ -118,6 +121,8 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
 
         grid.setItems(competitions);
         grid.getDataProvider().refreshAll();
+
+        cloud.setCompetitions(competitions.stream().map(CompetitionDTO::ofCompetition).toList());
     }
 
     private Component createSearchBar() {
@@ -200,5 +205,22 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
         grid.setEmptyStateText("Loading competitions...");
 
         return grid;
+    }
+
+    private Component createCloud() {
+        cloud.addClassNames(STYLE_WIDTH_FULL, STYLE_HEIGHT_FULL);
+        cloud.addCompetitionClickedListener(e -> {
+            String stringId = e.getCompetitionId();
+            try {
+                long longId = Long.parseLong(stringId);
+                ServiceResponse<CompetitionEntity> response = competitionService.fetchById(longId);
+                response.getErrorMessages().forEach(this::showErrorNotification);
+                response.getEntity().ifPresent(c -> UI.getCurrent().navigate(CompetitionView.class, c.getUrlParameter()));
+            } catch (NumberFormatException ex) {
+                UI.getCurrent().navigate(UploadedCompetitionView.class, stringId);
+            }
+        });
+
+        return cloud;
     }
 }
