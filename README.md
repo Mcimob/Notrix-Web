@@ -17,4 +17,9 @@ Make sure to either set the "OPENAI_API_KEY" environment variable or put a .env 
 
 ## Building for Production
 
-To deploy this application, you can simply use the provided `docker-compose.yml` file. Make sure to add
+To deploy this application, you can simply use the provided `docker-compose.yml` file. Make sure to add a `.env` file in the top directory with your environment variables or replace the placeholders inside the compose file.
+
+## Initializing the database
+Once your database and the application are running, the application will automatically create all required tables, relations and constraints. To actually get data into the database, you can copy the data from csv files using the commands inside `sql/import.sql`. 
+To connect to the databse in the first place, you can use `psql -U postgres -d kaggle-vis --password`. If you're running the database inside a docker container, prepend `docker exec -ti <container-name>` to the command. In that case also make sure to pass the generated data files into the container using volumes.
+All the data can be generated from `meta-kaggle` and `meta-kaggle-code` using the scripts in the `python` directory.
