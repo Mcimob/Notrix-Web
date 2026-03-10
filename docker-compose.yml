@@ -1,0 +1,46 @@
+
+services:
+  notrix:
+    build: java
+    ports:
+      - 8080:8080
+    networks:
+      - db
+      - server
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres
+
+  server:
+    build: python
+    networks:
+      - server
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /data/postgres
+      POSTGRES_DB: kaggle-vis
+    volumes:
+      - db:/data/postgres
+    networks:
+      - db
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d postgres" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  db:
+  server:
+
+volumes:
+  db:

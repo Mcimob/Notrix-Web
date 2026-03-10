@@ -2,7 +2,6 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
-from tqdm import tqdm
 
 FILE_BASE = "/media/tim/Data/Thesis/"
 
@@ -13,7 +12,7 @@ class Predictor():
 
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained(MODEL_ID)
-        self.model = AutoModelForSequenceClassification.from_pretrained(MODEL_ID, num_labels=13, local_files_only=True)
+        self.model = AutoModelForSequenceClassification.from_pretrained(MODEL_ID, num_labels=13)
         self.model.to(DEVICE)
         
     def prefict(self, code_text: list[str]) -> list[int]:

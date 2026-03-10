@@ -21,7 +21,6 @@ Usage: python analyze_clusters.py --competition_id 18599
 Output: {competition_id}_summarized.json with GPT-generated analysis and parsed sections
 """
 
-import ast
 import json
 import os
 from collections import ChainMap, Counter, defaultdict
@@ -32,21 +31,20 @@ from typing import Dict, List, Any
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
-from kaggle_types import ClusterColumns, KernelColumns
+from app.kaggle_types import ClusterColumns, KernelColumns
 from openai import OpenAI
 import pickle as pkl
 from tqdm import tqdm
 
-from pd_utils import KERNEL_JSON_COLUMNS, load_all_kernels, load_clusters, save_clusters
+from app.pd_utils import KERNEL_JSON_COLUMNS, load_all_kernels, load_clusters, save_clusters
 
 
 def load_environment():
     """Load environment variables from .env file."""
     env_path = Path(__file__).parent / '.env'
-    if not env_path.exists():
-        raise FileNotFoundError(f"Environment file not found at {env_path}")
-    
-    load_dotenv(env_path)
+    if env_path.exists():
+        print("Loading API key from file")
+        load_dotenv(env_path)
     api_key = os.getenv('OPENAI_API_KEY')
     
     if not api_key or api_key == 'your_openai_api_key_here':

@@ -1,7 +1,6 @@
 import zipfile
 import os
 import shutil
-from tqdm import tqdm
 import pandas as pd
 
 def extract_kernels(kids=None):
@@ -24,7 +23,7 @@ def extract_kernels(kids=None):
     success_files = []
     # Extract files
     with zipfile.ZipFile(zip_path, "r") as z:
-        for fname in tqdm(to_extract):
+        for fname in to_extract:
             try:
                 z.getinfo(fname)
             except KeyError:

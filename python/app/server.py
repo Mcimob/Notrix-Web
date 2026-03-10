@@ -1,15 +1,18 @@
+import asyncio
 import os
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, Request
 from pydantic import BaseModel
 import uuid
 import pandas as pd
-from analyze_clusters import add_cluster_data
-from competition_cells.extract_cells import extract_cells_from_dict
-from kaggle_types import ClusterColumns, CompetitionColumns, KernelColumns
-from pd_utils import dump_clusters_to_python, dump_competitions_to_python, dump_kernels_to_python
-from predict import predcit_cells
-from stats import add_stats_to_cells, add_stats_to_competitions, add_stats_to_kernels
-from hmm_clustering import add_clusters_to_kernels
+import uvicorn
+
+from app.analyze_clusters import add_cluster_data
+from app.competition_cells.extract_cells import extract_cells_from_dict
+from app.kaggle_types import ClusterColumns, KernelColumns
+from app.pd_utils import dump_clusters_to_python, dump_competitions_to_python, dump_kernels_to_python
+from app.predict import predcit_cells
+from app.stats import add_stats_to_cells, add_stats_to_competitions, add_stats_to_kernels
+from app.hmm_clustering import add_clusters_to_kernels
 
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
@@ -90,6 +93,7 @@ def process_notebook(job_id: str, notebook: Notebook):
     kernel_dict["cells"] = cells.to_dict("records")
     NOTEBOOK_PROGRESS[job_id]["result"] = kernel_dict
     NOTEBOOK_PROGRESS[job_id]["status"] = "DONE"
+
     
 def process_competition(job_id: str, notebooks: list[Notebook]):
     print(f"{job_id}: Starting progress")
@@ -143,6 +147,10 @@ def process_competition(job_id: str, notebooks: list[Notebook]):
         c for c in kernels.columns
         if c not in kernel_base_cols
     ]
+    cells_detail_cols = [
+        c for c in cells.columns
+        if c != KernelColumns.KERNEL_VERSION_ID
+    ]
     
     kernels_merged = (kernels
         .merge(cells,
@@ -154,7 +162,7 @@ def process_competition(job_id: str, notebooks: list[Notebook]):
             KernelColumns.CLUSTER_ID: g.name[1],
             "kernel": {
                 **g.iloc[0][kernel_detail_cols].to_dict(),
-                "cells": g[cells.columns].to_dict("records")
+                "cells": g[cells_detail_cols].to_dict("records")
             }
         }))
         .reset_index(drop=True)
@@ -177,3 +185,6 @@ def process_competition(job_id: str, notebooks: list[Notebook]):
     competition_dict["clusters"] = cluster_list
     COMPETITION_PROGRESS[job_id]["result"] = competition_dict
     COMPETITION_PROGRESS[job_id]["status"] = "DONE"
+    
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8001)

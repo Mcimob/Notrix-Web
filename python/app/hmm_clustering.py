@@ -24,10 +24,8 @@ from scipy.spatial.distance import squareform
 from scipy.cluster.hierarchy import linkage, fcluster
 import Levenshtein
 import warnings
-from tqdm import tqdm
-from pd_utils import KERNEL_JSON_COLUMNS, load_all_kernels, save_clusters, save_kernels
-from kaggle_types import ClusterColumns, KernelColumns
-from joblib import Parallel, delayed
+from app.pd_utils import KERNEL_JSON_COLUMNS, load_all_kernels, save_clusters, save_kernels
+from app.kaggle_types import ClusterColumns, KernelColumns
 warnings.filterwarnings('ignore')
 
 # Load configuration
@@ -128,7 +126,7 @@ class HMMClusterer:
         
         # Load state names from class_mapping.json
         try:
-            with open('./class_mapping.json', 'r') as f:
+            with open('app/class_mapping.json', 'r') as f:
                 class_mapping = json.load(f)
             self.state_names = list(class_mapping.keys())
             print(f"Loaded {len(self.state_names)} state names from class_mapping.json: {self.state_names}")
@@ -333,15 +331,17 @@ def get_clustered_kernels(kernels: pd.DataFrame) -> pd.DataFrame:
     for group in groups:
         clustered_group = cluster_for_competition(group)
         results.append(clustered_group)
+        
+    print(results)
 
     kernels_clustered = pd.concat(results, ignore_index=True)
     
     kernels_clustered = kernels_clustered[[KernelColumns.LOCAL_CLUSTER_ID, KernelColumns.KERNEL_VERSION_ID, KernelColumns.SOURCE_COMPETITION_ID]]
     
-    kernels_clustered[KernelColumns.CLUSTER_ID] = pd.factorize(list(zip(
+    kernels_clustered[KernelColumns.CLUSTER_ID] = pd.Series(list(zip(
         kernels_clustered[KernelColumns.SOURCE_COMPETITION_ID],
         kernels_clustered[KernelColumns.LOCAL_CLUSTER_ID]
-    )))[0]
+    ))).factorize()[0]
     
     return kernels_clustered
 

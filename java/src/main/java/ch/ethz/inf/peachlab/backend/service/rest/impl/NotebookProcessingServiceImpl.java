@@ -101,6 +101,11 @@ public class NotebookProcessingServiceImpl implements NotebookProcessingService,
                 }
             }
 
+            if (nbs.size() < 2) {
+                response.addErrorMessage("service.notebooksProcessing.error.numNotebooks");
+                return response;
+            }
+
             String identifier = dao.startCompetitionProcessing(nbs);
             monitorService.monitorCompetitionProcessing(identifier);
             response.setEntity(Pair.of(identifier, description));

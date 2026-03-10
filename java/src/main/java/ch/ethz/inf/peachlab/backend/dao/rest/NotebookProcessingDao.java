@@ -1,20 +1,23 @@
 package ch.ethz.inf.peachlab.backend.dao.rest;
 
 import ch.ethz.inf.peachlab.app.NotebookProcessingConfiguration;
-import ch.ethz.inf.peachlab.backend.dao.DaoException;
+import ch.ethz.inf.peachlab.logger.HasLogger;
 import ch.ethz.inf.peachlab.model.entity.UploadedCompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
 import ch.ethz.inf.peachlab.model.rest.ProcessingStatusResponse;
 import ch.ethz.inf.peachlab.model.rest.StartProcessingResponse;
 import ch.ethz.inf.peachlab.model.rest.UploadedNotebook;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.net.http.HttpClient;
 import java.util.List;
 
 @Component
-public class NotebookProcessingDao {
+public class NotebookProcessingDao implements HasLogger {
 
     private final NotebookProcessingConfiguration config;
 
@@ -23,7 +26,21 @@ public class NotebookProcessingDao {
     }
 
     private RestClient getRestClient() {
-        return RestClient.create(config.getBaseUrl());
+        return RestClient.builder()
+        .baseUrl(config.getBaseUrl())
+            .requestInterceptor((req, body, exec) -> {
+                getLogger().debug("Request URI: {}", req.getURI());
+                getLogger().debug("Request headers: {}", req.getHeaders());
+                getLogger().debug("Request body: {}", new String(body));
+                return exec.execute(req, body);
+            })
+            .requestFactory(new JdkClientHttpRequestFactory(
+                HttpClient
+                    .newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .build()))
+
+        .build();
     }
 
     public String startNotebookProcessing(UploadedNotebook notebook) throws RestException {
@@ -76,6 +93,7 @@ public class NotebookProcessingDao {
             result = getRestClient()
                 .post()
                 .uri(config.getCompetitionPath())
+                .contentType(MediaType.APPLICATION_JSON)
                 .body(notebooks)
                 .retrieve()
                 .body(StartProcessingResponse.class);

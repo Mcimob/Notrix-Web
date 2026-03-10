@@ -32,7 +32,6 @@ import os
 import orjson
 import pandas as pd
 from joblib import Parallel, delayed
-from tqdm import tqdm
 
 CELLTYPE_MAP = {
     "code": 0,
@@ -100,7 +99,7 @@ def extract_all_code_cells(kids, n_jobs=8) -> pd.DataFrame:
     paths = [f"{BASE_PATH}/{kid}.ipynb" for kid in kids]
 
     results = Parallel(n_jobs=n_jobs, verbose=0)(
-        delayed(extract_code_cells)(path) for path in tqdm(paths)
+        delayed(extract_code_cells)(path) for path in paths
     )
 
     # Flatten list of lists into one list of dicts

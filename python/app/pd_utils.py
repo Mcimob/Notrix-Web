@@ -2,7 +2,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from kaggle_types import ClusterColumns, CompetitionColumns, KernelColumns
+from app.kaggle_types import ClusterColumns, CompetitionColumns, KernelColumns
 
 def apply_safe(func):
     return lambda x: np.nan if not is_valid_val(x) else func(x)

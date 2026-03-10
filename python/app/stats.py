@@ -2,12 +2,9 @@ import pandas as pd
 import numpy as np
 import json
 from collections import Counter
-from pandarallel import pandarallel
 
-from kaggle_types import CellColumns, KernelColumns, CompetitionColumns
-from pd_utils import apply_safe, is_valid_val, save_competitions, save_kernels
-
-# pandarallel.initialize(progress_bar=True)
+from app.kaggle_types import CellColumns, KernelColumns, CompetitionColumns
+from app.pd_utils import apply_safe, is_valid_val, save_competitions, save_kernels
 
 FILE_BASE = "/media/tim/Data/Thesis/"
 MAX_LABEL = 13
