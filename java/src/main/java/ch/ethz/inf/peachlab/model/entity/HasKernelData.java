@@ -25,8 +25,12 @@ public abstract class HasKernelData<ID, C extends HasCellData, CO extends HasCom
 
     @Serial
     private static final long serialVersionUID = -8687363840493102608L;
+
     @Column(nullable = false, name = "CreationDate")
     protected LocalDateTime creationDate;
+
+    @Column(nullable = true, name = "VersionNumber")
+    protected int versionNumber;
 
     @Column(nullable = true, name = "Title")
     protected String title;
@@ -64,8 +68,23 @@ public abstract class HasKernelData<ID, C extends HasCellData, CO extends HasCom
     protected Integer[][] transitionMatrix;
 
     @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "TransitionMatrixNorm", columnDefinition = "jsonb")
+    protected Integer[][] transitionMatrixNorm;
+
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "MainLabelStats", columnDefinition = "jsonb")
     protected Map<Integer, Integer> mainLabelStats;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "MainLabelStatsNorm", columnDefinition = "jsonb")
+    protected List<Double> mainLabelStatsNorm;
+    
+    @Column(name = "NGrams",columnDefinition = "varchar")
+    protected String nGrams;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "ComplexitiFeaturesNorm", columnDefinition = "jsonb")
+    protected List<Double> complexityFeaturesNorm;
 
     @Column(name = "SourceCompetitionId")
     protected ID sourceCompetitionId;

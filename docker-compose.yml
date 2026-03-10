@@ -29,6 +29,7 @@ services:
       POSTGRES_DB: kaggle-vis
     volumes:
       - db:/data/postgres
+      - ./python/data:/initData
     networks:
       - db
     restart: unless-stopped
