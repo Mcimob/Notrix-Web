@@ -1,10 +1,11 @@
+import argparse
+
 import pandas as pd
 import numpy as np
-import json
 from collections import Counter
 
 from app.kaggle_types import CellColumns, KernelColumns, CompetitionColumns
-from app.pd_utils import apply_safe, is_valid_val, save_competitions, save_kernels
+from app.pd_utils import apply_safe, is_valid_val, load_all_kernels, load_cells, load_competitions, save_cells, save_competitions, save_kernels
 
 FILE_BASE = "/media/tim/Data/Thesis/"
 MAX_LABEL = 13
@@ -400,10 +401,18 @@ def fillna_zero(x):
     return x if pd.notna(x) else 0
 
 def main():
+    parser = argparse.ArgumentParser(
+        prog="Stats",
+        description="Takes cells, kernels and competitions and adds stats to them",
+    )
+    parser.add_argument("inputDir")
+    parser.add_argument("outputDir")
+    args = parser.parse_args()
+    
     print("Reading CSV files...")
-    cells = pd.read_csv(FILE_BASE + "Cells_predicted.csv", dtype={CellColumns.MAIN_LABEL: "Int32"})
-    kernels = pd.read_csv("AllCompetitionKernels.csv")
-    competitions = pd.read_csv("Competitions.csv")
+    cells = load_cells(args.inputDir + "Cells.csv")
+    kernels = load_all_kernels(args.inputDir + "AllCompetitionKernels.csv")
+    competitions = load_competitions(args.inputDir + "Competitions.csv")
     print("Finished reading CSV files")
 
     print("=" * 30)
@@ -416,21 +425,11 @@ def main():
     
     print("=" * 30)
     
-    print("Dumping JSON columns...")    
-    competitions[CompetitionColumns.TRANSITION_MATRIX] = competitions[CompetitionColumns.TRANSITION_MATRIX].apply(apply_safe(lambda x: x.tolist()))
-    
-    for col_name in [CompetitionColumns.LABEL_STATS, CompetitionColumns.TRANSITION_MATRIX]:
-        competitions[col_name] = competitions[col_name].apply(lambda l: json.dumps(l) if is_valid_val(l) else "")
-    print("Finished dumping JSON columns")
-    
-    print("=" * 30)
-    
     print("Saving CSVs...")
-    save_competitions(competitions, "Competitions_stats_tmp.csv")
-    save_kernels(kernels, "AllCompetitionKernels_tmp.csv")
-    cells.to_csv(FILE_BASE + "Cells_predicted_tmp.csv", index=False)
+    save_competitions(competitions, args.outputDir + "/Competitions.csv")
+    save_kernels(kernels, args.outputDir + "/AllCompetitionKernels.csv")
+    save_cells(args.outputDir + "/Cells.csv")
     print("Finished saving CSVs")
     
-
 if __name__ == "__main__":
     main()

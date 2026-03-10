@@ -1,18 +1,8 @@
 import zipfile
 import os
 import shutil
-import pandas as pd
 
-def extract_kernels(kids=None):
-    if kids is None:
-        kids = pd.read_csv("AllCompetitionKernels.csv")["Id"]
-    # Paths
-    zip_path = "/media/tim/Data/Thesis/metakaggle_code.zip"
-    out_dir = "/media/tim/Data/Thesis/extracted_kernels"
-
-    # Ensure output directory exists
-    os.makedirs(out_dir, exist_ok=True)
-
+def extract_kernels(kids, zip_path: str, out_dir: str):
     # Generate list of files to extract
     print('Matching kernel paths with zip contents...')
     to_extract = list(map(create_filename, kids))
@@ -42,6 +32,3 @@ def create_filename(kid):
     top = f'{int(kid) // 1_000_000:04d}'
     sub = f'{(int(kid) // 1_000) % 1_000:03d}'
     return f'{top}/{sub}/{kid}.ipynb'
-
-if __name__ == "__main__":
-    extract_kernels()

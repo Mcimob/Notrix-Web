@@ -1,3 +1,5 @@
+import argparse
+
 import pandas as pd
 from kaggle_types import CompetitionColumns
 from pd_utils import load_competitions, save_competitions
@@ -61,9 +63,17 @@ def add_umap_coordinates(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def main():
-    competitions = load_competitions("Competitions_stats_tmp.csv")
+    parser = argparse.ArgumentParser(
+        prog="Embedding",
+        description="Takes competitions and embeds them into two dimensions",
+    )
+    parser.add_argument("inputFile")
+    parser.add_argument("outputFile")
+    args = parser.parse_args()
+    
+    competitions = load_competitions(args.inputFile)
     competitions = add_umap_coordinates(competitions)
-    save_competitions(competitions, "Competitions_stats_mapped.csv")
+    save_competitions(competitions, args.outputFile)
 
 if __name__ == "__main__":
     main()

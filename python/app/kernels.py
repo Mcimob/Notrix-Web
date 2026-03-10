@@ -1,75 +1,12 @@
+import argparse
+import tempfile
+
 import pandas as pd
-from competition_cells.extract_kernels import extract_kernels
-from competition_cells.extract_cells import extract_all_code_cells
+from app.competition_cells.extract_kernels import extract_kernels
+from app.competition_cells.extract_cells import extract_all_code_cells
 
-def main():
-    competitions = get_competitions()
-
-    print("Reading Kernels...")
-    kernels = pd.read_csv('meta-kaggle/Kernels.csv', 
-        usecols=["Id", "CurrentKernelVersionId", "TotalViews", "TotalComments", "CurrentUrlSlug", "AuthorUserId"],
-        dtype={
-            "Id": "Int32",
-            "CurrentKernelVersionId": "Int32",
-            "TotalViews": "Int32",
-            "TotalComments": "Int32",
-            "CurrentUrlSlug": "string",
-            "AuthorUserId": "Int32"
-        }
-    )
-    
-    print("Reading KernelVersions...")
-    kernel_versions = pd.read_csv('meta-kaggle/KernelVersions.csv',
-        usecols = ["Id", "ScriptId", "ScriptLanguageId", "CreationDate", "VersionNumber", "Title", "TotalVotes"],
-        dtype={
-            "Id": "Int32",
-            "ScriptId": "Int32",
-            "ScriptLanguageId": "Int32",
-            "CreationDate": "string",
-            "VersionNumber": "Int32",
-            "Title": "string",
-            "TotalVotes": "Int32"
-        }
-    )
-    
-    print("Reading KernelVersionCompetitionSources")    
-    kernel_competition_sources = pd.read_csv('meta-kaggle/KernelVersionCompetitionSources.csv', dtype={
-        "Id": "Int32",
-        "KernelVersionId": "Int32",
-        "SourceCompetitionId": "Int32"
-    })
-    kernel_competition_sources = kernel_competition_sources[kernel_competition_sources["SourceCompetitionId"].isin(competitions["Id"])]
-
-    # Rename IDs only once
-    kernels.rename(columns={'Id': 'KernelId'}, inplace=True)
-    kernel_versions.rename(columns={'Id': 'KernelVersionId'}, inplace=True)
-
-    print("Precomputing all final versions...")
-    final_versions_all = precompute_final_versions(
-        kernels, kernel_versions, kernel_competition_sources
-    )
-    print(f"Final Versions All shape: {final_versions_all.shape}")
-
-    final_versions_all.sort_values(["SourceCompetitionId", "TotalVotes"], inplace=True, ascending=[True, False])
-    
-    success_files = extract_kernels(final_versions_all["KernelVersionId"])
-    success_files = pd.Series(success_files).astype("Int32")
-    final_versions = final_versions_all[final_versions_all["KernelVersionId"].isin(success_files)]
-    final_versions = join_authors(final_versions)
-    final_versions = final_versions[["KernelVersionId", "SourceCompetitionId", "CreationDate", "VersionNumber", "Title", "TotalVotes", "TotalViews", "TotalComments", "CurrentUrlSlug", "AuthorUserName", "AuthorDisplayName"]]
-    final_versions = final_versions.fillna({"TotalViews": 0, "TotalComments": 0})
-    
-    all_cells = extract_all_code_cells(final_versions["KernelVersionId"])
-    
-    final_versions, competitions = remove_empty(all_cells, final_versions, competitions)
-    
-    competitions.to_csv("Competitions.csv", index=False)
-    final_versions.to_csv("AllCompetitionKernels.csv", index=False)
-    all_cells.to_csv("/media/tim/Data/Thesis/Cells.csv", index_label="Id")
-    
-
-def get_competitions() -> pd.DataFrame:
-    competitions = pd.read_csv("meta-kaggle/Competitions.csv", parse_dates=["DeadlineDate"])
+def get_competitions(filename: str) -> pd.DataFrame:
+    competitions = pd.read_csv(filename, parse_dates=["DeadlineDate"])
     return competitions[
         (competitions["DeadlineDate"] >= "2020-01-01") &
         (competitions["TotalSubmissions"] >= 500)
@@ -118,14 +55,7 @@ def precompute_final_versions(kernels: pd.DataFrame, kernel_versions: pd.DataFra
 
     return final
 
-def join_authors(kernels_final: pd.DataFrame) -> pd.DataFrame:
-    print("Reading Users...")
-    users = pd.read_csv("meta-kaggle/Users.csv", usecols=["Id", "UserName", "DisplayName"],
-        dtype={
-            "Id": "Int32",
-            "UserName": "string",
-            "DisplayName": "string"
-        })
+def join_authors(kernels_final: pd.DataFrame, users: pd.DataFrame) -> pd.DataFrame:
     users.rename(columns={"Id": "AuthorUserId"}, inplace=True)
     result = kernels_final.merge(users, how="left", on="AuthorUserId")
     result.drop(columns = "AuthorUserId")
@@ -152,9 +82,96 @@ def remove_empty(cells: pd.DataFrame, kernels: pd.DataFrame, competitions: pd.Da
     
     return (kernels, competitions)
 
+def transform_data(competitions: pd.DataFrame, kernels: pd.DataFrame, kernel_versions: pd.DataFrame, kernel_competition_sources: pd.DataFrame, users: pd.DataFrame, zipPath: str) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    kernel_competition_sources = kernel_competition_sources[kernel_competition_sources["SourceCompetitionId"].isin(competitions["Id"])]
 
+    # Rename IDs only once
+    kernels.rename(columns={'Id': 'KernelId'}, inplace=True)
+    kernel_versions.rename(columns={'Id': 'KernelVersionId'}, inplace=True)
 
+    print("Precomputing all final versions...")
+    final_versions_all = precompute_final_versions(
+        kernels, kernel_versions, kernel_competition_sources
+    )
+    print(f"Final Versions All shape: {final_versions_all.shape}")
 
+    final_versions_all.sort_values(["SourceCompetitionId", "TotalVotes"], inplace=True, ascending=[True, False])
+    
+    with tempfile.TemporaryDirectory() as tmpDir:
+        success_files = extract_kernels(final_versions_all["KernelVersionId"], zipPath, tmpDir)
+        success_files = pd.Series(success_files).astype("Int32")
+        final_versions = final_versions_all[final_versions_all["KernelVersionId"].isin(success_files)]
+        final_versions = join_authors(final_versions, users)
+        final_versions = final_versions[["KernelVersionId", "SourceCompetitionId", "CreationDate", "VersionNumber", "Title", "TotalVotes", "TotalViews", "TotalComments", "CurrentUrlSlug", "AuthorUserName", "AuthorDisplayName"]]
+        final_versions = final_versions.fillna({"TotalViews": 0, "TotalComments": 0})
+        
+        all_cells = extract_all_code_cells(final_versions["KernelVersionId"], tmpDir)
+    
+    all_kernels, competitions = remove_empty(all_cells, final_versions, competitions)
+    
+    return competitions, all_kernels, all_cells
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="TransformData",
+        description="Takes the meta-kaggle directory and the meta-kaggle-code tipfile and creates three csv containing all Competitions, Kernels and Cells",
+    )
+    parser.add_argument("metakaggle")
+    parser.add_argument("metakagglecode")
+    parser.add_argument("outDir")
+    
+    args = parser.parse_args()
+    
+    competitions = get_competitions(args.metakaggle + "/Competitions.csv")
+
+    print("Reading Kernels...")
+    kernels = pd.read_csv(args.metakaggle + '/Kernels.csv', 
+        usecols=["Id", "CurrentKernelVersionId", "TotalViews", "TotalComments", "CurrentUrlSlug", "AuthorUserId"],
+        dtype={
+            "Id": "Int32",
+            "CurrentKernelVersionId": "Int32",
+            "TotalViews": "Int32",
+            "TotalComments": "Int32",
+            "CurrentUrlSlug": "string",
+            "AuthorUserId": "Int32"
+        }
+    )
+    
+    print("Reading KernelVersions...")
+    kernel_versions = pd.read_csv(args.metakaggle + '/KernelVersions.csv',
+        usecols = ["Id", "ScriptId", "ScriptLanguageId", "CreationDate", "VersionNumber", "Title", "TotalVotes"],
+        dtype={
+            "Id": "Int32",
+            "ScriptId": "Int32",
+            "ScriptLanguageId": "Int32",
+            "CreationDate": "string",
+            "VersionNumber": "Int32",
+            "Title": "string",
+            "TotalVotes": "Int32"
+        }
+    )
+    
+    print("Reading KernelVersionCompetitionSources")    
+    kernel_competition_sources = pd.read_csv(args.metakaggle + '/KernelVersionCompetitionSources.csv', dtype={
+        "Id": "Int32",
+        "KernelVersionId": "Int32",
+        "SourceCompetitionId": "Int32"
+    })
+    
+    print("Reading Users...")
+    users = pd.read_csv(args.metakaggle + "/Users.csv", usecols=["Id", "UserName", "DisplayName"],
+        dtype={
+            "Id": "Int32",
+            "UserName": "string",
+            "DisplayName": "string"
+        })
+    
+    competitions, final_versions, all_cells = transform_data(competitions, kernels, kernel_versions, kernel_competition_sources, users, args.metakagglecode)
+    
+    competitions.to_csv(args.outDir + "/Competitions.csv", index=False)
+    final_versions.to_csv(args.outDir + "/AllCompetitionKernels.csv", index=False)
+    all_cells.to_csv(args.outDir + "/Cells.csv", index_label="Id")
+    
 
 if __name__ == "__main__":
     main()

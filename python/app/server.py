@@ -1,4 +1,3 @@
-import asyncio
 import os
 from fastapi import FastAPI, BackgroundTasks, Request
 from pydantic import BaseModel
@@ -77,7 +76,7 @@ def process_notebook(job_id: str, notebook: Notebook):
     
     print(f"{job_id}: Predicting Cells")
     NOTEBOOK_PROGRESS[job_id]["status"] = "PREDICTING_CELLS"
-    predcit_cells(cells)
+    predcit_cells(cells, False)
     
     print(f"{job_id}: Adding stats")
     NOTEBOOK_PROGRESS[job_id]["status"] = "STATS"
@@ -110,7 +109,7 @@ def process_competition(job_id: str, notebooks: list[Notebook]):
     
     print(f"{job_id}: Predicting Cells")
     COMPETITION_PROGRESS[job_id]["status"] = "PREDICTING_CELLS"
-    predcit_cells(cells)
+    predcit_cells(cells, False)
     
     print(f"{job_id}: Adding stats")
     COMPETITION_PROGRESS[job_id]["status"] = "STATS"

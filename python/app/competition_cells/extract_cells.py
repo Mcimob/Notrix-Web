@@ -40,9 +40,6 @@ CELLTYPE_MAP = {
     "heading": 3
 }
 
-BASE_PATH = "/media/tim/Data/Thesis/extracted_kernels"
-
-
 def extract_code_cells(notebook_path):
     """
     Extract all non-empty code + markdown cells from a single .ipynb file.
@@ -91,12 +88,12 @@ def extract_cells_from_dict(nb, kernel_version_id):
         
     return rows
 
-def extract_all_code_cells(kids, n_jobs=8) -> pd.DataFrame:
+def extract_all_code_cells(kids, dirName: str, n_jobs=8) -> pd.DataFrame:
     """
     Extract cells from many notebooks using parallel processing.
     """
 
-    paths = [f"{BASE_PATH}/{kid}.ipynb" for kid in kids]
+    paths = [f"{dirName}/{kid}.ipynb" for kid in kids]
 
     results = Parallel(n_jobs=n_jobs, verbose=0)(
         delayed(extract_code_cells)(path) for path in paths

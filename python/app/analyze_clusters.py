@@ -21,6 +21,7 @@ Usage: python analyze_clusters.py --competition_id 18599
 Output: {competition_id}_summarized.json with GPT-generated analysis and parsed sections
 """
 
+import argparse
 import json
 import os
 from collections import ChainMap, Counter, defaultdict
@@ -415,13 +416,20 @@ def add_cluster_data(kernels: pd.DataFrame, clusters: pd.DataFrame):
     return clusters
 
 def main():
-    """Main execution function."""    
-    kernels = load_all_kernels("AllCompetitionKernels_clustered.csv")
-    clusters = load_clusters("Clusters_analyzed.csv")
+    parser = argparse.ArgumentParser(
+        prog="ClusterStats",
+        description="Takes clusters and kernels and adds descriptions and stats to clusters",
+    )
+    parser.add_argument("inputDir")
+    parser.add_argument("outputFile")
+    args = parser.parse_args()
+    
+    kernels = load_all_kernels(args.inputDir + "AllCompetitionKernels.csv")
+    clusters = load_clusters(args.inputDir + "Clusters.csv")
     
     clusters = add_cluster_data(kernels, clusters)
     
-    save_clusters(clusters, "Clusters_analyzed.csv")
+    save_clusters(clusters, args.outputFile)
     
     print("✅ Analysis complete!")
 

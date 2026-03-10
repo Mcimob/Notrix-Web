@@ -17,6 +17,7 @@ Usage: python hmm_clustering.py competition_id [--config path]
 Output: Enhanced HMM clustering results, analysis, and visualizations
 """
 
+import argparse
 import json
 import numpy as np
 import pandas as pd
@@ -384,6 +385,14 @@ def add_clusters_to_kernels(all_kernels: pd.DataFrame) -> tuple[pd.DataFrame, pd
 def main():
     """Main function to run the enhanced HMM clustering analysis"""
     
+    parser = argparse.ArgumentParser(
+        prog="Clustering",
+        description="Takes kernels and clusters them separated by competition",
+    )
+    parser.add_argument("inputFile")
+    parser.add_argument("outputDir")
+    args = parser.parse_args()
+    
     # Set random seed from config
     random_seed = config['random_seed']
     np.random.seed(random_seed)
@@ -395,14 +404,14 @@ def main():
     
     # Load notebooks with enhanced features
     print("Loading notebook sequences with enhanced features...")
-    all_kernels = load_all_kernels("AllCompetitionKernels_tmp.csv")
+    all_kernels = load_all_kernels(args.inputFile)
     print(f"Loaded {len(all_kernels)} valid notebook sequences")
     
     all_kernels_with_clusters, cluster_map = add_clusters_to_kernels(all_kernels)
     
-    save_clusters(cluster_map, "Clusters.csv")
+    save_clusters(cluster_map, args.outputDir + "Clusters.csv")
     
-    save_kernels(all_kernels_with_clusters, "AllCompetitionKernels_clustered.csv")
+    save_kernels(all_kernels_with_clusters, args.outputDir + "AllCompetitionKernels.csv")
 
 # Load configuration
 config = load_config()

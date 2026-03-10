@@ -2,7 +2,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from app.kaggle_types import ClusterColumns, CompetitionColumns, KernelColumns
+from app.kaggle_types import CellColumns, ClusterColumns, CompetitionColumns, KernelColumns
 
 def apply_safe(func):
     return lambda x: np.nan if not is_valid_val(x) else func(x)
@@ -62,6 +62,13 @@ COMPETITION_JSON_COLUMNS = COMPETITION_NP_COLUMNS + [
 ]
 
 COMPETITION_JSON_CONVERTERS = KERNEL_JSON_CONVERTERS
+
+def load_cells(filename: str) -> pd.DataFrame:
+    cells = pd.read_csv(filename, dtype={CellColumns.MAIN_LABEL: "Int32"})
+    return cells
+
+def save_cells(cells: pd.DataFrame, filename: str):
+    cells.to_csv(filename, index=False)
 
 def load_all_kernels(filename: str) -> pd.DataFrame:
     kernels =  pd.read_csv(filename,
