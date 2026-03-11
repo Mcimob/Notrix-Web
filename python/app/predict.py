@@ -74,6 +74,7 @@ class CodeCellDataset(Dataset):
 def predcit_cells(cells, show_progress: bool):
     code_mask = cells["CellType"] == 0
     code_cells = cells.loc[code_mask, "Source"].astype("str")
+    code_cells = code_cells.fillna("")
     
     predictor = get_predictor()
     preds = predictor.predict(code_cells.to_list(), show_progress)
