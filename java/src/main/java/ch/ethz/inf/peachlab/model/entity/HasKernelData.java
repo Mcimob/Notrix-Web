@@ -237,7 +237,9 @@ public abstract class HasKernelData<ID, C extends HasCellData, CO extends HasCom
     }
 
     public List<C> getCells() {
-        return cells;
+        return cells.stream()
+            .filter(Objects::nonNull)
+            .toList();
     }
 
     public void setCells(List<C> cells) {
