@@ -6,7 +6,8 @@ public record CompetitionDTO(
     String id,
     String title,
     Double coordinateX,
-    Double coordinateY
+    Double coordinateY,
+    Long totalSubmissions
 ) {
 
     public static CompetitionDTO ofCompetition(HasCompetitionData<?, ?, ?> competition) {
@@ -14,7 +15,8 @@ public record CompetitionDTO(
             competition.getId().toString(),
             competition.getTitle(),
             competition.getCoordinateX(),
-            competition.getCoordinateY()
+            competition.getCoordinateY(),
+            competition.getTotalSubmissions()
         );
     }
 }

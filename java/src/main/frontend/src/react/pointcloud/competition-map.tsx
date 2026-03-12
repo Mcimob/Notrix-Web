@@ -6,6 +6,7 @@ export type Competition = {
     title: string;
     coordinateX: number;
     coordinateY: number;
+    totalSubmissions: number;
 };
 
 type Props = {
@@ -40,12 +41,13 @@ const CompetitionMap: React.FC<Props> = (
             .attr("text-anchor", "middle")
             .attr("font-size", "18px")
             .attr("font-weight", "bold")
-            .attr("z-index", 100)
             .text("");
         if (data.length === 0) {
             titleText.text("Loading Competitions...")
-
+            return;
         }
+
+        const maxSubmissions = Math.max(...(data.map(c => c.totalSubmissions)));
 
         // -----------------------------
         // Compute scales
@@ -71,13 +73,15 @@ const CompetitionMap: React.FC<Props> = (
         // -----------------------------
         // Draw points
         // -----------------------------
+        const maxCircleSize = 10;
+        const minCircleSize = 3;
         g.selectAll("circle")
             .data(data)
             .enter()
             .append("circle")
             .attr("cx", d => xScale(d.coordinateX))
             .attr("cy", d => yScale(d.coordinateY))
-            .attr("r", 5)
+            .attr("r", d => minCircleSize * Math.pow((maxCircleSize / minCircleSize), d.totalSubmissions / maxSubmissions))
             .attr("fill", "#4f46e5")
             .attr("opacity", 0.8)
             .on("click", (_, d) => clickListener(d.id))
@@ -85,7 +89,7 @@ const CompetitionMap: React.FC<Props> = (
             .text(d => d.title)
 
         const highlight = g.append("circle")
-            .attr("r", 10)
+            .attr("r", maxCircleSize)
             .attr("fill", "none")
             .attr("stroke", "orange")
             .attr("stroke-width", 2)
