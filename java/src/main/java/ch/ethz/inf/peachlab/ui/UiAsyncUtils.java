@@ -48,7 +48,8 @@ public class UiAsyncUtils {
         SerializableConsumer<List<? extends ServiceResponse<? extends T>>> consumer) {
 
         List<? extends CompletableFuture<? extends ServiceResponse<? extends T>>> futures = callables.stream()
-            .map(CompletableFuture::supplyAsync)
+            // Dont replace this with a method reference, as it will fail in dev mode
+            .map(supplier -> CompletableFuture.supplyAsync(supplier))
             .toList();
 
         CompletableFuture
