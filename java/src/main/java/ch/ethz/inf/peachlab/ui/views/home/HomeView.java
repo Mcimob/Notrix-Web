@@ -72,6 +72,8 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
 
     private final List<HasCompetitionData<?, ?, ?>> competitions = new ArrayList<>();
 
+    private HasCompetitionData<?, ?, ?> closestCompetition;
+
     public HomeView(NotebookProcessingService processingService, CompetitionService competitionService, UploadedCompetitionService uploadedCompetitionService) {
         this.processingService = processingService;
         this.competitionService = competitionService;
@@ -202,10 +204,14 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
             competitionDescriptionBox.render();
         });
 
-        grid.setPartNameGenerator(c -> c
-            instanceof UploadedCompetitionEntity
+        grid.setPartNameGenerator(c -> {
+            if (c.equals(closestCompetition)) {
+                return "hover-highlight";
+            }
+            return c instanceof UploadedCompetitionEntity
                 ? "uploaded"
-                : "");
+                : "";
+        });
 
         grid.setHeightFull();
         grid.setEmptyStateText("Loading competitions...");
@@ -239,7 +245,10 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
             competitions.stream()
                 .filter(predicate)
                 .findFirst()
-                .ifPresent(grid::scrollToItem);
+                .ifPresent(c -> {
+                    grid.scrollToItem(c);
+                    closestCompetition = c;
+                });
         });
 
         return cloud;
