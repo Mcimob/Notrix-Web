@@ -16,7 +16,7 @@ public class CompetitionSearchBar extends TextField {
 
     public CompetitionSearchBar() {
         setPrefixComponent(VaadinIcon.SEARCH.create());
-        setPlaceholder("Name, Tags, ...");
+        setPlaceholder("Name...");
         setLabel("Search");
         addClassNames(STYLE_BACKGROUND_WHITE, STYLE_PADDING_M, STYLE_WIDTH_FULL);
     }
