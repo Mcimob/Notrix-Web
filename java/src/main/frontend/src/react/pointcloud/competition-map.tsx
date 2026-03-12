@@ -27,7 +27,25 @@ const CompetitionMap: React.FC<Props> = (
     const svgRef = useRef<SVGSVGElement | null>(null);
 
     useEffect(() => {
-        if (!svgRef.current || data.length === 0) return;
+        if (!svgRef.current) return;
+
+        const svg = d3.select(svgRef.current);
+        svg.selectAll("*").remove();
+
+        const g = svg.append("g");
+
+        const titleText = svg.append("text")
+            .attr("x", width / 2)
+            .attr("y", 30)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "18px")
+            .attr("font-weight", "bold")
+            .attr("z-index", 100)
+            .text("");
+        if (data.length === 0) {
+            titleText.text("Loading Competitions...")
+
+        }
 
         // -----------------------------
         // Compute scales
@@ -45,15 +63,10 @@ const CompetitionMap: React.FC<Props> = (
             .domain(yExtent)
             .range([height - 50, 50]);
 
-        const svg = d3.select(svgRef.current);
-        svg.selectAll("*").remove();
-
         const quadtree = d3.quadtree<Competition>()
             .x(d => xScale(d.coordinateX))
             .y(d => yScale(d.coordinateY))
             .addAll(data);
-
-        const g = svg.append("g");
 
         // -----------------------------
         // Draw points
@@ -78,14 +91,6 @@ const CompetitionMap: React.FC<Props> = (
             .attr("stroke-width", 2)
             .style("pointer-events", "none")
             .style("opacity", 0);
-
-        const titleText = svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", 30)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "18px")
-            .attr("font-weight", "bold")
-            .text("");
         // -----------------------------
         // Zoom behavior
         // -----------------------------
