@@ -41,6 +41,7 @@ public class ContentGrid extends Grid<HasCellData> {
         setHeightFull();
         addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS, GridVariant.LUMO_NO_BORDER);
         setSelectionMode(SelectionMode.SINGLE);
+        setAllRowsVisible(true);
     }
 
     private Component createCell(HasCellData cell) {
