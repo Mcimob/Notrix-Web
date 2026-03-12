@@ -30,7 +30,7 @@ public abstract class HasKernelData<ID, C extends HasCellData, CO extends HasCom
     protected LocalDateTime creationDate;
 
     @Column(nullable = true, name = "VersionNumber")
-    protected int versionNumber;
+    protected Integer versionNumber;
 
     @Column(nullable = true, name = "Title")
     protected String title;
