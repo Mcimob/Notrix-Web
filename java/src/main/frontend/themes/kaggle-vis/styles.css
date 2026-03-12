@@ -141,6 +141,10 @@ vaadin-button{
     align-items: end;
 }
 
+.flex-1 {
+    flex: 1;
+}
+
 .padding-s {
     padding: var(--size-s);
 }

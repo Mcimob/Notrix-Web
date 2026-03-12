@@ -34,6 +34,7 @@ public final class DesignConstants {
     public static final String STYLE_FLEX_JUSTIFY_CENTER = "flex-justify-center";
     public static final String STYLE_FLEX_ALIGN_CENTER = "flex-align-center";
     public static final String STYLE_FLEX_JUSTIFY_END = "flex-justify-end";
+    public static final String STYLE_FLEX_1 = "flex-1";
 
     public static final String STYLE_PADDING_S = "padding-s";
     public static final String STYLE_PADDING_M = "padding-m";

@@ -59,6 +59,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_RADIUS_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_STYLE_SOLID;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BORDER_WIDTH_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BOX_SHADOW;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_1;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ALIGN_CENTER;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_BETWEEN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
@@ -189,7 +190,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
 
         Div div = new Div();
         div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_PADDING_M, STYLE_FLEX_COLUMN, STYLE_GAP_S,
-            STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+            STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL, STYLE_FLEX_1, STYLE_MIN_HEIGHT_0);
 
         Div container = new Div();
         createToc().ifPresent(toc -> {

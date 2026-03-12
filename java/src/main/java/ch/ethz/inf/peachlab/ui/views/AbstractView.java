@@ -3,6 +3,7 @@ package ch.ethz.inf.peachlab.ui.views;
 import ch.ethz.inf.peachlab.logger.HasLogger;
 import ch.ethz.inf.peachlab.ui.HasRender;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.AfterNavigationEvent;
 import com.vaadin.flow.router.AfterNavigationObserver;
 
