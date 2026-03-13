@@ -1,7 +1,7 @@
 
 services:
   notrix:
-    build: java
+    image: ghcr.io/mcimob/notrix-web/java:latest
     ports:
       - 8080:8080
     networks:
@@ -15,7 +15,7 @@ services:
       - postgres
 
   server:
-    build: python
+    image: ghcr.io/mcimob/notrix-web/python:latest
     networks:
       - server
     environment:
