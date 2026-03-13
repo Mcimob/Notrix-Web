@@ -1,0 +1,56 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository }}/java
+            ghcr.io/${{ github.repository }}/python
+          tags: |
+            type=sha
+            type=raw,value=latest
+
+      - name: Build and push Java image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./java
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/java:latest
+            ghcr.io/${{ github.repository }}/java:${{ github.sha }}
+
+      - name: Build and push Python image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./python
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/python:latest
+            ghcr.io/${{ github.repository }}/python:${{ github.sha }}
+            
