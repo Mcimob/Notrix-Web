@@ -1,5 +1,6 @@
 package ch.ethz.inf.peachlab.ui.views.home.cloud;
 
+import ch.ethz.inf.peachlab.model.dto.CompetitionClusterDTO;
 import ch.ethz.inf.peachlab.model.dto.CompetitionDTO;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Tag;
@@ -34,6 +35,10 @@ public class CompetitionCloud extends ReactAdapterComponent {
 
     public void setCompetitions(Collection<CompetitionDTO> competitions) {
         setState("competitions", competitions);
+    }
+
+    public void setClusters(Collection<CompetitionClusterDTO> clusters) {
+        setState("clusters", clusters);
     }
 
     public void addCompetitionClickedListener(ComponentEventListener<CompetitionClickEvent> listener) {

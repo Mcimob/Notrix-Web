@@ -73,6 +73,9 @@ public abstract class HasCompetitionData<ID, K extends HasKernelData<?, ?, ?>, C
     @OrderColumn(name = "LocalClusterId")
     protected List<C> clusters;
 
+    @Column(name = "ClusterId")
+    protected Long competitionClusterId;
+
     public String getTitle() {
         return title;
     }
@@ -138,6 +141,10 @@ public abstract class HasCompetitionData<ID, K extends HasKernelData<?, ?, ?>, C
 
     public List<C> getClusters() {
         return clusters;
+    }
+
+    public Long getCompetitionClusterId() {
+        return competitionClusterId;
     }
 
     public String getUrlParameter() {

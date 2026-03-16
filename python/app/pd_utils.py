@@ -155,3 +155,6 @@ def dump_competitions_to_python(competitions: pd.DataFrame):
     for col in COMPETITION_NP_COLUMNS:
         if col in competitions.columns:
             competitions[col] = competitions[col].apply(apply_safe(lambda l: l.tolist()))
+            
+def save_competition_clusters(clusters: pd.DataFrame, filename: str):
+    clusters.to_csv(filename, index=False)
