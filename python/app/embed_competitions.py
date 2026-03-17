@@ -10,7 +10,16 @@ from sklearn.preprocessing import normalize
 from sklearn.cluster import KMeans
 import numpy as np
 
-def add_umap_coordinates(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def process_competitions(competitions: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    
+    coords = get_umap_coordinates(competitions)
+    
+    competitions[CompetitionColumns.COORDINATE_X] = coords[:, 0]
+    competitions[CompetitionColumns.COORDINATE_Y] = coords[:, 1]
+    
+    return cluster_competitions(competitions, coords)
+
+def get_umap_coordinates(df: pd.DataFrame) -> list[tuple[float, float]]:
     """
     Adds 2D UMAP coordinates to a competition dataframe.
     Returns a new dataframe with 'umap_x' and 'umap_y' columns.
@@ -56,15 +65,10 @@ def add_umap_coordinates(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
     coords = reducer.fit_transform(embeddings)
 
-    # -----------------------------
-    # 4️⃣ Attach coordinates
-    # -----------------------------
-    df[CompetitionColumns.COORDINATE_X] = coords[:, 0]
-    df[CompetitionColumns.COORDINATE_Y] = coords[:, 1]
+    return coords
 
-    # -----------------------------
-    # 5️⃣ Clustering
-    # -----------------------------
+def cluster_competitions(competitions: pd.DataFrame, coords: list[tuple[float, float]]):
+
     print("Running KMeans clustering...")
 
     kmeans = KMeans(
@@ -73,7 +77,7 @@ def add_umap_coordinates(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     )
 
     clusters = kmeans.fit_predict(coords)
-    df[CompetitionColumns.CLUSTER_ID] = clusters
+    competitions[CompetitionColumns.CLUSTER_ID] = clusters
     
     centroids = kmeans.cluster_centers_
     
@@ -85,7 +89,7 @@ def add_umap_coordinates(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     
     # Merge competitions with cluster centroids
     cluster_sizes = (
-        df.merge(clusters, on=CompetitionClusterColumns.CLUSTER_ID, how="left")
+        competitions.merge(clusters, on=CompetitionClusterColumns.CLUSTER_ID, how="left")
         .groupby(CompetitionClusterColumns.CLUSTER_ID)
         .apply(lambda x: pd.Series({
             CompetitionClusterColumns.RADIUS_X: np.mean(np.abs(x[CompetitionColumns.COORDINATE_X] - x[CompetitionClusterColumns.CENTROID_X])),
@@ -98,12 +102,12 @@ def add_umap_coordinates(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     clusters = clusters.merge(cluster_sizes, on=CompetitionClusterColumns.CLUSTER_ID)
     
     clusters[CompetitionClusterColumns.DESCRIPTION] = (
-        df
+        competitions
         .groupby(CompetitionColumns.CLUSTER_ID)
         .apply(get_gpt_summary)
     )
 
-    return df, clusters
+    return competitions, clusters
 
 def get_gpt_summary(competition_group):
     texts = (
@@ -150,7 +154,7 @@ def main():
     args = parser.parse_args()
     
     competitions = load_competitions(args.inputFile)
-    competitions, clusters = add_umap_coordinates(competitions)
+    competitions, clusters = process_competitions(competitions)
     save_competitions(competitions, args.outputDir + "Competitions_clustered.csv")
     save_competition_clusters(clusters, args.outputDir + "CompetitionClusters.csv")
 
