@@ -2,14 +2,18 @@ package ch.ethz.inf.peachlab.ui.views.home;
 
 import ch.ethz.inf.peachlab.backend.broadcaster.ProcessedNotebookBroadcaster;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
+import ch.ethz.inf.peachlab.backend.service.db.CompetitionClusterService;
 import ch.ethz.inf.peachlab.backend.service.db.CompetitionService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedCompetitionService;
 import ch.ethz.inf.peachlab.backend.service.rest.NotebookProcessingService;
+import ch.ethz.inf.peachlab.model.dto.CompetitionClusterDTO;
 import ch.ethz.inf.peachlab.model.dto.CompetitionDTO;
 import ch.ethz.inf.peachlab.model.dto.ProcessingCompetition;
+import ch.ethz.inf.peachlab.model.entity.CompetitionClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.CompetitionEntity;
 import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.UploadedCompetitionEntity;
+import ch.ethz.inf.peachlab.model.filter.CompetitionClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.UploadedCompetitionFilter;
 import ch.ethz.inf.peachlab.ui.MainLayout;
@@ -61,6 +65,7 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
     private final transient NotebookProcessingService processingService;
     private final transient CompetitionService competitionService;
     private final transient UploadedCompetitionService uploadedCompetitionService;
+    private final transient CompetitionClusterService competitionClusterService;
 
     private final CompetitionCloud cloud = new CompetitionCloud();
 
@@ -76,10 +81,11 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
 
     private HasCompetitionData<?, ?, ?> closestCompetition;
 
-    public HomeView(NotebookProcessingService processingService, CompetitionService competitionService, UploadedCompetitionService uploadedCompetitionService) {
+    public HomeView(NotebookProcessingService processingService, CompetitionService competitionService, UploadedCompetitionService uploadedCompetitionService, CompetitionClusterService competitionClusterService) {
         this.processingService = processingService;
         this.competitionService = competitionService;
         this.uploadedCompetitionService = uploadedCompetitionService;
+        this.competitionClusterService = competitionClusterService;
     }
 
     @Override
@@ -130,6 +136,14 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
         grid.getDataProvider().refreshAll();
 
         cloud.setCompetitions(comps.stream().map(CompetitionDTO::ofCompetition).toList());
+
+        ServiceResponse<PageImpl<CompetitionClusterEntity>> clusterResponse = competitionClusterService.fetch(Pageable.unpaged(), new CompetitionClusterFilter());
+        clusterResponse.getEntity()
+                .map(PageImpl::stream)
+                .map(stream -> stream
+                    .map(CompetitionClusterDTO::ofCompetitionCluster)
+                    .toList())
+                .ifPresent(cloud::setClusters);
 
         competitions.clear();
         competitions.addAll(comps);

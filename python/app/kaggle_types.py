@@ -42,3 +42,14 @@ class CompetitionColumns:
     AVG_LINES = "AvgLinesPerKernel"
     AVG_CELLS = "AvgCellsPerKernel"
     AVG_TOTAL_VOTES = "AvgTotalVotes"
+    CLUSTER_ID = "ClusterId"
+    
+class CompetitionClusterColumns:
+    CLUSTER_ID = CompetitionColumns.CLUSTER_ID
+    DESCRIPTION = "Description"
+    CENTROID_X = "CentroidX"
+    CENTROID_Y = "CentroidY"
+    RADIUS_X = "RadiusX"
+    RADIUS_Y = "RadiusY"
+    STD_X = "StdX"
+    STD_Y = "StdY"
