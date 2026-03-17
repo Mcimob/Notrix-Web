@@ -48,7 +48,8 @@ const CompetitionMap: React.FC<Props> = (
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
 
-        const g = svg.append("g");
+        const base = svg.append("g");
+        const g = base.append("g");
 
         const titleText = svg.append("text")
             .attr("x", width / 2)
@@ -162,6 +163,53 @@ const CompetitionMap: React.FC<Props> = (
         .attr("opacity", 0.8)
         .text(c => c.description);
 
+        const minimapWidth = 200;
+        const minimapHeight = 150;
+
+        const minimap = svg.append("g")
+            .attr("transform", `translate(${width - minimapWidth - 10}, ${height - minimapHeight - 10})`)
+            .style("filter", "drop-shadow(0px 2px 4px rgba(0,0,0,0.2))")
+            .attr("opacity", 0.8);
+
+        minimap.append("rect")
+            .attr("width", minimapWidth)
+            .attr("height", minimapHeight)
+            .attr("fill", "#fff")
+            .attr("stroke", "#ccc");
+
+        const miniContent = minimap.append(() =>
+            base.node()!.cloneNode(true) as SVGGElement
+        );
+        miniContent.selectAll("*").style("pointer-events", "none");
+        miniContent.selectAll("text").remove();
+
+        const scaleX = minimapWidth / width;
+        const scaleY = minimapHeight / height;
+
+        miniContent.attr("transform", `scale(${scaleX}, ${scaleY})`);
+
+        const miniX = d3.scaleLinear()
+            .domain(xExtent)
+            .range([0, minimapWidth]);
+
+        const miniY = d3.scaleLinear()
+            .domain(yExtent)
+            .range([minimapHeight, 0]);
+
+        const viewport = minimap.append("rect")
+            .attr("fill", "var(--lumo-primary-text-color)")
+            .attr("opacity", "0.2")
+            .attr("stroke", "var(--lumo-primary-text-color)")
+            .attr("stroke-width", 1.5)
+
+        svg.append("defs")
+            .append("clipPath")
+            .attr("id", "minimap-clip")
+            .append("rect")
+            .attr("width", minimapWidth)
+            .attr("height", minimapHeight);
+        minimap.attr("clip-path", "url(#minimap-clip)");
+
         // -----------------------------
         // Zoom behavior
         // -----------------------------
@@ -174,9 +222,27 @@ const CompetitionMap: React.FC<Props> = (
                     .duration(50) // small delay for smoothing
                     .ease(d3.easeCubicOut)
                     .attr("transform", currentTransform.toString());
+
+                // visible bounds in data space
+                const x0 = xScale.invert((0 - currentTransform.x) / currentTransform.k);
+                const x1 = xScale.invert((width - currentTransform.x) / currentTransform.k);
+                const y0 = yScale.invert((height - currentTransform.y) / currentTransform.k);
+                const y1 = yScale.invert((0 - currentTransform.y) / currentTransform.k);
+
+                const xMin = Math.min(x0, x1);
+                const xMax = Math.max(x0, x1);
+                const yMin = Math.min(y0, y1);
+                const yMax = Math.max(y0, y1);
+
+                viewport
+                    .attr("x", miniX(xMin))
+                    .attr("y", miniY(yMax))
+                    .attr("width", miniX(xMax) - miniX(xMin))
+                    .attr("height", miniY(yMin) - miniY(yMax));
             });
 
         svg.call(zoom);
+        svg.call(zoom.transform, d3.zoomIdentity);
 
         let lastClosest : Competition;
         svg.on("mousemove", (event) => {
@@ -202,6 +268,26 @@ const CompetitionMap: React.FC<Props> = (
             } else {
                 highlight.style("opacity", 0);
             }
+        });
+
+        minimap.on("click", (event) => {
+            const [mx, my] = d3.pointer(event);
+
+            const targetX = miniX.invert(mx);
+            const targetY = miniY.invert(my);
+
+            const scale = currentTransform.k;
+
+            const newTransform = d3.zoomIdentity
+                .translate(
+                    width / 2 - xScale(targetX) * scale,
+                    height / 2 - yScale(targetY) * scale
+                )
+                .scale(scale);
+
+            svg.transition()
+                .duration(500)
+                .call(zoom.transform, newTransform);
         });
 
     }, [competitions, clusters, width, height]);
