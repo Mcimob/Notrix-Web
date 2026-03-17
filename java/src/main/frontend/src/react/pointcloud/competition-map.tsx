@@ -170,7 +170,10 @@ const CompetitionMap: React.FC<Props> = (
             .scaleExtent([0.5, 10])
             .on("zoom", (event) => {
                 currentTransform = event.transform;
-                g.attr("transform", currentTransform.toString());
+                g.transition()
+                    .duration(50) // small delay for smoothing
+                    .ease(d3.easeCubicOut)
+                    .attr("transform", currentTransform.toString());
             });
 
         svg.call(zoom);
