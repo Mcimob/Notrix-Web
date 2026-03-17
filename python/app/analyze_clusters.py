@@ -23,35 +23,19 @@ Output: {competition_id}_summarized.json with GPT-generated analysis and parsed 
 
 import argparse
 import json
-import os
-from collections import ChainMap, Counter, defaultdict
+from collections import ChainMap, Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Any
 
 import numpy as np
 import pandas as pd
-from dotenv import load_dotenv
 from app.kaggle_types import ClusterColumns, KernelColumns
-from openai import OpenAI
+import app.ai as ai
 import pickle as pkl
 from tqdm import tqdm
 
 from app.pd_utils import KERNEL_JSON_COLUMNS, load_all_kernels, load_clusters, save_clusters
-
-
-def load_environment():
-    """Load environment variables from .env file."""
-    env_path = Path(__file__).parent / '.env'
-    if env_path.exists():
-        print("Loading API key from file")
-        load_dotenv(env_path)
-    api_key = os.getenv('OPENAI_API_KEY')
-    
-    if not api_key or api_key == 'your_openai_api_key_here':
-        raise ValueError("Please set a valid OPENAI_API_KEY in the .env file")
-    
-    return api_key
 
 
 def load_class_mapping() -> Dict[int, str]:
@@ -246,9 +230,9 @@ Keep the analysis data-driven, referencing specific transition percentages, and 
     return prompt.strip()
 
 
-def query_gpt5(prompt: str, api_key: str) -> str:
+def query_gpt5(prompt: str) -> str:
     """Query GPT-5 with the analysis prompt."""
-    client = OpenAI(api_key=api_key)
+    client = ai.get_client()
     
     try:
         response = client.chat.completions.create(
@@ -385,8 +369,6 @@ def add_cluster_data(kernels: pd.DataFrame, clusters: pd.DataFrame):
     ]:
         clusters = clusters.merge(df, on=KernelColumns.CLUSTER_ID)
     
-    api_key = load_environment()
-    
     print("✍️  Generating GPT analysis prompt...")
     prompts = generate_analysis_prompt(clusters, competition_transition_stats)
     
@@ -397,7 +379,7 @@ def add_cluster_data(kernels: pd.DataFrame, clusters: pd.DataFrame):
     try:
         for p in tqdm(prompts, desc="Querying..."):
             if p:
-                gpt_response = query_gpt5(p, api_key)
+                gpt_response = query_gpt5(p)
                 result = save_analysis_result(gpt_response)
                 responses.append(result)
                 response_index += 1

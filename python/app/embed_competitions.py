@@ -3,11 +3,11 @@ import argparse
 import pandas as pd
 from app.kaggle_types import CompetitionClusterColumns, CompetitionColumns
 from app.pd_utils import load_competitions, save_competition_clusters, save_competitions
+import app.ai as ai
 from sentence_transformers import SentenceTransformer
 import umap
 from sklearn.preprocessing import normalize
 from sklearn.cluster import KMeans
-from sklearn.feature_extraction.text import TfidfVectorizer
 import numpy as np
 
 def add_umap_coordinates(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
@@ -38,6 +38,7 @@ def add_umap_coordinates(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
         df["full_text"].tolist(),
         show_progress_bar=True
     )
+    df.drop(columns=["full_text"], inplace=True)
 
     # Normalize (important when using cosine metric)
     embeddings = normalize(embeddings)
@@ -96,32 +97,48 @@ def add_umap_coordinates(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
 
     clusters = clusters.merge(cluster_sizes, on=CompetitionClusterColumns.CLUSTER_ID)
     
-    labels = {}
-
-    for cluster_id in clusters[CompetitionClusterColumns.CLUSTER_ID]:
-        clutser_competitions = df[df[CompetitionColumns.CLUSTER_ID] == cluster_id]
-        texts = (
-            clutser_competitions[CompetitionColumns.TITLE].fillna("")
-            + " " + 
-            clutser_competitions[CompetitionColumns.SUBTITLE].fillna("")
-        )
-        
-
-        vectorizer = TfidfVectorizer(
-            stop_words="english",
-            max_features=5
-        )
-
-        X = vectorizer.fit_transform(texts)
-
-        words = vectorizer.get_feature_names_out()
-        labels[cluster_id] = ", ".join(words[:3])
-
-    clusters[CompetitionClusterColumns.DESCRIPTION] = clusters[CompetitionClusterColumns.CLUSTER_ID].map(labels)
-
-    df.drop(columns=["full_text"], inplace=True)
+    clusters[CompetitionClusterColumns.DESCRIPTION] = (
+        df
+        .groupby(CompetitionColumns.CLUSTER_ID)
+        .apply(get_gpt_summary)
+    )
 
     return df, clusters
+
+def get_gpt_summary(competition_group):
+    texts = (
+        competition_group[CompetitionColumns.TITLE].fillna("")
+        + " " + 
+        competition_group[CompetitionColumns.SUBTITLE].fillna("")
+    )
+
+    prompt = f"""
+        Give a short 3-5 word label for this group of competitions:
+        {texts[:20].tolist()}
+    """
+    client = ai.get_client()
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",  # Using GPT-4o as GPT-5 may not be available
+            messages=[
+                {
+                    "role": "system", 
+                    "content": "You are an expert data scientist specializing in machine learning workflow analysis. Concise answers with no extras"
+                },
+                {
+                    "role": "user", 
+                    "content": prompt
+                }
+            ],
+            max_tokens=100,
+            temperature=0.3  # Lower temperature for more consistent, analytical responses
+        )
+        
+        return response.choices[0].message.content
+        
+    except Exception as e:
+        raise Exception(f"GPT API call failed: {e}")
 
 def main():
     parser = argparse.ArgumentParser(
