@@ -50,15 +50,49 @@ const CompetitionMap: React.FC<Props> = (
         const base = svg.append("g");
         const g = base.append("g");
 
-        const titleText = svg.append("text")
-            .attr("x", width / 2)
-            .attr("y", 30)
+        // Append a group to hold text + background
+        const titleGroup = svg.append("g")
+            .attr("transform", `translate(${width/2}, 30)`); // position at center top
+
+        // Background rectangle
+        const titleBg = titleGroup.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("rx", 4) // rounded corners
+            .attr("ry", 4)
+            .attr("fill", "white")
+            .attr("stroke", "#ccc")
+            .attr("stroke-width", 1)
+            .attr("opacity", 0.9);
+
+        // Text element
+        const titleText = titleGroup.append("text")
             .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle") // vertically center text
             .attr("font-size", "18px")
             .attr("font-weight", "bold")
+            .attr("fill", "black")
             .text("");
+
+        // Function to update text and resize background
+        function setTitle(text: string) {
+            titleText.text(text);
+
+            // Get text dimensions
+            const bbox = titleText.node()!.getBBox();
+
+            const paddingX = 8;
+            const paddingY = 4;
+
+            // Update background rect
+            titleBg
+                .attr("x", bbox.x - paddingX)
+                .attr("y", bbox.y - paddingY)
+                .attr("width", bbox.width + 2 * paddingX)
+                .attr("height", bbox.height + 2 * paddingY);
+        }
         if (competitions.length === 0 || clusters.length === 0) {
-            titleText.text("Loading Competitions...")
+            setTitle("Loading Competitions...")
             return;
         }
 
@@ -182,7 +216,7 @@ const CompetitionMap: React.FC<Props> = (
                     if (lastClosest != closest) {
                         closestChangeListener(closest.id)
                         lastClosest = closest;
-                        titleText.text(closest.title);
+                        setTitle(closest.title);
 
                         highlight
                             .attr("cx", xScale(closest.coordinateX))
