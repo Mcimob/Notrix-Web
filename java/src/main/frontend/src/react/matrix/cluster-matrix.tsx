@@ -64,7 +64,7 @@ class CLusterMatrix extends ReactAdapterElement {
                         <span style={{ color: textColor }} className="font-size-s">
                             {item.kernels.length} Notebooks
                         </span>
-                        <hr style={{ backgroundColor: textColor, height: "5px" }} />
+                        <hr style={{ backgroundColor: textColor, height: "3px", minHeight: "3px" }} />
                         <div className="flex-row">
                             {item.kernels.map(kernel => (
                                 <CellColumn
