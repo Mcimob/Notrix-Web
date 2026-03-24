@@ -4,12 +4,10 @@ import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.BaseService;
 import ch.ethz.inf.peachlab.model.dto.ClusterDTO;
 import ch.ethz.inf.peachlab.model.dto.KernelDTO;
-import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.HasBaseStats;
 import ch.ethz.inf.peachlab.model.entity.HasClusterData;
 import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
-import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
 import ch.ethz.inf.peachlab.model.filter.AbstractClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.AbstractCompetitionFilter;
@@ -196,7 +194,7 @@ public abstract class AbstractCompetitionView<
         clusterMatrix.addClusterClickedListener(this::onClusterClicked);
         clusterMatrix.setVisible(false);
 
-        UiAsyncUtils.<PageImpl<C>>callServiceAsync(
+        UiAsyncUtils.callServiceAsync(
             () -> clusterService.fetch(Pageable.unpaged(Sort.by("LocalClusterId")), clusterFilter, getClusterLoadType()),
             UI.getCurrent(),
             this::onNewClusterMatrixData
@@ -386,9 +384,8 @@ public abstract class AbstractCompetitionView<
 
         grid.setEmptyStateText("Loading Notebooks...");
 
-        grid.addSortListener(sort -> {
-            matrix.setItems(grid.getListDataView().getItems().map(KernelDTO::ofKernel).toList());
-        });
+        grid.addSortListener(sort ->
+            matrix.setItems(grid.getListDataView().getItems().map(KernelDTO::ofKernel).toList()));
 
         return grid;
     }
@@ -415,9 +412,10 @@ public abstract class AbstractCompetitionView<
     }
 
     private Component createTitleElement(HasBaseStats kernelData) {
-        if (kernelData instanceof KernelEntity kernel) {
+        if (kernelData instanceof HasKernelData<?, ?, ?> kernel) {
             return TitleLink.ofKernel(kernel);
-        } else if (kernelData instanceof ClusterEntity cluster) {
+        }
+        if (kernelData instanceof HasClusterData<?, ?> cluster) {
             return new Text("Cluster " + cluster.getLocalClusterId());
         }
         return new Div();
