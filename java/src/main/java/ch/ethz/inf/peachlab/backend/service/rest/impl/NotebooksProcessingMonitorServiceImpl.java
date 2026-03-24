@@ -3,6 +3,7 @@ package ch.ethz.inf.peachlab.backend.service.rest.impl;
 import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingCompetitionBroadcaster;
 import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingCompetitionUpdateBroadcaster;
 import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingNotebookBroadcaster;
+import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingNotebookUpdateBroadcaster;
 import ch.ethz.inf.peachlab.backend.dao.DaoException;
 import ch.ethz.inf.peachlab.backend.dao.rest.NotebookProcessingDao;
 import ch.ethz.inf.peachlab.backend.dao.rest.NotebookProcessingNotFinishedException;
@@ -48,7 +49,16 @@ public class NotebooksProcessingMonitorServiceImpl implements NotebookProcessing
         backoff = @Backoff(delay = 1000)
     )
     public void monitorNotebookProcessing(String identifier) throws NotebookProcessingNotFinishedException, RestException {
-        ProcessingStatusResponse<UploadedKernelEntity> status = dao.getProcessingResponse(identifier);
+        ProcessingStatusResponse<UploadedKernelEntity> status;
+        try {
+            status = dao.getProcessingResponse(identifier);
+        } catch (NotebookProcessingNotFinishedException e) {
+            ProcessingNotebookUpdateBroadcaster.broadcast(identifier, e.getProcessingStatus());
+            throw e;
+        } catch (NullResultException e) {
+            ProcessingNotebookUpdateBroadcaster.broadcast(identifier, ProcessingStatus.DONE);
+            return;
+        }
 
         UploadedKernelEntity kernel = status.result();
         kernel.setId(identifier);
@@ -56,6 +66,7 @@ public class NotebooksProcessingMonitorServiceImpl implements NotebookProcessing
         kernelService.save(kernel);
 
         ProcessingNotebookBroadcaster.broadcast(identifier);
+        ProcessingNotebookUpdateBroadcaster.broadcast(identifier, ProcessingStatus.DONE);
     }
 
     @Override

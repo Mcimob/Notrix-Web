@@ -59,6 +59,9 @@ public class NotebookGrid extends TreeGrid<SavedNotebook> {
                 if (nb.getProcessingCompetition() != null) {
                     return new Text(nb.getProcessingCompetition().name());
                 }
+                if (nb.getProcessingNotebook() != null) {
+                    return new Text(nb.getProcessingNotebook().name());
+                }
                 HasCompetitionData<?, ?, ?> competition = nb.getCompetition();
                 if (competition != null) {
                     return TitleLink.ofCompetition(competition);

@@ -1,6 +1,7 @@
 package ch.ethz.inf.peachlab.ui.views.save;
 
 import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingCompetitionUpdateBroadcaster;
+import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingNotebookUpdateBroadcaster;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.KernelService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
@@ -112,10 +113,6 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
     private void onAllData(Set<String> comps, Map<Long, Set<String>> uploadedKernels, Map<String, ProcessingCompetition> processingCompetitions, Map<String, ProcessingNotebook> processingNotebooks) {
         List<SavedNotebook> items = new ArrayList<>();
 
-        UploadedKernelFilter competitionKernelFilter = new UploadedKernelFilter();
-        competitionKernelFilter.setCompetitionIds(comps);
-        ServiceResponse<PageImpl<UploadedKernelEntity>> competitionKernelResponse = uploadedKernelService.fetch(Pageable.unpaged(), competitionKernelFilter, UploadedKernelLoadType.WITH_COMPETITION);
-
         Map<String, SavedNotebook> processingCompetitionGridItems = new HashMap<>();
         processingCompetitions.forEach((id, c) -> {
             SavedNotebook nb = new SavedNotebook(c);
@@ -128,6 +125,23 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
         if (!processingCompetitions.isEmpty()) {
             items.add(new SavedNotebook(processingCompetitionGridItems.values().stream().toList(), "Processing Competitions"));
         }
+
+        Map<String, SavedNotebook> processingNotebookGridItems = new HashMap<>();
+        processingNotebooks.forEach((id, c) -> {
+            SavedNotebook nb = new SavedNotebook(c);
+            processingNotebookGridItems.put(id, nb);
+            ProcessingNotebookUpdateBroadcaster.register(status -> {
+                nb.setProcessingStatus(status);
+                uploadedGrid.getDataProvider().refreshAll();
+            }, id, UI.getCurrent());
+        });
+        if (!processingNotebooks.isEmpty()) {
+            items.add(new SavedNotebook(processingNotebookGridItems.values().stream().toList(), "Processing Notebooks"));
+        }
+
+        UploadedKernelFilter competitionKernelFilter = new UploadedKernelFilter();
+        competitionKernelFilter.setCompetitionIds(comps);
+        ServiceResponse<PageImpl<UploadedKernelEntity>> competitionKernelResponse = uploadedKernelService.fetch(Pageable.unpaged(), competitionKernelFilter, UploadedKernelLoadType.WITH_COMPETITION);
 
         UploadedKernelFilter filter = new UploadedKernelFilter();
         filter.setIds(uploadedKernels.values().stream()

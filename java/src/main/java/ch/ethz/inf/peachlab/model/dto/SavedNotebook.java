@@ -11,6 +11,7 @@ public class SavedNotebook {
     private HasKernelData<?, ?, ?> kernel;
     private HasCompetitionData<?, ?, ?> competition;
     private ProcessingCompetition processingCompetition;
+    private ProcessingNotebook processingNotebook;
     private ProcessingStatus processingStatus;
     private String title;
     private List<SavedNotebook> children;
@@ -36,6 +37,10 @@ public class SavedNotebook {
 
     public SavedNotebook(ProcessingCompetition processingCompetition) {
         this.processingCompetition = processingCompetition;
+    }
+
+    public SavedNotebook(ProcessingNotebook processingNotebook) {
+        this.processingNotebook = processingNotebook;
     }
 
     public String getName() {
@@ -101,6 +106,10 @@ public class SavedNotebook {
 
     public ProcessingStatus getProcessingStatus() {
         return processingStatus;
+    }
+
+    public ProcessingNotebook getProcessingNotebook() {
+        return processingNotebook;
     }
 
     public void setProcessingStatus(ProcessingStatus processingStatus) {
