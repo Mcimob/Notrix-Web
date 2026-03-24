@@ -118,12 +118,12 @@ public class NotebookProcessingDao implements HasLogger {
                     .build())
                 .retrieve()
                 .body(new ParameterizedTypeReference<ProcessingStatusResponse<UploadedCompetitionEntity>>() {});
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RestException("Something went wrong while fetching notebook processing status", e);
         }
 
         if (result == null || result.status() == null) {
-            throw new RestException("Returned result was null");
+            throw new NullResultException("Returned result was null");
         }
         if (result.result() == null) {
             throw new NotebookProcessingNotFinishedException("Processing not yet done", result.status());

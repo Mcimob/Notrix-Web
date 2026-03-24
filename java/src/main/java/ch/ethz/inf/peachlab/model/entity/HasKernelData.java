@@ -13,6 +13,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.io.Serial;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -21,7 +22,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @MappedSuperclass
-public abstract class HasKernelData<ID, C extends HasCellData, CO extends HasCompetitionData<?, ?, ?>> implements AbstractEntity<ID>, HasBaseStats {
+public abstract class HasKernelData<ID, C extends HasCellData, CO extends HasCompetitionData<?, ?, ?>> implements AbstractEntity<ID>, HasBaseStats, Serializable {
 
     @Serial
     private static final long serialVersionUID = -8687363840493102608L;

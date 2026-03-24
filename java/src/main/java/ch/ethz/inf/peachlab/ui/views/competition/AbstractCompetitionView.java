@@ -31,6 +31,7 @@ import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.KernelClickEv
 import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.NotebookMatrix;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
 import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
+import ch.ethz.inf.peachlab.util.ServiceResponseHelper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
@@ -40,6 +41,7 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -131,10 +133,13 @@ public abstract class AbstractCompetitionView<
     }
 
     @SafeVarargs
-    protected final void initData(Supplier<ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>>>... suppliers) {
-        List<Supplier<ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>>>> localSuppliers = new ArrayList<>(List.of(suppliers));
-        localSuppliers.add(() -> kernelService.fetch(Pageable.unpaged(), kernelFilter, getKernelLoadType()));
-        UiAsyncUtils.<PageImpl<? extends HasKernelData<?, ?, ?>>>callServicesAsync(
+    protected final void initData(Supplier<ServiceResponse<PageImpl<HasKernelData<?, ?, ?>>>>... suppliers) {
+        List<Supplier<ServiceResponse<PageImpl<HasKernelData<?, ?, ?>>>>> localSuppliers = new ArrayList<>(List.of(suppliers));
+        //noinspection unchecked,rawtypes
+        localSuppliers.add(() -> ServiceResponseHelper.transformEntity(
+            kernelService.fetch(Pageable.unpaged(), kernelFilter, getKernelLoadType()),
+            p -> (PageImpl) p.map(k -> (HasKernelData<?, ?, ?>) k)));
+        UiAsyncUtils.callServicesAsync(
             localSuppliers,
             UI.getCurrent(),
             this::onKernelData
@@ -291,12 +296,11 @@ public abstract class AbstractCompetitionView<
             });
     }
 
-    private void onKernelData(List<? extends ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>>> responses) {
+    private void onKernelData(List<ServiceResponse<PageImpl<HasKernelData<?, ?, ?>>>> responses) {
         List<HasKernelData<?, ?, ?>> kernels = responses.stream()
             .map(ServiceResponse::getEntity)
             .flatMap(Optional::stream)
-            .flatMap(PageImpl::stream)
-            .map(o -> (HasKernelData<?, ?, ?>) o)
+            .flatMap(Page::stream)
             .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
 
         matrix.setItems(kernels.stream()

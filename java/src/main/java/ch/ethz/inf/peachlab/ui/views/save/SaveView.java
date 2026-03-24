@@ -1,8 +1,11 @@
 package ch.ethz.inf.peachlab.ui.views.save;
 
+import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingCompetitionUpdateBroadcaster;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.KernelService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
+import ch.ethz.inf.peachlab.model.dto.ProcessingCompetition;
+import ch.ethz.inf.peachlab.model.dto.ProcessingNotebook;
 import ch.ethz.inf.peachlab.model.dto.SavedNotebook;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
@@ -15,6 +18,7 @@ import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import ch.ethz.inf.peachlab.ui.webstorage.HasSavedKernels;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.router.Route;
@@ -23,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -68,7 +73,7 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
     private Component createLeft() {
         uploadedGrid.setEmptyStateText("Loading uploaded notebooks...");
 
-        getUploadedNotebooks(this::onUploadedKernels);
+        fetchData();
 
         H2 title = new H2("Your Notebooks");
         title.addClassNames(STYLE_PADDING_M);
@@ -96,14 +101,33 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
         updateGrid(savedGrid, kernelResponse);
     }
 
-    private void onUploadedKernels(Map<Long, Set<String>> uploadedKernels) {
-        getUploadedCompetitions(comps -> onUploadedCompetitions(comps, uploadedKernels));
+    private void fetchData() {
+        getUploadedNotebooks(nbs ->
+            getUploadedCompetitions(comps ->
+                getProcessingNotebooks(pnbs ->
+                    getProcessingCompetitions(pcomps ->
+                        onAllData(comps, nbs, pcomps, pnbs)))));
     }
 
-    private void onUploadedCompetitions(Set<String> comps, Map<Long, Set<String>> uploadedKernels) {
+    private void onAllData(Set<String> comps, Map<Long, Set<String>> uploadedKernels, Map<String, ProcessingCompetition> processingCompetitions, Map<String, ProcessingNotebook> processingNotebooks) {
+        List<SavedNotebook> items = new ArrayList<>();
+
         UploadedKernelFilter competitionKernelFilter = new UploadedKernelFilter();
         competitionKernelFilter.setCompetitionIds(comps);
         ServiceResponse<PageImpl<UploadedKernelEntity>> competitionKernelResponse = uploadedKernelService.fetch(Pageable.unpaged(), competitionKernelFilter, UploadedKernelLoadType.WITH_COMPETITION);
+
+        Map<String, SavedNotebook> processingCompetitionGridItems = new HashMap<>();
+        processingCompetitions.forEach((id, c) -> {
+            SavedNotebook nb = new SavedNotebook(c);
+            processingCompetitionGridItems.put(id, nb);
+            ProcessingCompetitionUpdateBroadcaster.register(status -> {
+                nb.setProcessingStatus(status);
+                uploadedGrid.getDataProvider().refreshAll();
+            }, id, UI.getCurrent());
+        });
+        if (!processingCompetitions.isEmpty()) {
+            items.add(new SavedNotebook(processingCompetitionGridItems.values().stream().toList(), "Processing Competitions"));
+        }
 
         UploadedKernelFilter filter = new UploadedKernelFilter();
         filter.setIds(uploadedKernels.values().stream()
@@ -111,7 +135,6 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
             .collect(Collectors.toSet()));
         ServiceResponse<PageImpl<UploadedKernelEntity>> kernelResponse = uploadedKernelService.fetch(Pageable.unpaged(), filter, UploadedKernelLoadType.WITH_COMPETITION);
 
-        List<SavedNotebook> items = new ArrayList<>();
         processResponse(competitionKernelResponse)
             .map(nbs -> new SavedNotebook(nbs, "Uploaded Competitions"))
             .ifPresent(items::add);
@@ -124,7 +147,6 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
             uploadedGrid.setItems(items, SavedNotebook::getChildren);
             uploadedGrid.expand(items);
         }
-
     }
 
     private void updateGrid(NotebookGrid grid, ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>> response) {

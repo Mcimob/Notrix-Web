@@ -2,15 +2,18 @@ package ch.ethz.inf.peachlab.model.dto;
 
 import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
+import ch.ethz.inf.peachlab.model.rest.ProcessingStatus;
 
 import java.util.List;
 
 public class SavedNotebook {
 
-    private final HasKernelData<?, ?, ?> kernel;
-    private final HasCompetitionData<?, ?, ?> competition;
-    private final String title;
-    private final List<SavedNotebook> children;
+    private HasKernelData<?, ?, ?> kernel;
+    private HasCompetitionData<?, ?, ?> competition;
+    private ProcessingCompetition processingCompetition;
+    private ProcessingStatus processingStatus;
+    private String title;
+    private List<SavedNotebook> children;
 
     private SavedNotebook(HasKernelData<?, ?, ?> kernel, HasCompetitionData<?, ?, ?> competition, List<SavedNotebook> children, String title) {
         this.kernel = kernel;
@@ -29,6 +32,10 @@ public class SavedNotebook {
 
     public SavedNotebook(List<SavedNotebook> children, String title) {
         this(null, null, children, title);
+    }
+
+    public SavedNotebook(ProcessingCompetition processingCompetition) {
+        this.processingCompetition = processingCompetition;
     }
 
     public String getName() {
@@ -66,5 +73,37 @@ public class SavedNotebook {
 
     public String getTitle() {
         return title;
+    }
+
+    public void setChildren(List<SavedNotebook> children) {
+        this.children = children;
+    }
+
+    public void setCompetition(HasCompetitionData<?, ?, ?> competition) {
+        this.competition = competition;
+    }
+
+    public void setKernel(HasKernelData<?, ?, ?> kernel) {
+        this.kernel = kernel;
+    }
+
+    public void setProcessingCompetition(ProcessingCompetition processingCompetition) {
+        this.processingCompetition = processingCompetition;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public ProcessingCompetition getProcessingCompetition() {
+        return processingCompetition;
+    }
+
+    public ProcessingStatus getProcessingStatus() {
+        return processingStatus;
+    }
+
+    public void setProcessingStatus(ProcessingStatus processingStatus) {
+        this.processingStatus = processingStatus;
     }
 }

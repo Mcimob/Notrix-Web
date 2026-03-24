@@ -1,7 +1,8 @@
 package ch.ethz.inf.peachlab.ui;
 
 import ch.ethz.inf.peachlab.app.AppConfiguration;
-import ch.ethz.inf.peachlab.backend.broadcaster.ProcessedNotebookBroadcaster;
+import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingCompetitionBroadcaster;
+import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingNotebookBroadcaster;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedCompetitionService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
@@ -77,7 +78,7 @@ public class MainLayout extends AppLayout implements ManagesProcessingNotebooks 
                         .filter(Boolean::booleanValue)
                         .ifPresentOrElse(
                             c -> onNotebooksProcessingDone(identifier),
-                            () -> ProcessedNotebookBroadcaster.registerNotebookListener(this::onNotebooksProcessingDone, identifier, ui))
+                            () -> ProcessingNotebookBroadcaster.register(this::onNotebooksProcessingDone, identifier, ui))
                 )
             )
         );
@@ -89,7 +90,7 @@ public class MainLayout extends AppLayout implements ManagesProcessingNotebooks 
                         .filter(Boolean::booleanValue)
                         .ifPresentOrElse(
                             c -> onCompetitionProcessingDone(identifier),
-                            () -> ProcessedNotebookBroadcaster.registerCompetitionListener(this::onCompetitionProcessingDone, identifier, ui))
+                            () -> ProcessingCompetitionBroadcaster.register(this::onCompetitionProcessingDone, identifier, ui))
                 )
             )
         );

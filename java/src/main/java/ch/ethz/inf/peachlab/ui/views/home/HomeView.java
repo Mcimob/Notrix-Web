@@ -1,6 +1,7 @@
 package ch.ethz.inf.peachlab.ui.views.home;
 
-import ch.ethz.inf.peachlab.backend.broadcaster.ProcessedNotebookBroadcaster;
+import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingCompetitionBroadcaster;
+import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingNotebookBroadcaster;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.CompetitionClusterService;
 import ch.ethz.inf.peachlab.backend.service.db.CompetitionService;
@@ -24,6 +25,7 @@ import ch.ethz.inf.peachlab.ui.views.competition.CompetitionView;
 import ch.ethz.inf.peachlab.ui.views.competition.UploadedCompetitionView;
 import ch.ethz.inf.peachlab.ui.views.home.cloud.CompetitionCloud;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
+import ch.ethz.inf.peachlab.util.ServiceResponseHelper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
@@ -113,10 +115,15 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
         getUploadedCompetitions(comps -> {
             uploadedFilter.setIds(comps);
 
-            UiAsyncUtils.<PageImpl<? extends HasCompetitionData<?, ?, ?>>>callServicesAsync(
+            //noinspection unchecked,rawtypes
+            UiAsyncUtils.callServicesAsync(
                 List.of(
-                    () -> uploadedCompetitionService.fetch(Pageable.unpaged(), uploadedFilter),
-                    () -> competitionService.fetch(Pageable.unpaged(), filter)
+                    () -> ServiceResponseHelper.transformEntity(
+                        uploadedCompetitionService.fetch(Pageable.unpaged(), uploadedFilter),
+                        p -> (PageImpl) p.map(k -> (HasCompetitionData<?, ?, ?>) k)),
+                    () -> ServiceResponseHelper.transformEntity(
+                        competitionService.fetch(Pageable.unpaged(), filter),
+                        p -> (PageImpl) p.map(k -> (HasCompetitionData<?, ?, ?>) k))
                 ),
                 UI.getCurrent(),
                 this::onCompetitionData
@@ -124,7 +131,7 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
         });
     }
 
-    private void onCompetitionData(List<? extends ServiceResponse<? extends PageImpl<? extends HasCompetitionData<?, ?, ?>>>> responses) {
+    private void onCompetitionData(List<ServiceResponse<PageImpl<HasCompetitionData<?, ?, ?>>>> responses) {
         List<HasCompetitionData<?, ?, ?>> comps = responses.stream()
             .map(ServiceResponse::getEntity)
             .flatMap(Optional::stream)
@@ -171,7 +178,7 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
                     processingService.startCompetitionProcessing(metadata, data);
                 processingResponse.getErrorMessages().forEach(this::showErrorNotification);
                 processingResponse.getEntity().ifPresent(result -> {
-                    ProcessedNotebookBroadcaster.registerCompetitionListener(this::onCompetitionProcessingDone, result.getFirst(), UI.getCurrent());
+                    ProcessingCompetitionBroadcaster.register(this::onCompetitionProcessingDone, result.getFirst(), UI.getCurrent());
                     getProcessingCompetitions(processingComps -> {
                         processingComps.put(result.getFirst(),
                             new ProcessingCompetition(filename, result.getSecond()));
