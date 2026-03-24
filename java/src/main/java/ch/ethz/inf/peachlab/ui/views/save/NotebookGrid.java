@@ -12,9 +12,11 @@ import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
+import ch.ethz.inf.peachlab.model.rest.ProcessingStatus;
 import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
@@ -24,8 +26,11 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 
 import java.io.Serial;
 
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ALIGN_CENTER;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FONT_SIZE_L;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FONT_WEIGHT_BOLD;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 
 public class NotebookGrid extends TreeGrid<SavedNotebook> {
 
@@ -51,6 +56,12 @@ public class NotebookGrid extends TreeGrid<SavedNotebook> {
                     span.addClassNames(STYLE_FONT_SIZE_L, STYLE_FONT_WEIGHT_BOLD);
                     return span;
                 }
+                if (nb.getProcessingCompetition() != null) {
+                    return new Text(nb.getProcessingCompetition().name());
+                }
+                if (nb.getProcessingNotebook() != null) {
+                    return new Text(nb.getProcessingNotebook().name());
+                }
                 HasCompetitionData<?, ?, ?> competition = nb.getCompetition();
                 if (competition != null) {
                     return TitleLink.ofCompetition(competition);
@@ -61,10 +72,16 @@ public class NotebookGrid extends TreeGrid<SavedNotebook> {
         addColumn(SavedNotebook::getNumNotebooks)
             .setHeader("# Notebooks");
         addComponentColumn(this::createDownload)
-            .setHeader("Download");
+            .setHeader("Download/Status");
     }
 
     private Component createDownload(SavedNotebook nb) {
+        ProcessingStatus status = nb.getProcessingStatus();
+        if (status != null) {
+            Div result = new Div(status.getIcon().create(), new Text(status.getDisplayText()));
+            result.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_FLEX_ALIGN_CENTER);
+            return result;
+        }
         HasKernelData<?, ?, ?> kernel = nb.getKernel();
         if (kernel == null) {
             return new Div();

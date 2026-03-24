@@ -139,6 +139,8 @@ const CompetitionMap: React.FC<Props> = (
             .y(d => yScale(d.coordinateY))
             .addAll(competitions);
 
+        const clusterLabelSize = 1.5;
+
         const drawClusters = () => {
 
             const scaleEllipseX = (c: Cluster, r: number) => xScale(c.centroidX + r) - xScale(c.centroidX);
@@ -168,9 +170,28 @@ const CompetitionMap: React.FC<Props> = (
                             .attr("rx", scaleEllipseX(c, r[0]))
                             .attr("ry", scaleEllipseY(c, r[1]))
                             .attr("fill", d3.hsl(c.id * 360 / clusters.length, 0.5, 0.6).toString())
-                            .attr("opacity", opacityLevels[i])
-                            .style("pointer-events", "none");
+                            .attr("opacity", opacityLevels[i]);
                     });
+
+                    // --- Text (hidden by default) ---
+                    const text = gCluster.append("text")
+                        .attr("x", xScale(c.centroidX))
+                        .attr("y", yScale(c.centroidY))
+                        .attr("text-anchor", "middle")
+                        .attr("font-size", `${clusterLabelSize}em`)
+                        .attr("font-weight", "bold")
+                        .style("opacity", 0)
+                        .style("pointer-events", "none")
+                        .text(c.description);
+
+                    // --- Hover behavior ---
+                    gCluster
+                        .on("mouseenter", () => {
+                            text.transition().duration(200).style("opacity", 1);
+                        })
+                        .on("mouseleave", () => {
+                            text.transition().duration(200).style("opacity", 0);
+                        });
                 });
         }
 
@@ -286,23 +307,8 @@ const CompetitionMap: React.FC<Props> = (
             return viewport;
         }
 
-        const drawClusterTexts = () => {
-            g.selectAll("text")
-                .data(clusters)
-                .enter()
-                .append("text")
-                .attr("x", c => xScale(c.centroidX))
-                .attr("y", c => yScale(c.centroidY))
-                .attr("text-anchor", "middle")
-                .attr("font-size", "18px")
-                .attr("font-weight", "bold")
-                .attr("opacity", 0.8)
-                .text(c => c.description);
-        }
-
         drawClusters();
         drawPoints();
-        drawClusterTexts();
         const viewport = drawMinimap();
 
         // -----------------------------
@@ -334,6 +340,9 @@ const CompetitionMap: React.FC<Props> = (
                     .attr("y", miniY(yMax))
                     .attr("width", miniX(xMax) - miniX(xMin))
                     .attr("height", miniY(yMin) - miniY(yMax));
+
+                g.selectAll("g.cluster text")
+                    .style("font-size", `${Math.min(clusterLabelSize, clusterLabelSize / currentTransform.k)}em`);
             });
 
         svg.call(zoom);

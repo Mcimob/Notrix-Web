@@ -4,17 +4,14 @@ import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.BaseService;
 import ch.ethz.inf.peachlab.model.dto.ClusterDTO;
 import ch.ethz.inf.peachlab.model.dto.KernelDTO;
-import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.HasBaseStats;
 import ch.ethz.inf.peachlab.model.entity.HasClusterData;
 import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
-import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
 import ch.ethz.inf.peachlab.model.filter.AbstractClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.AbstractCompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.AbstractKernelFilter;
-import ch.ethz.inf.peachlab.model.loadtype.ClusterLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
@@ -32,6 +29,7 @@ import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.KernelClickEv
 import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.NotebookMatrix;
 import ch.ethz.inf.peachlab.ui.views.home.HomeView;
 import ch.ethz.inf.peachlab.ui.views.kernel.KernelView;
+import ch.ethz.inf.peachlab.util.ServiceResponseHelper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
@@ -41,6 +39,7 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -88,7 +87,9 @@ public abstract class AbstractCompetitionView<
     private final ClusterOverview clusterOverview = new ClusterOverview();
 
     private final Div matrixDiv = new Div();
+    private final Div clusterMatrixDiv = new Div();
     private final Div gridPlaceholder = new Div("Loading notebooks...");
+    private final Div clusterGridPlaceholder = new Div("Loading clusters....");
     private final NotebookMatrix matrix = new NotebookMatrix();
     private final ClusterMatrix clusterMatrix = new ClusterMatrix();
     private final Grid<HasKernelData<?, ?, ?>> grid = new Grid<>();
@@ -119,7 +120,7 @@ public abstract class AbstractCompetitionView<
     public void render() {
         removeAll();
 
-        Div center = new Div(createTitleBox(), createClusterOverview(), createDescriptionBox(), createNotebookMatrix());
+        Div center = new Div(createTitleBox(), createClusterOverview(), createDescriptionBox(), createMatrices());
         center.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
         center.getStyle().setMinWidth("0");
 
@@ -130,10 +131,13 @@ public abstract class AbstractCompetitionView<
     }
 
     @SafeVarargs
-    protected final void initData(Supplier<ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>>>... suppliers) {
-        List<Supplier<ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>>>> localSuppliers = new ArrayList<>(List.of(suppliers));
-        localSuppliers.add(() -> kernelService.fetch(Pageable.unpaged(), kernelFilter, getKernelLoadType()));
-        UiAsyncUtils.<PageImpl<? extends HasKernelData<?, ?, ?>>>callServicesAsync(
+    protected final void initData(Supplier<ServiceResponse<PageImpl<HasKernelData<?, ?, ?>>>>... suppliers) {
+        List<Supplier<ServiceResponse<PageImpl<HasKernelData<?, ?, ?>>>>> localSuppliers = new ArrayList<>(List.of(suppliers));
+        //noinspection unchecked,rawtypes
+        localSuppliers.add(() -> ServiceResponseHelper.transformEntity(
+            kernelService.fetch(Pageable.unpaged(), kernelFilter, getKernelLoadType()),
+            p -> (PageImpl) p.map(k -> (HasKernelData<?, ?, ?>) k)));
+        UiAsyncUtils.callServicesAsync(
             localSuppliers,
             UI.getCurrent(),
             this::onKernelData
@@ -180,16 +184,17 @@ public abstract class AbstractCompetitionView<
         return clusterOverview;
     }
 
-    private Component createNotebookMatrix() {
+    private Component createMatrices() {
         matrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         matrix.addKernelClickedListener(this::onKernelClicked);
+        matrix.setVisible(false);
 
         clusterMatrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         clusterMatrix.addKernelClickedListener(this::onKernelClicked);
         clusterMatrix.addClusterClickedListener(this::onClusterClicked);
         clusterMatrix.setVisible(false);
 
-        UiAsyncUtils.<PageImpl<C>>callServiceAsync(
+        UiAsyncUtils.callServiceAsync(
             () -> clusterService.fetch(Pageable.unpaged(Sort.by("LocalClusterId")), clusterFilter, getClusterLoadType()),
             UI.getCurrent(),
             this::onNewClusterMatrixData
@@ -212,8 +217,8 @@ public abstract class AbstractCompetitionView<
         });
         bar.addClusterListener(event -> {
             grid.setVisible(!event.isCluster());
-            matrix.setVisible(!event.isCluster());
-            clusterMatrix.setVisible(event.isCluster());
+            matrixDiv.setVisible(!event.isCluster());
+            clusterMatrixDiv.setVisible(event.isCluster());
             clusterGrid.setVisible(event.isCluster());
         });
 
@@ -223,12 +228,17 @@ public abstract class AbstractCompetitionView<
         div.render();
         div.add(bar);
 
-        matrixDiv.add(matrix, clusterMatrix);
-        matrixDiv.setHeightFull();
-        matrixDiv.setVisible(false);
 
         gridPlaceholder.addClassNames(STYLE_TEXT_COLOR_GRAY);
-        div.add(gridPlaceholder, matrixDiv);
+        matrixDiv.add(matrix, gridPlaceholder);
+        matrixDiv.setHeightFull();
+
+        clusterGridPlaceholder.addClassNames(STYLE_TEXT_COLOR_GRAY);
+        clusterMatrixDiv.add(clusterMatrix, clusterGridPlaceholder);
+        clusterMatrixDiv.setHeightFull();
+        clusterMatrixDiv.setVisible(false);
+
+        div.add(matrixDiv, clusterMatrixDiv);
         return div;
     }
 
@@ -284,12 +294,11 @@ public abstract class AbstractCompetitionView<
             });
     }
 
-    private void onKernelData(List<? extends ServiceResponse<? extends PageImpl<? extends HasKernelData<?, ?, ?>>>> responses) {
+    private void onKernelData(List<ServiceResponse<PageImpl<HasKernelData<?, ?, ?>>>> responses) {
         List<HasKernelData<?, ?, ?>> kernels = responses.stream()
             .map(ServiceResponse::getEntity)
             .flatMap(Optional::stream)
-            .flatMap(PageImpl::stream)
-            .map(o -> (HasKernelData<?, ?, ?>) o)
+            .flatMap(Page::stream)
             .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
 
         matrix.setItems(kernels.stream()
@@ -298,7 +307,7 @@ public abstract class AbstractCompetitionView<
         grid.setItems(kernels);
 
         gridPlaceholder.setVisible(false);
-        matrixDiv.setVisible(true);
+        matrix.setVisible(true);
     }
 
     private <R extends ServiceResponse<? extends PageImpl<C>>> void onNewClusterMatrixData(R response) {
@@ -312,6 +321,9 @@ public abstract class AbstractCompetitionView<
         response.getEntity()
             .map(PageImpl::stream)
             .ifPresent(list -> clusterGrid.setItems(list.map(o -> (HasBaseStats) o).toList(), HasBaseStats::getChildren));
+
+        clusterGridPlaceholder.setVisible(false);
+        clusterMatrix.setVisible(true);
     }
 
     private Component createStats() {
@@ -372,9 +384,8 @@ public abstract class AbstractCompetitionView<
 
         grid.setEmptyStateText("Loading Notebooks...");
 
-        grid.addSortListener(sort -> {
-            matrix.setItems(grid.getListDataView().getItems().map(KernelDTO::ofKernel).toList());
-        });
+        grid.addSortListener(sort ->
+            matrix.setItems(grid.getListDataView().getItems().map(KernelDTO::ofKernel).toList()));
 
         return grid;
     }
@@ -392,16 +403,19 @@ public abstract class AbstractCompetitionView<
         clusterGrid.addColumn(k -> "%.2f".formatted(k.getLines()))
             .setHeader("# Lines")
             .setFlexGrow(0);
+
         clusterGrid.setHeightFull();
+        clusterGrid.setEmptyStateText("Loading clusters....");
 
         clusterGrid.setVisible(false);
         return clusterGrid;
     }
 
     private Component createTitleElement(HasBaseStats kernelData) {
-        if (kernelData instanceof KernelEntity kernel) {
+        if (kernelData instanceof HasKernelData<?, ?, ?> kernel) {
             return TitleLink.ofKernel(kernel);
-        } else if (kernelData instanceof ClusterEntity cluster) {
+        }
+        if (kernelData instanceof HasClusterData<?, ?> cluster) {
             return new Text("Cluster " + cluster.getLocalClusterId());
         }
         return new Div();

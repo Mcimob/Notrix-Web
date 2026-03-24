@@ -1,6 +1,6 @@
 package ch.ethz.inf.peachlab.ui.views.competition;
 
-import ch.ethz.inf.peachlab.backend.broadcaster.ProcessedNotebookBroadcaster;
+import ch.ethz.inf.peachlab.backend.broadcaster.ProcessingNotebookBroadcaster;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.ClusterService;
 import ch.ethz.inf.peachlab.backend.service.db.CompetitionService;
@@ -22,6 +22,7 @@ import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
+import ch.ethz.inf.peachlab.util.ServiceResponseHelper;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -34,6 +35,7 @@ import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.streams.InMemoryUploadHandler;
 import com.vaadin.flow.server.streams.UploadHandler;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.io.Serial;
@@ -104,7 +106,7 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
                 ServiceResponse<String> response = nbProcessingService.startNotebookProcessing(uploadedData);
                 response.getErrorMessages().forEach(this::showErrorNotification);
                 response.getEntity().ifPresent(identifier -> {
-                    ProcessedNotebookBroadcaster.registerNotebookListener(this::onNotebooksProcessingDone, identifier, UI.getCurrent());
+                    ProcessingNotebookBroadcaster.register(this::onNotebooksProcessingDone, identifier, UI.getCurrent());
                     getProcessingNotebooks(processingNotebooks -> {
                         processingNotebooks.put(identifier,
                             new ProcessingNotebook(titleField.getValue(), comp.getId()));
@@ -150,7 +152,10 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
         getUploadedNotebooks(nbs -> {
             UploadedKernelFilter uploadedKernelFilter = new UploadedKernelFilter();
             uploadedKernelFilter.setIds(nbs.getOrDefault(competition.getId(), new HashSet<>()));
-            initData(() -> uploadedKernelService.fetch(Pageable.unpaged(), uploadedKernelFilter, UploadedKernelLoadType.WITH_CELLS));
+            //noinspection unchecked,rawtypes
+            initData(() -> ServiceResponseHelper.transformEntity(
+                uploadedKernelService.fetch(Pageable.unpaged(), uploadedKernelFilter, UploadedKernelLoadType.WITH_CELLS),
+                p -> (PageImpl) p.map(k -> (HasKernelData<?, ?, ?>) k)));
         });
     }
 

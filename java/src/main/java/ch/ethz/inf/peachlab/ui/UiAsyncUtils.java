@@ -43,23 +43,22 @@ public class UiAsyncUtils {
     }
 
     public static <T extends Serializable> void callServicesAsync(
-        List<? extends Supplier<? extends ServiceResponse<? extends T>>> callables,
+        List<Supplier<ServiceResponse<T>>> callables,
         UI ui,
-        SerializableConsumer<List<? extends ServiceResponse<? extends T>>> consumer) {
+        SerializableConsumer<List<ServiceResponse<T>>> consumer) {
 
-        List<? extends CompletableFuture<? extends ServiceResponse<? extends T>>> futures = callables.stream()
-            // Dont replace this with a method reference, as it will fail in dev mode
-            .map(supplier -> CompletableFuture.supplyAsync(supplier))
+        List<CompletableFuture<ServiceResponse<T>>> futures = callables.stream()
+            .map(CompletableFuture::supplyAsync)
             .toList();
 
         CompletableFuture
             .allOf(futures.toArray(new CompletableFuture[0]))
             .whenComplete((v, err) -> {
-                List<? extends ServiceResponse<? extends T>> res = futures.stream()
+                List<ServiceResponse<T>> res = futures.stream()
                     .map(CompletableFuture::join)
                     .toList();
                 SerializableRunnable uiTask = () -> {
-                    List<? extends ServiceResponse<? extends T>> response = res;
+                    List<ServiceResponse<T>> response = res;
                     if (err != null) {
                         LOGGER.error("An error occurred while executing asynchronously", err);
                         response = List.of(ServiceResponse.error());

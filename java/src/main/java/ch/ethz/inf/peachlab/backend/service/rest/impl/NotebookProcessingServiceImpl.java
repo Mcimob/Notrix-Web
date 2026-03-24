@@ -121,6 +121,18 @@ public class NotebookProcessingServiceImpl implements NotebookProcessingService,
 
     @Override
     public ServiceResponse<ProcessingStatusResponse<UploadedCompetitionEntity>> getCompetitionProcessingStatus(String identifier) {
-        return null;
+        ServiceResponse<ProcessingStatusResponse<UploadedCompetitionEntity>> response = new ServiceResponse<>();
+
+        try {
+            ProcessingStatusResponse<UploadedCompetitionEntity> processingResponse = dao.getCompetitionProcessingResponse(identifier);
+            response.setEntity(processingResponse);
+        } catch (RestException e) {
+            getLogger().error("Something went wrong while getting the processing status for {}", identifier, e);
+            response.addErrorMessage("service.notebookProcessing.error.server");
+        } catch (NotebookProcessingNotFinishedException e) {
+            response.setEntity(new ProcessingStatusResponse<>(e.getProcessingStatus(), null));
+        }
+
+        return response;
     }
 }

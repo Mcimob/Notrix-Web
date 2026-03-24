@@ -117,7 +117,7 @@ def get_gpt_summary(competition_group):
     )
 
     prompt = f"""
-        Give a short 3-5 word label for this group of competitions:
+        Give a short 3-5 word label for this group of competitions. Focus on the topics contained in the texts, not the techniques used:
         {texts[:20].tolist()}
     """
     client = ai.get_client()

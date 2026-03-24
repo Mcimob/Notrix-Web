@@ -7,6 +7,7 @@ import ch.ethz.inf.peachlab.ui.components.StageChart;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serial;
 
@@ -15,6 +16,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_150PX;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_COLOR_GRAY;
 
 public class ClusterOverview extends Div implements HasRender {
 
@@ -41,10 +43,15 @@ public class ClusterOverview extends Div implements HasRender {
 
     private Component createDescription() {
         IconLabelContainer container = new IconLabelContainer();
+        String clusterSummary = cluster.getSummary();
+        if (StringUtils.isBlank(clusterSummary)) {
+            clusterSummary = "No summary was generated for this cluster";
+            container.addClassNamesToContainer(STYLE_TEXT_COLOR_GRAY);
+        }
         container.setIcon(VaadinIcon.FILE.create());
         container.setTitleText("Summary");
         container.render();
-        container.addToContainer(cluster.getSummary());
+        container.addToContainer(clusterSummary);
         container.addClassNamesToContainer(STYLE_MIN_HEIGHT_150PX);
 
         return container;
