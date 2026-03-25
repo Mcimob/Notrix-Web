@@ -105,8 +105,8 @@ const CompetitionMap: React.FC<Props> = (
         // Compute scales
         // -----------------------------
         // Main Canvas scales
-        const xExtent = d3.extent(competitions, d => d.coordinateX) as [number, number];
-        const yExtent = d3.extent(competitions, d => d.coordinateY) as [number, number];
+        const xExtent = [-2, 9];
+        const yExtent = [7, 14];
 
         const xScale = d3
             .scaleLinear()
