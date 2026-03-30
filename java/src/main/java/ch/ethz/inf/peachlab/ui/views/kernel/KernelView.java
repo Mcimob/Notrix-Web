@@ -38,6 +38,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Route;
@@ -117,7 +118,14 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         right.addClassNames(STYLE_HEIGHT_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_M);
         right.setWidth("50%");
 
-        add(createSidebar(), center, right);
+        SplitLayout rightLayout = new SplitLayout(center, right);
+        rightLayout.setSplitterPosition(66);
+
+        SplitLayout layout = new SplitLayout(createSidebar(), rightLayout);
+        layout.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+        layout.setSplitterPosition(25);
+
+        add(layout);
     }
 
 

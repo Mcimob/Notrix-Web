@@ -36,6 +36,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
@@ -52,6 +53,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_BG;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
@@ -120,14 +122,18 @@ public abstract class AbstractCompetitionView<
     public void render() {
         removeAll();
 
-        Div center = new Div(createTitleBox(), createClusterOverview(), createDescriptionBox(), createMatrices());
-        center.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
-        center.getStyle().setMinWidth("0");
+        Div top = new Div(createTitleBox(), createClusterOverview(), createDescriptionBox());
+        top.addClassNames(STYLE_FLEX_COLUMN, STYLE_GAP_M, STYLE_BACKGROUND_BG, STYLE_HEIGHT_FULL);
+        SplitLayout center = new SplitLayout(top, createMatrices(), SplitLayout.Orientation.VERTICAL);
 
         Div right = new Div(createStats(), createUpload(), createGrids());
         right.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
 
-        add(createSidebar(), center, right);
+        SplitLayout rightLayout = new SplitLayout(center, right);
+        rightLayout.setSplitterPosition(66);
+        SplitLayout layout = new SplitLayout(createSidebar(), rightLayout);
+        layout.setSplitterPosition(25);
+        add(layout);
     }
 
     @SafeVarargs
@@ -169,10 +175,11 @@ public abstract class AbstractCompetitionView<
     }
 
     private Component createDescriptionBox() {
-        competitionOverview.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_PADDING_M);
+        competitionOverview.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_PADDING_M, STYLE_MIN_HEIGHT_0);
         competitionOverview.add(new H2("Competition description"));
 
         OverviewBox box = new OverviewBox(competition.getOverview());
+        box.addClassNames(STYLE_HEIGHT_FULL);
         box.render();
         competitionOverview.add(box);
 

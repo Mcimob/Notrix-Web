@@ -30,6 +30,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.UploadI18N;
 import com.vaadin.flow.router.Route;
@@ -100,8 +101,11 @@ public class HomeView extends AbstractView implements ManagesProcessingNotebooks
     public void render() {
         removeAll();
 
-        Div right = new Div(createDescriptionDiv(), createUpload(), createGrid());
-        right.addClassNames(STYLE_FLEX_COLUMN, STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_HEIGHT_FULL);
+        Div gridLayout = new Div(createUpload(), createGrid());
+        gridLayout.addClassNames(STYLE_FLEX_COLUMN, STYLE_BACKGROUND_WHITE);
+        SplitLayout right = new SplitLayout(createDescriptionDiv(), gridLayout, SplitLayout.Orientation.VERTICAL);
+        right.setSplitterPosition(30);
+        right.addClassNames(STYLE_WIDTH_FULL);
 
         Div bottom = new Div(createCloud(), right);
         bottom.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_M, STYLE_WIDTH_FULL, STYLE_HEIGHT_FULL, STYLE_FLEX_1, STYLE_MIN_HEIGHT_0);

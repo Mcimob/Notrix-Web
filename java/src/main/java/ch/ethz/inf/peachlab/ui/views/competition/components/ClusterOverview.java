@@ -2,21 +2,20 @@ package ch.ethz.inf.peachlab.ui.views.competition.components;
 
 import ch.ethz.inf.peachlab.model.entity.HasClusterData;
 import ch.ethz.inf.peachlab.ui.HasRender;
-import ch.ethz.inf.peachlab.ui.components.IconLabelContainer;
+import ch.ethz.inf.peachlab.ui.components.OverviewBox;
 import ch.ethz.inf.peachlab.ui.components.StageChart;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serial;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_150PX;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_MIN_HEIGHT_0;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_COLOR_GRAY;
 
 public class ClusterOverview extends Div implements HasRender {
 
@@ -29,7 +28,7 @@ public class ClusterOverview extends Div implements HasRender {
     }
 
     private void initStyles() {
-        addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_PADDING_M, STYLE_BACKGROUND_WHITE);
+        addClassNames(STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_PADDING_M, STYLE_BACKGROUND_WHITE, STYLE_MIN_HEIGHT_0, STYLE_HEIGHT_FULL);
     }
 
     @Override
@@ -38,23 +37,20 @@ public class ClusterOverview extends Div implements HasRender {
         if (cluster == null) {
             return;
         }
-        add(createDescription(), createStats());
+        add(createStats(), createDescription());
     }
 
     private Component createDescription() {
-        IconLabelContainer container = new IconLabelContainer();
         String clusterSummary = cluster.getSummary();
         if (StringUtils.isBlank(clusterSummary)) {
             clusterSummary = "No summary was generated for this cluster";
-            container.addClassNamesToContainer(STYLE_TEXT_COLOR_GRAY);
         }
-        container.setIcon(VaadinIcon.FILE.create());
-        container.setTitleText("Summary");
-        container.render();
-        container.addToContainer(clusterSummary);
-        container.addClassNamesToContainer(STYLE_MIN_HEIGHT_150PX);
 
-        return container;
+        OverviewBox description = new OverviewBox(clusterSummary);
+        description.addClassNames(STYLE_HEIGHT_FULL);
+        description.render();
+
+        return description;
     }
 
     private Component createStats() {
