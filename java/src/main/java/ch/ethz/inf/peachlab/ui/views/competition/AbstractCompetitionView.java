@@ -132,6 +132,7 @@ public abstract class AbstractCompetitionView<
         SplitLayout rightLayout = new SplitLayout(center, right);
         rightLayout.setSplitterPosition(66);
         SplitLayout layout = new SplitLayout(createSidebar(), rightLayout);
+        layout.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         layout.setSplitterPosition(25);
         add(layout);
     }
