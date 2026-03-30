@@ -24,7 +24,6 @@ public class OverviewBox extends Scroller implements HasRender {
     }
 
     public void initStyles() {
-        setHeight("20rem");
         addClassNames(STYLE_BORDER_RADIUS_S,
                 STYLE_BORDER_WIDTH_S, STYLE_BORDER_STYLE_DASHED, STYLE_BORDER_COLOR_GRAY,
                 STYLE_PADDING_S);

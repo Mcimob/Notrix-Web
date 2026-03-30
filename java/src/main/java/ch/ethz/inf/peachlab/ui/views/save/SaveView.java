@@ -22,6 +22,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.splitlayout.SplitLayout;
 import com.vaadin.flow.router.Route;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +37,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_ROW;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
@@ -61,14 +61,14 @@ public class SaveView extends AbstractView implements HasSavedKernels, ManagesPr
     @Override
     protected void initStyles() {
         super.initStyles();
-        addClassNames(STYLE_FLEX_ROW);
     }
 
     @Override
     public void render() {
         removeAll();
-        add(createLeft());
-        add(createRight());
+        SplitLayout layout = new SplitLayout(createLeft(), createRight());
+        layout.addClassNames(STYLE_HEIGHT_FULL);
+        add(layout);
     }
 
     private Component createLeft() {

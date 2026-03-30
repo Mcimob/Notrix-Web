@@ -19,8 +19,10 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FLEX_COLUMN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_COLOR_GRAY;
 
@@ -39,7 +41,7 @@ public class CompetitionDescriptionBox extends Div implements HasRender, HasLogg
     }
 
     private void initStyles() {
-        addClassNames(STYLE_PADDING_S, STYLE_FLEX_COLUMN, STYLE_GAP_S);
+        addClassNames(STYLE_PADDING_S, STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_BACKGROUND_WHITE);
     }
 
     private Component createTitle() {
@@ -61,6 +63,7 @@ public class CompetitionDescriptionBox extends Div implements HasRender, HasLogg
         removeAll();
         add(new Div(createTitle(), createSubtitle()));
         OverviewBox overviewBox = new OverviewBox(Optional.ofNullable(competition).map(HasCompetitionData::getOverview).orElse(readme));
+        overviewBox.addClassNames(STYLE_HEIGHT_FULL);
         overviewBox.render();
         add(overviewBox);
     }
