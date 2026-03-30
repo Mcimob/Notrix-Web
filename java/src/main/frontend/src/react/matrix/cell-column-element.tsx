@@ -15,7 +15,7 @@ class CellColumnElement extends ReactAdapterElement {
         return <CellColumn
             kernel={kernel}
             getLabel={getLabel}
-            getTooltip={(kernel, cell) => `Stage: ${getLabel(cell.mainLabel).title}<br/>Lines: ${cell.sourceLinesCount}`}
+            getTooltip={(kernel, label, numLines) => `Stage: ${getLabel(label).title}<br/>Lines: ${numLines}`}
             clickListener={idx => setClickedCellIndex(idx)}
             style={{}}
         />;

@@ -12,8 +12,8 @@ public record KernelDTO(
     String id,
     String title,
     String currentUrlSlug,
-    Integer[] labelSequence,
-    CellDTO[] cells,
+    Integer[] labelSequenceWithMd,
+    Integer[] lengthSequence,
     boolean isUploaded
 ) {
 
@@ -22,13 +22,8 @@ public record KernelDTO(
             kernel.getId().toString(),
             kernel.getTitle(),
             kernel.getCurrentUrlSlug(),
-            Arrays.stream(Optional.ofNullable(kernel.getLabelSequence()).orElse(new MainLabel[]{}))
-                .map(MainLabel::ordinal)
-                .toArray(Integer[]::new),
-            kernel.getCells().stream()
-                .filter(Objects::nonNull)
-                .map(CellDTO::ofCell)
-                .toArray(CellDTO[]::new),
+            Optional.ofNullable(kernel.getLabelSequenceWithMd()).orElse(new Integer[]{}),
+            Optional.ofNullable(kernel.getLengthSequence()).orElse(new Integer[]{}),
             kernel instanceof UploadedKernelEntity
         );
     }

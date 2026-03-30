@@ -114,8 +114,20 @@ public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEnti
 
     @Override
     @JsonProperty("LabelSequence")
-    public void setLabelSequence(MainLabel[] labelSequence) {
+    public void setLabelSequence(Integer[] labelSequence) {
         super.setLabelSequence(labelSequence);
+    }
+
+    @Override
+    @JsonProperty("LabelSequenceWithMd")
+    public void setLabelSequenceWithMd(Integer[] labelSequenceWithMd) {
+        super.setLabelSequenceWithMd(labelSequenceWithMd);
+    }
+
+    @Override
+    @JsonProperty("LengthSequence")
+    public void setLengthSequence(Integer[] lengthSequence) {
+        super.setLengthSequence(lengthSequence);
     }
 
     @Override

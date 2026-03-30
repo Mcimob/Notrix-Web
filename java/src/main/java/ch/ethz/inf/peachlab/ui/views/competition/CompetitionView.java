@@ -16,7 +16,6 @@ import ch.ethz.inf.peachlab.model.filter.ClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.filter.UploadedKernelFilter;
-import ch.ethz.inf.peachlab.model.loadtype.ClusterLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
@@ -67,11 +66,6 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
     @Override
     protected HasLoadType getKernelLoadType() {
         return KernelLoadType.WITH_CELLS;
-    }
-
-    @Override
-    protected HasLoadType getClusterLoadType() {
-        return ClusterLoadType.WITH_KERNELS_AND_CELLS;
     }
 
     @Override

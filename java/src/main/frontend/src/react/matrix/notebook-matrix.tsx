@@ -5,7 +5,7 @@ import {AutoSizer, AutoSizerChildProps} from "react-virtualized-auto-sizer";
 import CellColumn from "Frontend/src/react/matrix/cell-column";
 
 export type CellData = { sourceLinesCount: number; cellType: number; mainLabel: number };
-export type KernelData = { id: string; title: string; currentUrlSlug: string; labelSequence: number[]; cells: CellData[], isUploaded: boolean };
+export type KernelData = { id: string; title: string; currentUrlSlug: string; labelSequenceWithMd: number[]; lengthSequence: number[], isUploaded: boolean };
 
 export type LabelData = {id: number, title: string};
 
@@ -27,7 +27,7 @@ class NotebookMatrix extends ReactAdapterElement {
             return <CellColumn
                 kernel={item}
                 getLabel={getLabel}
-                getTooltip={(kernel, cell) => `Stage: ${getLabel(cell.mainLabel).title}<br/>Title: ${kernel.title}<br/>Lines: ${cell.sourceLinesCount}`}
+                getTooltip={(kernel, label, numLines) => `Stage: ${getLabel(label).title}<br/>Title: ${kernel.title}<br/>Lines: ${numLines}`}
                 clickListener={() => fireKernelClick(item.id)}
                 style={style}
                 data-kernel-index={index}

@@ -9,6 +9,8 @@ class KernelColumns:
     LABEL_STATS = "MainLabelStats"
     LABEL_STATS_NORM = "MainLabelStatsNorm"
     LABEL_SEQUENCE = "LabelSequence"
+    LABEL_SEQUENCE_WITH_MD = "LabelSequenceWithMd"
+    LENGTH_SEQUENCE = "LengthSequence"
     TRANSITION_MATRIX = "TransitionMatrix"
     TRANSITION_MATRIX_NORM = "TransitionMatrixNorm"
     NUM_LINES = "NumLines"

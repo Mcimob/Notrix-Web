@@ -62,7 +62,15 @@ public abstract class HasKernelData<ID, C extends HasCellData, CO extends HasCom
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "LabelSequence", columnDefinition = "jsonb")
-    protected MainLabel[] labelSequence;
+    protected Integer[] labelSequence;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "LabelSequenceWithMd", columnDefinition = "jsonb")
+    protected Integer[] labelSequenceWithMd;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "LengthSequence", columnDefinition = "jsonb")
+    protected Integer[] lengthSequence;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "TransitionMatrix", columnDefinition = "jsonb")
@@ -182,12 +190,28 @@ public abstract class HasKernelData<ID, C extends HasCellData, CO extends HasCom
         this.cellCount = cellCount;
     }
 
-    public MainLabel[] getLabelSequence() {
+    public Integer[] getLabelSequence() {
         return labelSequence;
     }
 
-    public void setLabelSequence(MainLabel[] labelSequence) {
+    public void setLabelSequence(Integer[] labelSequence) {
         this.labelSequence = labelSequence;
+    }
+
+    public Integer[] getLabelSequenceWithMd() {
+        return labelSequenceWithMd;
+    }
+
+    public void setLabelSequenceWithMd(Integer[] labelSequenceWithMd) {
+        this.labelSequenceWithMd = labelSequenceWithMd;
+    }
+
+    public Integer[] getLengthSequence() {
+        return lengthSequence;
+    }
+
+    public void setLengthSequence(Integer[] lengthSequence) {
+        this.lengthSequence = lengthSequence;
     }
 
     public Integer[][] getTransitionMatrix() {

@@ -23,6 +23,7 @@ def add_stats_to_cells(cells: pd.DataFrame) -> pd.DataFrame:
 def add_stats_to_kernels(cells: pd.DataFrame, kernels: pd.DataFrame) -> pd.DataFrame:
     label_stats = get_kernel_label_stats(cells)
     label_sequences = get_kernel_label_sequences(cells)
+    length_sequences = get_kernel_cell_length_sequences(cells)
     label_transitions = get_kernel_label_transition_stats(label_sequences)
     line_counts = get_kernel_num_lines(cells)
     cell_counts = get_kernel_num_cells(cells)
@@ -30,6 +31,7 @@ def add_stats_to_kernels(cells: pd.DataFrame, kernels: pd.DataFrame) -> pd.DataF
     for df in [
         label_stats, 
         label_sequences, 
+        length_sequences,
         label_transitions, 
         line_counts, 
         cell_counts]:
@@ -38,7 +40,7 @@ def add_stats_to_kernels(cells: pd.DataFrame, kernels: pd.DataFrame) -> pd.DataF
             on=KernelColumns.KERNEL_VERSION_ID,
             how="left"
         )
-    
+        
     kernels[KernelColumns.TRANSITION_MATRIX_NORM] = (
         kernels[KernelColumns.TRANSITION_MATRIX]
         .apply(apply_safe(np.array))
@@ -89,19 +91,35 @@ def get_kernel_label_stats(cells: pd.DataFrame) -> pd.DataFrame:
     )
 
 def get_kernel_label_sequences(cells: pd.DataFrame) -> pd.DataFrame:
-    cells_valid = cells.dropna(subset=[CellColumns.MAIN_LABEL])
-
-    cells_sorted = cells_valid.sort_values([KernelColumns.KERNEL_VERSION_ID, "CellId"])
+    cells_sorted = cells.copy().sort_values([KernelColumns.KERNEL_VERSION_ID, "CellId"])
     
     # Build sequence per kernel
     kernel_sequences = (
         cells_sorted
         .groupby(KernelColumns.KERNEL_VERSION_ID)[CellColumns.MAIN_LABEL]
         .apply(lambda x: x.to_numpy(dtype=np.int32))
-        .reset_index(name=KernelColumns.LABEL_SEQUENCE)
+        .reset_index(name=KernelColumns.LABEL_SEQUENCE_WITH_MD)
+    )
+    
+    kernel_sequences[KernelColumns.LABEL_SEQUENCE] = (
+        kernel_sequences[KernelColumns.LABEL_SEQUENCE_WITH_MD]
+        .apply(lambda x: x[not np.isnan(x)])
     )
     
     return kernel_sequences
+
+def get_kernel_cell_length_sequences(cells: pd.DataFrame) -> pd.DataFrame:
+    cells_valid = cells.copy().fillna(value={CellColumns.SOURCE_LINES_COUNT: 0})
+    cells_sorted = cells_valid.sort_values([KernelColumns.KERNEL_VERSION_ID, "CellId"])
+    
+    cell_length_sequences = (
+        cells_sorted
+        .groupby(KernelColumns.KERNEL_VERSION_ID)[CellColumns.SOURCE_LINES_COUNT]
+        .apply(lambda x: x.to_numpy(dtype=np.int32))
+        .reset_index(name=KernelColumns.LENGTH_SEQUENCE)
+    )
+    
+    return cell_length_sequences
 
 def get_kernel_label_transition_stats(label_sequences: pd.DataFrame) -> pd.DataFrame:
     label_sequences = label_sequences[

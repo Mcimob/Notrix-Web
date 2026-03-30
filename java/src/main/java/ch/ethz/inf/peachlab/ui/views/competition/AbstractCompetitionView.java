@@ -205,7 +205,7 @@ public abstract class AbstractCompetitionView<
         clusterMatrix.setVisible(false);
 
         UiAsyncUtils.callServiceAsync(
-            () -> clusterService.fetch(Pageable.unpaged(Sort.by("LocalClusterId")), clusterFilter, getClusterLoadType()),
+            () -> clusterService.fetch(Pageable.unpaged(Sort.by("LocalClusterId")), clusterFilter),
             UI.getCurrent(),
             this::onNewClusterMatrixData
         );
@@ -256,8 +256,6 @@ public abstract class AbstractCompetitionView<
         div.add(matrixDiv, clusterMatrixDiv);
         return div;
     }
-
-    protected abstract HasLoadType getClusterLoadType();
 
     private void onKernelClicked(KernelClickEvent e) {
         String stringId = e.getKernelId();

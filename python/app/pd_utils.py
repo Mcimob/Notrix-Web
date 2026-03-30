@@ -23,6 +23,8 @@ def str_to_np(str):
 
 KERNEL_NP_COLUMNS = [
     KernelColumns.LABEL_SEQUENCE,
+    KernelColumns.LABEL_SEQUENCE_WITH_MD,
+    KernelColumns.LENGTH_SEQUENCE,
     KernelColumns.LABEL_STATS_NORM, 
     KernelColumns.COMPLEXITY_FEATURES_NORM, 
     KernelColumns.TRANSITION_MATRIX, 
@@ -35,6 +37,8 @@ KERNEL_JSON_COLUMNS = KERNEL_NP_COLUMNS + [
 
 KERNEL_JSON_CONVERTERS = {
     KernelColumns.LABEL_SEQUENCE: str_to_np,
+    KernelColumns.LABEL_SEQUENCE_WITH_MD: str_to_np,
+    KernelColumns.LENGTH_SEQUENCE: str_to_np,
     KernelColumns.TRANSITION_MATRIX: str_to_np,
     KernelColumns.TRANSITION_MATRIX_NORM: str_to_np,
     KernelColumns.LABEL_STATS_NORM: str_to_np,
