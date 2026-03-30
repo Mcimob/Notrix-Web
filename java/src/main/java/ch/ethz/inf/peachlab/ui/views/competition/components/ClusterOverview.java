@@ -35,6 +35,10 @@ public class ClusterOverview extends Div implements HasRender {
     public void render() {
         removeAll();
         if (cluster == null) {
+            OverviewBox box = new OverviewBox("Select cluster to show description");
+            box.addClassNames(STYLE_HEIGHT_FULL);
+            box.render();
+            add(box);
             return;
         }
         add(createStats(), createDescription());

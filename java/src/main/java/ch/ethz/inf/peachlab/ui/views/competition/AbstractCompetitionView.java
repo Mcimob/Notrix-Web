@@ -188,6 +188,8 @@ public abstract class AbstractCompetitionView<
 
     private Component createClusterOverview() {
         clusterOverview.setVisible(false);
+        clusterOverview.setCluster(null);
+        clusterOverview.render();
         return clusterOverview;
     }
 
@@ -225,8 +227,13 @@ public abstract class AbstractCompetitionView<
         bar.addClusterListener(event -> {
             grid.setVisible(!event.isCluster());
             matrixDiv.setVisible(!event.isCluster());
+            competitionOverview.setVisible(!event.isCluster());
             clusterMatrixDiv.setVisible(event.isCluster());
             clusterGrid.setVisible(event.isCluster());
+            clusterOverview.setVisible(event.isCluster());
+            if (!event.isCluster()) {
+                title.setText(competition.getTitle());
+            }
         });
 
         DivWithTooltip div = new DivWithTooltip(".cell");
@@ -273,8 +280,8 @@ public abstract class AbstractCompetitionView<
     private void onClusterClicked(ClusterClickEvent event) {
         Long localClusterId = event.getLocalClusterId();
         if (localClusterId == -1) {
-            clusterOverview.setVisible(false);
-            competitionOverview.setVisible(true);
+            clusterOverview.setCluster(null);
+            clusterOverview.render();
             title.setText(competition.getTitle());
             return;
         }
@@ -291,10 +298,8 @@ public abstract class AbstractCompetitionView<
             .map(PageImpl::toList)
             .map(List::getFirst)
             .ifPresent(c -> {
-                competitionOverview.setVisible(false);
                 clusterOverview.setCluster(c);
                 clusterOverview.render();
-                clusterOverview.setVisible(true);
                 clusterGrid.expand(c);
                 clusterGrid.scrollToIndex(c.getLocalClusterId().intValue() - 1, 0);
                 title.setText("Cluster " + c.getLocalClusterId());
