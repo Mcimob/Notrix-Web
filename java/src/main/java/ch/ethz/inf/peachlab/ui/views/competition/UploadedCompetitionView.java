@@ -11,7 +11,6 @@ import ch.ethz.inf.peachlab.model.filter.UploadedClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.UploadedCompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.UploadedKernelFilter;
 import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
-import ch.ethz.inf.peachlab.model.loadtype.UploadedClusterLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import com.vaadin.flow.router.Route;
@@ -33,11 +32,6 @@ public class UploadedCompetitionView extends AbstractCompetitionView<UploadedCom
     @Override
     protected HasLoadType getKernelLoadType() {
         return UploadedKernelLoadType.WITH_CELLS;
-    }
-
-    @Override
-    protected HasLoadType getClusterLoadType() {
-        return UploadedClusterLoadType.WITH_KERNELS_AND_CELLS;
     }
 
     @Override

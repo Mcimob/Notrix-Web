@@ -2,21 +2,22 @@ import {CellData, KernelData, LabelData} from "Frontend/src/react/matrix/noteboo
 import React from "react";
 
 type CellProps = {
-    cell: CellData;
+    labelNr: number;
+    numLines: number;
     getLabel: (id: number) => LabelData;
 } & React.ComponentPropsWithoutRef<'div'>;
 
-function Cell({cell, getLabel, ...props} : CellProps) {
-    const cellHeight = (item: CellData) =>
-        Math.max(3, Math.min(20, 3 + item.sourceLinesCount * 0.8));
+function Cell({labelNr, getLabel, numLines, ...props} : CellProps) {
+    const cellHeight = (numLines: number) =>
+        Math.max(3, Math.min(20, 3 + numLines * 0.8));
 
     return <div
         style={{
-            backgroundColor: `var(--clr-stage-${cell.mainLabel}, white)`,
-            height: `var(--cell-height, ${cellHeight(cell)}px)`,
+            backgroundColor: `var(--clr-stage-${labelNr}, white)`,
+            height: `var(--cell-height, ${cellHeight(numLines)}px)`,
             flexShrink: 0,
-            display: cell.mainLabel == -1 ? "var(--display-md)" : "block",
-            border: cell.mainLabel == -1 ? "1px solid #bbb" : `1px solid var(--clr-stage-${cell.mainLabel})`,
+            display: labelNr == -1 ? "var(--display-md)" : "block",
+            border: labelNr == -1 ? "1px solid #bbb" : `1px solid var(--clr-stage-${labelNr})`,
         }}
         {...props}
     />
@@ -25,21 +26,21 @@ function Cell({cell, getLabel, ...props} : CellProps) {
 type CellColumnProps = {
     kernel: KernelData;
     getLabel: (id: number) => LabelData;
-    getTooltip: (kernel: KernelData, cell: CellData) => string;
+    getTooltip: (kernel: KernelData, label: number, numLines: number) => string;
     clickListener?: (cellIndex: number) => void;
     style: React.CSSProperties;
 } & React.ComponentPropsWithoutRef<'div'>;
 
 export default function CellColumn({kernel, getLabel, getTooltip, clickListener, style, ...props}: CellColumnProps) {
     const result = [];
-    const cells = kernel.cells;
-    const labelSequence = kernel.labelSequence;
-    let sequenceIndex = 0;
-    for (let i = 0; i < cells.length; i++) {
-        const cell = cells[i];
-        let className = `width-full cell stage-${cell.mainLabel}`;
+    const labelSequenceWithMd = kernel.labelSequenceWithMd;
+    const labelSequence = labelSequenceWithMd.filter(i => i >= 0);
 
-        if (cell.mainLabel != -1 && labelSequence.length != 0) {
+    let sequenceIndex = 0;
+    for (let i = 0; i < labelSequenceWithMd.length; i++) {
+        const label = labelSequenceWithMd[i];
+        let className = `width-full cell stage-${label}`;
+        if (label != -1 && labelSequence.length != 0) {
             if (sequenceIndex + 1 < labelSequence.length) {
                 className = className.concat(` transition-${labelSequence[sequenceIndex]}-${labelSequence[sequenceIndex + 1]}`);
             }
@@ -48,12 +49,14 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
             }
             sequenceIndex++;
         }
+        const numLines = kernel.lengthSequence[i];
 
         result.push(<Cell
-            cell={cell}
+            labelNr={label}
+            numLines={numLines}
             getLabel={getLabel}
             className={className}
-            data-tooltip={getTooltip(kernel, cell)}
+            data-tooltip={getTooltip(kernel, label, numLines)}
             onClick={(e) => {
                 clickListener && clickListener(i);
                 e.stopPropagation();

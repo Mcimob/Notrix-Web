@@ -72,7 +72,7 @@ class CLusterMatrix extends ReactAdapterElement {
                                     kernel={kernel}
                                     getLabel={getLabel}
                                     clickListener={() => fireKernelClick(kernel.id)}
-                                    getTooltip={(kernel, cell) => `Stage: ${getLabel(cell.mainLabel).title}<br/>Title: ${kernel.title}<br/>Lines: ${cell.sourceLinesCount}`}
+                                    getTooltip={(kernel, label, numLines) => `Stage: ${getLabel(label).title}<br/>Title: ${kernel.title}<br/>Lines: ${numLines}`}
                                     style={{}}
                                 />
                             ))}
