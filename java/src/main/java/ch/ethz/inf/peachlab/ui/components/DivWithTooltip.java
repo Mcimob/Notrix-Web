@@ -6,6 +6,8 @@ import com.vaadin.flow.component.html.Div;
 
 import java.io.Serial;
 
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_POSITION_RELATIVE;
+
 public class DivWithTooltip extends Div implements HasRender {
 
     private static final String JS = """
@@ -19,11 +21,16 @@ public class DivWithTooltip extends Div implements HasRender {
           return;
         }
     
+        const rect = container.getBoundingClientRect();
+    
         tooltip.innerHTML = cell.dataset.tooltip;
         tooltip.style.display = 'block';
-
-        tooltip.style.left = e.clientX + 10 + 'px';
-        tooltip.style.top = e.clientY + 'px';
+    
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+    
+        tooltip.style.left = (x + 10) + 'px';
+        tooltip.style.top = y + 'px';
       });
     
       container.addEventListener('mouseleave', () => {
@@ -37,6 +44,11 @@ public class DivWithTooltip extends Div implements HasRender {
 
     public DivWithTooltip(String hoverTarget) {
         this.hoverTarget = hoverTarget;
+        initStyles();
+    }
+
+    private void initStyles() {
+        addClassNames(STYLE_POSITION_RELATIVE);
     }
 
     private Component createTooltip() {
