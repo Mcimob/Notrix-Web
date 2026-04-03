@@ -97,13 +97,13 @@ def get_kernel_label_sequences(cells: pd.DataFrame) -> pd.DataFrame:
     kernel_sequences = (
         cells_sorted
         .groupby(KernelColumns.KERNEL_VERSION_ID)[CellColumns.MAIN_LABEL]
-        .apply(lambda x: x.to_numpy(dtype=np.int32))
+        .apply(lambda x: x.to_numpy(dtype=np.int32, na_value=-1))
         .reset_index(name=KernelColumns.LABEL_SEQUENCE_WITH_MD)
     )
     
     kernel_sequences[KernelColumns.LABEL_SEQUENCE] = (
         kernel_sequences[KernelColumns.LABEL_SEQUENCE_WITH_MD]
-        .apply(lambda x: x[not np.isnan(x)])
+        .apply(lambda x: x[x >= 0])
     )
     
     return kernel_sequences
