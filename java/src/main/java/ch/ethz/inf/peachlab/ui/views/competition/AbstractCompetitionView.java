@@ -169,13 +169,18 @@ public abstract class AbstractCompetitionView<
 
     private Component createTitleBox() {
         title.setText(competition.getTitle());
-        Div div = new Div(new ComponentWithLink(
-            title,
-            "https://kaggle.com/competitions/" + competition.getSlug()
-        ));
-        div.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_PADDING_M);
 
-        return div;
+        Component titleComponent = Optional.ofNullable(competition.getSlug())
+            .map(slug -> new ComponentWithLink(
+                title,
+                "https://kaggle.com/competitions/" + slug
+            ))
+
+            .map(Component.class::cast)
+            .orElse(title);
+        titleComponent.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_PADDING_M);
+
+        return titleComponent;
     }
 
     private Component createDescriptionBox() {
