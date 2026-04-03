@@ -332,8 +332,6 @@ def get_clustered_kernels(kernels: pd.DataFrame) -> pd.DataFrame:
     for group in groups:
         clustered_group = cluster_for_competition(group)
         results.append(clustered_group)
-        
-    print(results)
 
     kernels_clustered = pd.concat(results, ignore_index=True)
     
