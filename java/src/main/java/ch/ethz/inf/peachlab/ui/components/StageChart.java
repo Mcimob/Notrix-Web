@@ -27,6 +27,7 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_FONT_SIZE_XS;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_GAP_S;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_150PX;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_OVERFLOW_HIDDEN;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
@@ -58,7 +59,8 @@ public class StageChart extends Div implements HasRender {
         DivWithTooltip chartContainer = new DivWithTooltip(".bar");
         chartContainer.addClassNames(STYLE_PADDING_M, STYLE_FLEX_ROW, STYLE_FLEX_JUSTIFY_CENTER,
             STYLE_GAP_S, STYLE_HEIGHT_150PX, STYLE_BOX_SHADOW,
-            STYLE_BORDER_WIDTH_S, STYLE_BORDER_COLOR_GRAY, STYLE_BORDER_RADIUS_S, STYLE_BORDER_STYLE_SOLID);
+            STYLE_BORDER_WIDTH_S, STYLE_BORDER_COLOR_GRAY, STYLE_BORDER_RADIUS_S, STYLE_BORDER_STYLE_SOLID,
+            STYLE_OVERFLOW_HIDDEN);
         chartContainer.render();
 
         LinkedHashMap<MainLabel, Integer> sortedByValue =

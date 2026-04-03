@@ -41,7 +41,9 @@ import java.io.Serial;
 import java.util.HashSet;
 
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
+import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "competitions", layout = MainLayout.class)
 public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, KernelEntity, ClusterEntity, KernelFilter, ClusterFilter, CompetitionFilter, Long> implements ManagesProcessingNotebooks {
@@ -117,6 +119,7 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
                     titleDialog.open();
                 });
             Upload upload = new Upload(inMemoryHandler);
+            upload.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
 
             upload.setAcceptedFileTypes("application/json", ".ipynb");
             upload.addFileRejectedListener(event ->
@@ -132,10 +135,9 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
                 .setIncorrectFileType("The provided file does not have the correct format (Python notebook)"));
 
             upload.setI18n(i18n);
+            upload.getStyle().setMargin("auto");
 
-            Div div = new Div(upload);
-            div.addClassNames(STYLE_PADDING_M, STYLE_BACKGROUND_WHITE);
-            return div;
+            return upload;
         }
         return new Div();
     }

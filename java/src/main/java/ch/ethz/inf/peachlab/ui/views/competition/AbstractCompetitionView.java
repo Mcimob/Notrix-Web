@@ -17,11 +17,12 @@ import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
 import ch.ethz.inf.peachlab.ui.components.OverviewBox;
+import ch.ethz.inf.peachlab.ui.components.StageChart;
 import ch.ethz.inf.peachlab.ui.components.TitleLink;
+import ch.ethz.inf.peachlab.ui.components.TripleStats;
 import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import ch.ethz.inf.peachlab.ui.views.competition.components.ClusterOverview;
-import ch.ethz.inf.peachlab.ui.views.competition.components.CompetitionStatsPanel;
 import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.ClusterClickEvent;
 import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.ClusterMatrix;
 import ch.ethz.inf.peachlab.ui.views.competition.components.matrix.Filterbar;
@@ -44,6 +45,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.util.Pair;
 
 import java.io.Serial;
 import java.util.ArrayList;
@@ -77,6 +79,7 @@ public abstract class AbstractCompetitionView<
     extends AbstractView implements HasUrlParameter<String> {
     @Serial
     private static final long serialVersionUID = 3416371623163271785L;
+    public static final String DECIMAL_FORMAT = "%.2f";
 
     protected final transient BaseService<T, COF, ID> competitionService;
     protected final transient BaseService<K, KF, ID> kernelService;
@@ -126,7 +129,7 @@ public abstract class AbstractCompetitionView<
         top.addClassNames(STYLE_FLEX_COLUMN, STYLE_GAP_M, STYLE_BACKGROUND_BG, STYLE_HEIGHT_FULL);
         SplitLayout center = new SplitLayout(top, createMatrices(), SplitLayout.Orientation.VERTICAL);
 
-        Div right = new Div(createStats(), createUpload(), createGrids());
+        Div right = new Div(createTopRight(), createChart(), createGrids());
         right.addClassNames(STYLE_FLEX_COLUMN, STYLE_WIDTH_FULL, STYLE_GAP_M);
 
         SplitLayout rightLayout = new SplitLayout(center, right);
@@ -176,7 +179,7 @@ public abstract class AbstractCompetitionView<
     }
 
     private Component createDescriptionBox() {
-        competitionOverview.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_PADDING_M, STYLE_MIN_HEIGHT_0);
+        competitionOverview.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_WIDTH_FULL, STYLE_FLEX_COLUMN, STYLE_GAP_S, STYLE_PADDING_M, STYLE_MIN_HEIGHT_0, STYLE_HEIGHT_FULL);
         competitionOverview.add(new H2("Competition description"));
 
         OverviewBox box = new OverviewBox(competition.getOverview());
@@ -337,10 +340,31 @@ public abstract class AbstractCompetitionView<
         clusterMatrix.setVisible(true);
     }
 
-    private Component createStats() {
-        CompetitionStatsPanel<T, KF> stats = new CompetitionStatsPanel<>(competition, kernelFilter, kernelService);
+    private Component createTopRight() {
+        ServiceResponse<Long> countResponse = kernelService.count(kernelFilter);;
+
+        TripleStats stats = new TripleStats();
+        stats.setStats(List.of(
+            Pair.of("Total Notebooks", countResponse.getEntity().orElse(0L).toString()),
+            Pair.of("Avg. Cells", String.format (DECIMAL_FORMAT, competition.getAvgCellsPerKernel())),
+            Pair.of("Avg. Votes", String.format (DECIMAL_FORMAT, competition.getAvgVotes()))
+        ));
         stats.render();
-        return stats;
+        stats.addClassNames(STYLE_WIDTH_FULL);
+
+        Div div = new Div(stats, createUpload());
+        div.addClassNames(STYLE_FLEX_ROW, STYLE_GAP_S, STYLE_PADDING_M, STYLE_BACKGROUND_WHITE);
+
+        return div;
+    }
+
+    private Component createChart() {
+        StageChart chart = new StageChart();
+        chart.addClassNames(STYLE_BACKGROUND_WHITE, STYLE_PADDING_M);
+        chart.setStageStats(competition.getMainLabelStats());
+        chart.render();
+
+        return chart;
     }
 
     protected Component createUpload() {
