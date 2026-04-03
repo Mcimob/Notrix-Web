@@ -54,7 +54,10 @@ class CLusterMatrix extends ReactAdapterElement {
 
                 return (
                     <div
-                        style={style}
+                        style={{
+                            ...style,
+                            cursor: "pointer"
+                        }}
                         className="flex-column flex-align-center"
                         onClick={onClick}
                     >
