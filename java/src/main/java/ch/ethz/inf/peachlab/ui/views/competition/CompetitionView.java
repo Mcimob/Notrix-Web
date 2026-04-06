@@ -16,8 +16,6 @@ import ch.ethz.inf.peachlab.model.filter.ClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.filter.UploadedKernelFilter;
-import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
-import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
@@ -39,10 +37,9 @@ import org.springframework.data.domain.Pageable;
 
 import java.io.Serial;
 import java.util.HashSet;
+import java.util.function.Function;
 
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "competitions", layout = MainLayout.class)
@@ -63,11 +60,6 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
         super(competitionService, kernelService, clusterService, new KernelFilter(), new ClusterFilter());
         this.nbProcessingService = nbProcessingService;
         this.uploadedKernelService = uploadedKernelService;
-    }
-
-    @Override
-    protected HasLoadType getKernelLoadType() {
-        return KernelLoadType.WITH_CELLS;
     }
 
     @Override
@@ -148,10 +140,14 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
         getUploadedNotebooks(nbs -> {
             UploadedKernelFilter uploadedKernelFilter = new UploadedKernelFilter();
             uploadedKernelFilter.setIds(nbs.getOrDefault(competition.getId(), new HashSet<>()));
-            //noinspection unchecked,rawtypes
             initData(() -> ServiceResponseHelper.transformEntity(
                 uploadedKernelService.fetch(Pageable.unpaged(), uploadedKernelFilter, UploadedKernelLoadType.WITH_CELLS),
-                p -> (PageImpl) p.map(k -> (HasKernelData<?, ?, ?>) k)));
+                p -> new PageImpl<HasKernelData<?, ?, ?>>(
+                    p.stream()
+                        .<HasKernelData<?, ?, ?>>map(Function.identity())
+                        .toList()
+                )
+            ));
         });
     }
 

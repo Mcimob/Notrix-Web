@@ -14,12 +14,29 @@ export const DEFAULT_LABEL = {id: -1, title: "None"}
 class NotebookMatrix extends ReactAdapterElement {
     protected render(hooks: RenderHooks): React.ReactElement | null {
         const [items, _setItems] = hooks.useState<KernelData[]>("items", []);
-        const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", [])
-        const fireKernelClick = hooks.useCustomEvent<string>("kernel-click")
+        const [totalItems, _setTotalItems] = hooks.useState<number>("totalItems", 0);
+        const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", []);
+        const fireKernelClick = hooks.useCustomEvent<string>("kernel-click");
+        const fireLoadMoreClick = hooks.useCustomEvent<number>("load-more-click");
+        const listRef = React.useRef<FixedSizeList>(null);
+
+        const itemWidth = 28;
+        const defaultWidth = 400;
 
         const getLabel = (id: number) => labelData.find(l => l.id == id) || DEFAULT_LABEL;
 
         const Column = ({index, style} : {index: number, style: React.CSSProperties}) => {
+            if (index >= items.length && items.length < totalItems) {
+                return <div className={"flex-column flex-center height-full font-weight-bold"} style={{
+                    ...style,
+                    border: "2px solid black",
+                    width: "24px",
+                    margin: "2px",
+                    padding: "2px",
+                    cursor: "pointer"
+                }}
+                onClick={() => fireLoadMoreClick(items.length)}>+</div>
+            }
             const item = items[index];
             if (!item) {
                 return <div style={style}>...</div>;
@@ -36,9 +53,17 @@ class NotebookMatrix extends ReactAdapterElement {
 
         return <div className={"width-full height-full"}>
             <AutoSizer ChildComponent={({width, height}: AutoSizerChildProps) =>
-                (<FixedSizeList itemSize={28} height={height || 300} itemCount={items.length} width={width || 400} layout={"horizontal"}>
-                    {Column}
-                </FixedSizeList>
+                (
+                    <FixedSizeList
+                        ref={listRef}
+                        itemSize={itemWidth}
+                        height={height || 300}
+                        itemCount={Math.min( totalItems, items.length + 1)}
+                        width={width || defaultWidth}
+                        layout={"horizontal"}
+                        initialScrollOffset={Math.max(0, (items.length - 49) * itemWidth - (width || defaultWidth))}>
+                        {Column}
+                    </FixedSizeList>
                 )} />
         </div>
     }

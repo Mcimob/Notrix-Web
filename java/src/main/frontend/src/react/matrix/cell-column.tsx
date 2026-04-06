@@ -32,6 +32,7 @@ type CellColumnProps = {
 } & React.ComponentPropsWithoutRef<'div'>;
 
 export default function CellColumn({kernel, getLabel, getTooltip, clickListener, style, ...props}: CellColumnProps) {
+    props.onMouseOver
     const result = [];
     const labelSequenceWithMd = kernel.labelSequenceWithMd;
     const labelSequence = labelSequenceWithMd.filter(i => i >= 0);
