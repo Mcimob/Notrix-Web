@@ -2,12 +2,12 @@ package ch.ethz.inf.peachlab.ui.views.competition.components.matrix;
 
 import ch.ethz.inf.peachlab.logger.HasLogger;
 import ch.ethz.inf.peachlab.model.dto.ClusterDTO;
-import ch.ethz.inf.peachlab.model.dto.KernelDTO;
 import ch.ethz.inf.peachlab.model.dto.SimpleMainLabelDTO;
 import ch.ethz.inf.peachlab.model.entity.HasClusterData;
-import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Tag;
 import com.vaadin.flow.component.dependency.JsModule;
@@ -15,7 +15,6 @@ import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,8 +28,6 @@ public class ClusterMatrix extends ReactAdapterComponent implements HasLogger, H
     @Serial
     private static final long serialVersionUID = -5703944031143879709L;
 
-    private final List<HasClusterData<?, ?>> items = new ArrayList<>();
-
     public ClusterMatrix() {
         setState("labelData", Arrays.stream(MainLabel.values())
             .map(l -> SimpleMainLabelDTO.ofMainLabel(l, this::getTranslation))
@@ -40,10 +37,16 @@ public class ClusterMatrix extends ReactAdapterComponent implements HasLogger, H
     }
 
     public void addItems(List<HasClusterData<?, ?>> newItems) {
-        items.addAll(newItems);
-        setState("items", items.stream()
+        ClusterDTO[] newClusters = newItems.stream()
             .map(ClusterDTO::ofCluster)
-            .toList());
+            .toArray(ClusterDTO[]::new);
+        try {
+            getElement().executeJs(
+                "this.dispatchEvent(new CustomEvent('append-clusters', { detail: $0 }))",
+                new ObjectMapper().writeValueAsString(newClusters));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void setTotalItems(long totalItems) {

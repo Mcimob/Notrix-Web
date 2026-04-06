@@ -18,10 +18,9 @@ class NotebookMatrix extends ReactAdapterElement {
         const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", []);
         const fireKernelClick = hooks.useCustomEvent<string>("kernel-click");
         const fireLoadMoreClick = hooks.useCustomEvent<number>("load-more-click");
-        const listRef = React.useRef<FixedSizeList>(null);
 
-        const itemWidth = 28;
-        const defaultWidth = 400;
+        const listRef = React.useRef<FixedSizeList>(null);
+        const scrollOffset = React.useRef(0);
 
         const getLabel = (id: number) => labelData.find(l => l.id == id) || DEFAULT_LABEL;
 
@@ -56,12 +55,16 @@ class NotebookMatrix extends ReactAdapterElement {
                 (
                     <FixedSizeList
                         ref={listRef}
-                        itemSize={itemWidth}
+                        itemSize={28}
                         height={height || 300}
                         itemCount={Math.min( totalItems, items.length + 1)}
-                        width={width || defaultWidth}
+                        width={width || 400}
                         layout={"horizontal"}
-                        initialScrollOffset={Math.max(0, (items.length - 49) * itemWidth - (width || defaultWidth))}>
+                        initialScrollOffset={scrollOffset.current}
+                        onScroll={({scrollOffset: offset}) => {
+                            scrollOffset.current = offset;
+                        }}
+                    >
                         {Column}
                     </FixedSizeList>
                 )} />

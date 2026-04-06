@@ -13,11 +13,28 @@ export const DEFAULT_LABEL = {id: -1, title: "None"}
 
 class CLusterMatrix extends ReactAdapterElement {
     protected render(hooks: RenderHooks): React.ReactElement | null {
-        const [items, _setItems] = hooks.useState<ClusterData[]>("items", []);
         const [totalItems, _setTotalItems] = hooks.useState<number>("totalItems", 0);
         const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", [])
 
         const [highlightedClusterId, setHighlightedClusterId] = React.useState<number | null>(null);
+        const [currentlyLoading, setCurrentlyLoading] = React.useState<boolean>(true);
+        const [items, setItems] = React.useState<ClusterData[]>([]);
+        React.useEffect(() => {
+            const handler = (e: Event) => {
+                const customEvent = e as CustomEvent;
+                console.log("Custom Event: ", customEvent);
+                let newItems = customEvent.detail;
+                if (typeof newItems === "string")
+                    newItems = JSON.parse(newItems);
+
+                setItems(prev => [...prev, ...newItems]);
+                setCurrentlyLoading(false);
+            }
+            this.addEventListener("append-clusters", handler);
+            return () => {
+                this.removeEventListener("append-clusters", handler)
+            }
+        }, []);
 
         const fireClusterClick = hooks.useCustomEvent<string>("cluster-click");
         const fireKernelClick = hooks.useCustomEvent<string>("kernel-click")
@@ -33,18 +50,9 @@ class CLusterMatrix extends ReactAdapterElement {
 
         const getItemSize = React.useCallback(
             (index: number) =>
-                index < items.length ? Math.max(3, items[index]?.kernels.length ?? 0) * 28 + 12 : 28,
+                index < items.length ? Math.max(3, items[index]?.kernels?.length ?? 0) * 28 + 12 : 28,
             [items]
         );
-
-        const runningItemSize: number[] = Array(items.length);
-        items.forEach((c, i) => {
-            let newVal = getItemSize(i);
-           if (i != 0) {
-               newVal += runningItemSize[i - 1];
-           }
-           runningItemSize[i] = newVal;
-        });
 
         const Cluster = React.useCallback(
             ({ index, style }: { index: number; style: React.CSSProperties }) => {
@@ -57,12 +65,16 @@ class CLusterMatrix extends ReactAdapterElement {
                             width: "24px",
                             margin: "2px",
                             padding: "2px",
-                            cursor: "pointer"
+                            cursor: currentlyLoading ? "wait" : "pointer"
                         }}
-                        onClick={() => fireLoadMoreClick(items.length)}>+</div>
+                        onClick={() => {
+                            if (!currentlyLoading)
+                                fireLoadMoreClick(items.length);
+                            setCurrentlyLoading(true);
+                        }}>{currentlyLoading ? "..." : "+"}</div>
                 }
                 const item = items[index];
-                if (!item) return <div style={style}>...</div>;
+                if (!item || !item.kernels) return <div style={style}></div>;
 
                 const isHighlighted = highlightedClusterId === item.localClusterId;
                 const textColor = isHighlighted ? "green" : "black";
@@ -109,6 +121,7 @@ class CLusterMatrix extends ReactAdapterElement {
             [
                 items,
                 highlightedClusterId,
+                currentlyLoading,
                 fireClusterClick,
                 fireKernelClick,
                 getLabel

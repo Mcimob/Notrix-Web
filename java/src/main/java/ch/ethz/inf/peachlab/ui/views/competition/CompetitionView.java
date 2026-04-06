@@ -16,6 +16,8 @@ import ch.ethz.inf.peachlab.model.filter.ClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.filter.UploadedKernelFilter;
+import ch.ethz.inf.peachlab.model.loadtype.ClusterLoadType;
+import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
@@ -76,6 +78,11 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
     protected Long parseId(String stringId) {
         return Long.parseLong(stringId);
 
+    }
+
+    @Override
+    protected HasLoadType getClusterMatrixLoadType() {
+        return ClusterLoadType.WITH_KERNELS;
     }
 
     @Override

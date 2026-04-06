@@ -7,7 +7,11 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.io.Serial;
 
-public class AbstractClusterFilter<T extends HasClusterData<K, C>, K extends HasKernelData<?, ?, ?>, C extends HasCompetitionData<?, K, ?>> extends AbstractFilter<T, Long> {
+public class AbstractClusterFilter<
+        T extends HasClusterData<K, C>,
+        K extends HasKernelData<?, ?, ?>,
+        C extends HasCompetitionData<?, K, ?>>
+    extends AbstractFilter<T, Long> {
     @Serial
     private static final long serialVersionUID = -4518740573687773169L;
 
@@ -45,7 +49,11 @@ public class AbstractClusterFilter<T extends HasClusterData<K, C>, K extends Has
         this.localClusterId = localClusterId;
     }
 
-    public static <T extends HasClusterData<K, C>, K extends HasKernelData<?, ?, C>, C extends HasCompetitionData<?, K, T>> AbstractClusterFilter<T, K, C> copyFilter(AbstractClusterFilter<T, K, C> filter) {
+    public static <
+            T extends HasClusterData<K, C>,
+            K extends HasKernelData<?, ?, C>,
+            C extends HasCompetitionData<?, K, T>
+        > AbstractClusterFilter<T, K, C> copyFilter(AbstractClusterFilter<T, K, C> filter) {
         AbstractClusterFilter<T, K, C> f = new AbstractClusterFilter<>();
         f.setCompetition(filter.competition);
         f.setIds(filter.ids);

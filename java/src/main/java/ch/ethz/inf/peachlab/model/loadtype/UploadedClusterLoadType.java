@@ -4,7 +4,8 @@ import ch.ethz.inf.peachlab.model.entity.UploadedClusterEntity;
 
 public enum UploadedClusterLoadType implements HasLoadType {
 
-    WITH_KERNELS_AND_CELLS(UploadedClusterEntity.WITH_KERNELS_AND_CELLS_UPLOADED);
+    WITH_KERNELS_AND_CELLS(UploadedClusterEntity.WITH_KERNELS_AND_CELLS_UPLOADED),
+    WITH_KERNELS(UploadedClusterEntity.WITH_KERNELS_UPLOADED);
 
     private final String name;
 

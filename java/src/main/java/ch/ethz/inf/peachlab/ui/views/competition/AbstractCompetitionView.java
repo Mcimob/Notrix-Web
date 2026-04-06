@@ -3,12 +3,14 @@ package ch.ethz.inf.peachlab.ui.views.competition;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.BaseService;
 import ch.ethz.inf.peachlab.model.entity.HasBaseStats;
+import ch.ethz.inf.peachlab.model.entity.HasCellData;
 import ch.ethz.inf.peachlab.model.entity.HasClusterData;
 import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.filter.AbstractClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.AbstractCompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.AbstractKernelFilter;
+import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
@@ -45,6 +47,8 @@ import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 
 import java.io.Serial;
@@ -68,12 +72,12 @@ import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_TEXT_COLOR_GRAY;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 public abstract class AbstractCompetitionView<
-    T extends HasCompetitionData<ID, K, C>,
-    K extends HasKernelData<ID, ?, T>,
-    C extends HasClusterData<K, T>,
-    KF extends AbstractKernelFilter<K, ID, T>,
-    CF extends AbstractClusterFilter<C, K, T>,
-    COF extends AbstractCompetitionFilter<T, ID>,
+        T extends HasCompetitionData<ID, K, C>,
+        K extends HasKernelData<ID, ? extends HasCellData, T>,
+        C extends HasClusterData<K, T>,
+        KF extends AbstractKernelFilter<K, ID, T>,
+        CF extends AbstractClusterFilter<C, K, T>,
+        COF extends AbstractCompetitionFilter<T, ID>,
     ID>
     extends AbstractView implements HasUrlParameter<String> {
     @Serial
@@ -86,7 +90,7 @@ public abstract class AbstractCompetitionView<
     protected final transient BaseService<K, KF, ID> kernelService;
     private final transient BaseService<C, CF, Long> clusterService;
 
-    private final HierarchicalConfigurableFilterDataProvider<HasBaseStats, Void, CF> clusterProvider;
+    private HierarchicalConfigurableFilterDataProvider<HasBaseStats, Void, CF> clusterProvider;
 
     protected T competition;
 
@@ -109,7 +113,6 @@ public abstract class AbstractCompetitionView<
         this.clusterService = clusterService;
         this.kernelFilter = kernelFilter;
         this.clusterFilter = clusterFilter;
-        this.clusterProvider = new ClusterProvider<>(clusterService).withConfigurableFilter();
     }
 
     @Override
@@ -122,6 +125,9 @@ public abstract class AbstractCompetitionView<
         clusterFilter.setCompetition(competition);
         kernelFilter.setCompetition(competition);
 
+        @SuppressWarnings("unchecked")
+        KF freshFilter = (KF) AbstractKernelFilter.copyFilter((AbstractKernelFilter<K, ID, T>) kernelFilter);
+        clusterProvider = new ClusterProvider<>(clusterService, kernelService, freshFilter).withConfigurableFilter();
         clusterProvider.setFilter(clusterFilter);
     }
 
@@ -317,12 +323,30 @@ public abstract class AbstractCompetitionView<
     }
 
     private void onMoreClustersRequested(LoadMoreClickEvent event) {
-        Stream<HasBaseStats> fetch = clusterGrid.getDataProvider().fetch(new HierarchicalQuery<>((int) event.getCurrentSize(), CLUSTER_PAGE_SIZE, null, null, null, null));
-        clusterMatrix.addItems(fetch
-            .map(c -> c instanceof HasClusterData<?, ?> cluster ? cluster : null)
-            .<HasClusterData<?, ?>>map(Function.identity())
-            .toList());
+        PageRequest request = PageRequest.of(
+            (int) event.getCurrentSize() / CLUSTER_PAGE_SIZE,
+            CLUSTER_PAGE_SIZE,
+            Sort.by(Sort.Direction.ASC, "localClusterId"));
+        UiAsyncUtils.callServiceAsync(() -> clusterService.fetch(
+                request,
+                clusterFilter,
+                getClusterMatrixLoadType()
+            ),
+            UI.getCurrent(),
+            this::onMoreClustersLoaded);
     }
+
+    private <R extends ServiceResponse<? extends PageImpl<? extends C>>>  void onMoreClustersLoaded(R response) {
+        List<HasClusterData<?, ?>> newItems = response
+            .getEntity()
+            .map(PageImpl::stream)
+            .orElse(Stream.empty())
+            .<HasClusterData<?, ?>>map(Function.identity())
+            .toList();
+        clusterMatrix.addItems(newItems);
+    }
+
+    protected abstract HasLoadType getClusterMatrixLoadType();
 
     private void onKernelData(ServiceResponse<? extends PageImpl<HasKernelData<?, ?, ?>>> response) {
         KernelProvider<K, KF> provider = new KernelProvider<>(kernelService, response.getEntity().map(PageImpl::toList).orElse(List.of()));

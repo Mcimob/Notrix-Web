@@ -8,12 +8,17 @@ import org.springframework.data.jpa.domain.Specification;
 import java.io.Serial;
 import java.util.Set;
 
-public abstract class AbstractKernelFilter<T extends HasKernelData<ID, ? extends HasCellData, CO>, ID, CO extends HasCompetitionData<ID, ?, ?>> extends AbstractFilter<T, ID>{
+public class AbstractKernelFilter<
+        T extends HasKernelData<ID, ? extends HasCellData, CO>,
+        ID,
+        CO extends HasCompetitionData<ID, T, ?>>
+    extends AbstractFilter<T, ID>{
     @Serial
     private static final long serialVersionUID = 2094289064670774659L;
 
     private CO competition;
     private Set<ID> competitionIds;
+    private Long clusterId;
 
     @Override
     public Specification<T> getSpecification() {
@@ -27,6 +32,10 @@ public abstract class AbstractKernelFilter<T extends HasKernelData<ID, ? extends
             spec = spec.and(isOfCompetition(competition));
         }
 
+        if (clusterId != null) {
+            spec = spec.and(isOfCluster(clusterId));
+        }
+
         return spec;
     }
 
@@ -38,11 +47,31 @@ public abstract class AbstractKernelFilter<T extends HasKernelData<ID, ? extends
         return isOfCompetition(Set.of(competition.getId()));
     }
 
+    private Specification<T> isOfCluster(Long clusterId) {
+        return (root, cq, cb) -> cb.equal(root.get("clusterId"), clusterId);
+    }
+
     public void setCompetition(CO competition) {
         this.competition = competition;
     }
 
     public void setCompetitionIds(Set<ID> competitionIds) {
         this.competitionIds = competitionIds;
+    }
+
+    public void setClusterId(Long clusterId) {
+        this.clusterId = clusterId;
+    }
+
+    public static <
+        T extends HasKernelData<ID, ? extends HasCellData, CO>,
+        ID,
+        CO extends HasCompetitionData<ID, T, ?>> AbstractKernelFilter<T, ID, CO> copyFilter(AbstractKernelFilter<T, ID, CO> filter) {
+        AbstractKernelFilter<T, ID, CO> newFilter = new AbstractKernelFilter<>();
+        newFilter.setCompetitionIds(filter.competitionIds);
+        newFilter.setCompetition(filter.competition);
+        newFilter.setClusterId(filter.clusterId);
+
+        return newFilter;
     }
 }

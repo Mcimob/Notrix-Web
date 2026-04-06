@@ -27,11 +27,10 @@ public class KernelProvider<K extends HasKernelData<?, ?, ?>, KF extends Abstrac
 
     @Override
     protected Stream<HasKernelData<?, ?, ?>> fetchFromBackEnd(Query<HasKernelData<?, ?, ?>, AbstractKernelFilter<HasKernelData<?, ?, ?>, ?, ?>> query) {
-        int offset = query.getOffset();
         int limit = query.getLimit();
         int numFullLocalPages = localKernels.size() / limit;
 
-        int requestedPage = offset / limit;
+        int requestedPage = query.getPage();
         if (requestedPage < numFullLocalPages) {
             return localKernels.stream().skip((long) requestedPage * limit).limit(limit);
         }
