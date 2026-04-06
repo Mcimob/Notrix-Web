@@ -2,7 +2,10 @@ package ch.ethz.inf.peachlab.ui.views.competition.components.matrix;
 
 import ch.ethz.inf.peachlab.logger.HasLogger;
 import ch.ethz.inf.peachlab.model.dto.ClusterDTO;
+import ch.ethz.inf.peachlab.model.dto.KernelDTO;
 import ch.ethz.inf.peachlab.model.dto.SimpleMainLabelDTO;
+import ch.ethz.inf.peachlab.model.entity.HasClusterData;
+import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import ch.ethz.inf.peachlab.ui.views.HasNotification;
 import com.vaadin.flow.component.ComponentEventListener;
@@ -12,6 +15,7 @@ import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.react.ReactAdapterComponent;
 
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,9 +29,7 @@ public class ClusterMatrix extends ReactAdapterComponent implements HasLogger, H
     @Serial
     private static final long serialVersionUID = -5703944031143879709L;
 
-    public void setItems(List<ClusterDTO> items) {
-        setState("items", items);
-    }
+    private final List<HasClusterData<?, ?>> items = new ArrayList<>();
 
     public ClusterMatrix() {
         setState("labelData", Arrays.stream(MainLabel.values())
@@ -37,11 +39,26 @@ public class ClusterMatrix extends ReactAdapterComponent implements HasLogger, H
         getStyle().set("--cell-height", "5px");
     }
 
+    public void addItems(List<HasClusterData<?, ?>> newItems) {
+        items.addAll(newItems);
+        setState("items", items.stream()
+            .map(ClusterDTO::ofCluster)
+            .toList());
+    }
+
+    public void setTotalItems(long totalItems) {
+        setState("totalItems", totalItems);
+    }
+
     public void addKernelClickedListener(ComponentEventListener<KernelClickEvent> listener) {
         addListener(KernelClickEvent.class, listener);
     }
 
     public void addClusterClickedListener(ComponentEventListener<ClusterClickEvent> listener) {
         addListener(ClusterClickEvent.class, listener);
+    }
+
+    public void addLoadMoreClickedListener(ComponentEventListener<LoadMoreClickEvent> listener) {
+        addListener(LoadMoreClickEvent.class, listener);
     }
 }

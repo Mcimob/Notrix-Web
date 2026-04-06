@@ -2,7 +2,6 @@ package ch.ethz.inf.peachlab.ui.views.competition;
 
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.BaseService;
-import ch.ethz.inf.peachlab.model.dto.ClusterDTO;
 import ch.ethz.inf.peachlab.model.entity.HasBaseStats;
 import ch.ethz.inf.peachlab.model.entity.HasClusterData;
 import ch.ethz.inf.peachlab.model.entity.HasCompetitionData;
@@ -10,7 +9,6 @@ import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.filter.AbstractClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.AbstractCompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.AbstractKernelFilter;
-import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
 import ch.ethz.inf.peachlab.ui.components.ComponentWithLink;
 import ch.ethz.inf.peachlab.ui.components.DivWithTooltip;
@@ -19,6 +17,7 @@ import ch.ethz.inf.peachlab.ui.components.StageChart;
 import ch.ethz.inf.peachlab.ui.components.TitleLink;
 import ch.ethz.inf.peachlab.ui.components.TripleStats;
 import ch.ethz.inf.peachlab.ui.components.sidebar.TransitionSidebar;
+import ch.ethz.inf.peachlab.ui.provider.ClusterProvider;
 import ch.ethz.inf.peachlab.ui.provider.KernelProvider;
 import ch.ethz.inf.peachlab.ui.views.AbstractView;
 import ch.ethz.inf.peachlab.ui.views.competition.components.ClusterOverview;
@@ -41,16 +40,17 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalConfigurableFilterDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 import com.vaadin.flow.router.BeforeEvent;
 import com.vaadin.flow.router.HasUrlParameter;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.util.Pair;
 
 import java.io.Serial;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -80,10 +80,13 @@ public abstract class AbstractCompetitionView<
     private static final long serialVersionUID = 3416371623163271785L;
     public static final String DECIMAL_FORMAT = "%.2f";
     public static final int KERNEL_PAGE_SIZE = 50;
+    public static final int CLUSTER_PAGE_SIZE = 10;
 
     protected final transient BaseService<T, COF, ID> competitionService;
     protected final transient BaseService<K, KF, ID> kernelService;
-    private final transient BaseService<C, CF, ?> clusterService;
+    private final transient BaseService<C, CF, Long> clusterService;
+
+    private final HierarchicalConfigurableFilterDataProvider<HasBaseStats, Void, CF> clusterProvider;
 
     protected T competition;
 
@@ -92,9 +95,7 @@ public abstract class AbstractCompetitionView<
     private final ClusterOverview clusterOverview = new ClusterOverview();
 
     private final Div matrixDiv = new Div();
-    private final Div clusterMatrixDiv = new Div();
     private final Div gridPlaceholder = new Div("Loading notebooks...");
-    private final Div clusterGridPlaceholder = new Div("Loading clusters....");
     private final NotebookMatrix matrix = new NotebookMatrix();
     private final ClusterMatrix clusterMatrix = new ClusterMatrix();
     private final KernelGrid grid = new KernelGrid();
@@ -108,6 +109,7 @@ public abstract class AbstractCompetitionView<
         this.clusterService = clusterService;
         this.kernelFilter = kernelFilter;
         this.clusterFilter = clusterFilter;
+        this.clusterProvider = new ClusterProvider<>(clusterService).withConfigurableFilter();
     }
 
     @Override
@@ -119,6 +121,8 @@ public abstract class AbstractCompetitionView<
     private void initFilters() {
         clusterFilter.setCompetition(competition);
         kernelFilter.setCompetition(competition);
+
+        clusterProvider.setFilter(clusterFilter);
     }
 
     @Override
@@ -150,6 +154,11 @@ public abstract class AbstractCompetitionView<
             UI.getCurrent(),
             this::onKernelData
         );
+
+        int numClusters = clusterGrid.getDataProvider().size(new HierarchicalQuery<>(0, Integer.MAX_VALUE, null, null, null, null));
+        clusterMatrix.setTotalItems(numClusters);
+        onMoreClustersRequested(new LoadMoreClickEvent(this, false, 0));
+
     }
 
     private Component createSidebar() {
@@ -201,19 +210,14 @@ public abstract class AbstractCompetitionView<
     private Component createMatrices() {
         matrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         matrix.addKernelClickedListener(this::onKernelClicked);
-        matrix.setVisible(false);
         matrix.addLoadMoreClickedListener(this::onMoreKernelsRequested);
+        matrix.setVisible(false);
 
         clusterMatrix.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
         clusterMatrix.addKernelClickedListener(this::onKernelClicked);
         clusterMatrix.addClusterClickedListener(this::onClusterClicked);
+        clusterMatrix.addLoadMoreClickedListener(this::onMoreClustersRequested);
         clusterMatrix.setVisible(false);
-
-        UiAsyncUtils.callServiceAsync(
-            () -> clusterService.fetch(Pageable.unpaged(Sort.by("LocalClusterId")), clusterFilter),
-            UI.getCurrent(),
-            this::onNewClusterMatrixData
-        );
 
         Filterbar bar = new Filterbar();
         bar.render();
@@ -234,7 +238,7 @@ public abstract class AbstractCompetitionView<
             grid.setVisible(!event.isCluster());
             matrixDiv.setVisible(!event.isCluster());
             competitionOverview.setVisible(!event.isCluster());
-            clusterMatrixDiv.setVisible(event.isCluster());
+            clusterMatrix.setVisible(event.isCluster());
             clusterGrid.setVisible(event.isCluster());
             clusterOverview.setVisible(event.isCluster());
             if (!event.isCluster()) {
@@ -253,12 +257,7 @@ public abstract class AbstractCompetitionView<
         matrixDiv.add(matrix, gridPlaceholder);
         matrixDiv.setHeightFull();
 
-        clusterGridPlaceholder.addClassNames(STYLE_TEXT_COLOR_GRAY);
-        clusterMatrixDiv.add(clusterMatrix, clusterGridPlaceholder);
-        clusterMatrixDiv.setHeightFull();
-        clusterMatrixDiv.setVisible(false);
-
-        div.add(matrixDiv, clusterMatrixDiv);
+        div.add(matrixDiv, clusterMatrix);
         return div;
     }
 
@@ -301,15 +300,13 @@ public abstract class AbstractCompetitionView<
         CF filter = (CF) AbstractClusterFilter.copyFilter(clusterFilter);
         filter.setLocalClusterId(localClusterId);
 
-        UiAsyncUtils.callServiceAsync(() -> clusterService.fetch(Pageable.unpaged(), filter),
+        UiAsyncUtils.callServiceAsync(() -> clusterService.fetchOne(filter),
             UI.getCurrent(),
             this::onClusterResponse);
     }
 
-    private <R extends ServiceResponse<? extends PageImpl<? extends HasClusterData<?, ?>>>> void onClusterResponse(R response) {
+    private <R extends ServiceResponse<? extends HasClusterData<?, ?>>> void onClusterResponse(R response) {
         response.getEntity()
-            .map(PageImpl::toList)
-            .map(List::getFirst)
             .ifPresent(c -> {
                 clusterOverview.setCluster(c);
                 clusterOverview.render();
@@ -317,6 +314,14 @@ public abstract class AbstractCompetitionView<
                 clusterGrid.scrollToIndex(c.getLocalClusterId().intValue() - 1, 0);
                 title.setText("Cluster " + c.getLocalClusterId());
             });
+    }
+
+    private void onMoreClustersRequested(LoadMoreClickEvent event) {
+        Stream<HasBaseStats> fetch = clusterGrid.getDataProvider().fetch(new HierarchicalQuery<>((int) event.getCurrentSize(), CLUSTER_PAGE_SIZE, null, null, null, null));
+        clusterMatrix.addItems(fetch
+            .map(c -> c instanceof HasClusterData<?, ?> cluster ? cluster : null)
+            .<HasClusterData<?, ?>>map(Function.identity())
+            .toList());
     }
 
     private void onKernelData(ServiceResponse<? extends PageImpl<HasKernelData<?, ?, ?>>> response) {
@@ -333,22 +338,6 @@ public abstract class AbstractCompetitionView<
 
         gridPlaceholder.setVisible(false);
         matrix.setVisible(true);
-    }
-
-    private <R extends ServiceResponse<? extends PageImpl<C>>> void onNewClusterMatrixData(R response) {
-        clusterMatrix.setItems(
-            response.getEntity()
-                .map(PageImpl::stream)
-                .orElse(Stream.empty())
-                .map(ClusterDTO::ofCluster)
-                .toList()
-        );
-        response.getEntity()
-            .map(PageImpl::stream)
-            .ifPresent(list -> clusterGrid.setItems(list.map(o -> (HasBaseStats) o).toList(), HasBaseStats::getChildren));
-
-        clusterGridPlaceholder.setVisible(false);
-        clusterMatrix.setVisible(true);
     }
 
     private Component createTopRight() {
@@ -419,6 +408,10 @@ public abstract class AbstractCompetitionView<
         clusterGrid.setEmptyStateText("Loading clusters....");
 
         clusterGrid.setVisible(false);
+
+        clusterProvider.setFilter(clusterFilter);
+        clusterGrid.setDataProvider(clusterProvider);
+
         return clusterGrid;
     }
 

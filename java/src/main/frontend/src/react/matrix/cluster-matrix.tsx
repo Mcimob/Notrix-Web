@@ -14,13 +14,14 @@ export const DEFAULT_LABEL = {id: -1, title: "None"}
 class CLusterMatrix extends ReactAdapterElement {
     protected render(hooks: RenderHooks): React.ReactElement | null {
         const [items, _setItems] = hooks.useState<ClusterData[]>("items", []);
+        const [totalItems, _setTotalItems] = hooks.useState<number>("totalItems", 0);
         const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", [])
 
-        const [highlightedClusterId, setHighlightedClusterId] =
-            React.useState<number | null>(null);
+        const [highlightedClusterId, setHighlightedClusterId] = React.useState<number | null>(null);
 
         const fireClusterClick = hooks.useCustomEvent<string>("cluster-click");
         const fireKernelClick = hooks.useCustomEvent<string>("kernel-click")
+        const fireLoadMoreClick = hooks.useCustomEvent<number>("load-more-click");
 
         const listRef = React.useRef<VariableSizeList>(null);
         const scrollOffset = React.useRef(0);
@@ -32,12 +33,34 @@ class CLusterMatrix extends ReactAdapterElement {
 
         const getItemSize = React.useCallback(
             (index: number) =>
-                Math.max(3, items[index]?.kernels.length ?? 0) * 28 + 12,
+                index < items.length ? Math.max(3, items[index]?.kernels.length ?? 0) * 28 + 12 : 28,
             [items]
         );
 
+        const runningItemSize: number[] = Array(items.length);
+        items.forEach((c, i) => {
+            let newVal = getItemSize(i);
+           if (i != 0) {
+               newVal += runningItemSize[i - 1];
+           }
+           runningItemSize[i] = newVal;
+        });
+
         const Cluster = React.useCallback(
             ({ index, style }: { index: number; style: React.CSSProperties }) => {
+                if (index >= items.length && items.length < totalItems) {
+                    return <div
+                        className={"flex-column flex-center height-full font-weight-bold"}
+                        style={{
+                            ...style,
+                            border: "2px solid black",
+                            width: "24px",
+                            margin: "2px",
+                            padding: "2px",
+                            cursor: "pointer"
+                        }}
+                        onClick={() => fireLoadMoreClick(items.length)}>+</div>
+                }
                 const item = items[index];
                 if (!item) return <div style={style}>...</div>;
 
@@ -99,13 +122,12 @@ class CLusterMatrix extends ReactAdapterElement {
                         initialScrollOffset={scrollOffset.current}
                         itemSize={getItemSize}
                         height={height || 300}
-                        itemCount={items.length}
+                        itemCount={Math.min(totalItems, items.length + 1)}
                         width={width || 400}
                         layout={"horizontal"}
-                        itemKey={index => items[index].clusterId}
+                        itemKey={index => index < items.length ? items[index].clusterId : -1}
                         onScroll={({ scrollOffset: offset }) => {
                             scrollOffset.current = offset;
-                            console.log(offset);
                         }}
                     >
                         {Cluster}

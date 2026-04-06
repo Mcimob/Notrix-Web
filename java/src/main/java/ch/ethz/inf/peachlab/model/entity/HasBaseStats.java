@@ -1,6 +1,7 @@
 package ch.ethz.inf.peachlab.model.entity;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface HasBaseStats {
 
@@ -10,5 +11,7 @@ public interface HasBaseStats {
 
     Double getVotes();
 
-    Collection<HasBaseStats> getChildren();
+    default Collection<HasBaseStats> getChildren() {
+        return List.of();
+    }
 }
