@@ -118,7 +118,7 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
                     titleDialog.open();
                 });
             Upload upload = new Upload(inMemoryHandler);
-            upload.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+            upload.addClassNames(STYLE_WIDTH_FULL);
 
             upload.setAcceptedFileTypes("application/json", ".ipynb");
             upload.addFileRejectedListener(event ->
@@ -134,7 +134,7 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
                 .setIncorrectFileType("The provided file does not have the correct format (Python notebook)"));
 
             upload.setI18n(i18n);
-            upload.getStyle().setMargin("auto");
+            upload.getStyle().setMarginTop("32px");
 
             return upload;
         }
