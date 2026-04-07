@@ -4,6 +4,7 @@ import {ReactAdapterElement, RenderHooks} from "Frontend/generated/flow/ReactAda
 import {AutoSizer, AutoSizerChildProps} from "react-virtualized-auto-sizer";
 import CellColumn from "Frontend/src/react/matrix/cell-column";
 import {KernelData} from "Frontend/src/react/matrix/notebook-matrix";
+import LoadingColumn from "Frontend/src/react/matrix/loading-column";
 
 export type ClusterData = {clusterId: number, localClusterId: number, kernels: KernelData[]}
 
@@ -16,9 +17,16 @@ class CLusterMatrix extends ReactAdapterElement {
         const [totalItems, _setTotalItems] = hooks.useState<number>("totalItems", 0);
         const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", [])
 
+        const fireClusterClick = hooks.useCustomEvent<string>("cluster-click");
+        const fireKernelClick = hooks.useCustomEvent<string>("kernel-click")
+        const fireLoadMoreClick = hooks.useCustomEvent<number>("load-more-click");
+
+        const listRef = React.useRef<VariableSizeList>(null);
+        const scrollOffset = React.useRef(0);
         const [highlightedClusterId, setHighlightedClusterId] = React.useState<number | null>(null);
         const [currentlyLoading, setCurrentlyLoading] = React.useState<boolean>(true);
         const [items, setItems] = React.useState<ClusterData[]>([]);
+
         React.useEffect(() => {
             const handler = (e: Event) => {
                 const customEvent = e as CustomEvent;
@@ -30,18 +38,11 @@ class CLusterMatrix extends ReactAdapterElement {
                 setItems(prev => [...prev, ...newItems]);
                 setCurrentlyLoading(false);
             }
-            this.addEventListener("append-clusters", handler);
+            this.addEventListener("append-items", handler);
             return () => {
-                this.removeEventListener("append-clusters", handler)
+                this.removeEventListener("append-items", handler)
             }
         }, []);
-
-        const fireClusterClick = hooks.useCustomEvent<string>("cluster-click");
-        const fireKernelClick = hooks.useCustomEvent<string>("kernel-click")
-        const fireLoadMoreClick = hooks.useCustomEvent<number>("load-more-click");
-
-        const listRef = React.useRef<VariableSizeList>(null);
-        const scrollOffset = React.useRef(0);
 
         const getLabel = React.useCallback(
             (id: number) => labelData.find(l => l.id === id) || DEFAULT_LABEL,
@@ -57,21 +58,13 @@ class CLusterMatrix extends ReactAdapterElement {
         const Cluster = React.useCallback(
             ({ index, style }: { index: number; style: React.CSSProperties }) => {
                 if (index >= items.length && items.length < totalItems) {
-                    return <div
-                        className={"flex-column flex-center height-full font-weight-bold"}
-                        style={{
-                            ...style,
-                            border: "2px solid black",
-                            width: "24px",
-                            margin: "2px",
-                            padding: "2px",
-                            cursor: currentlyLoading ? "wait" : "pointer"
-                        }}
-                        onClick={() => {
-                            if (!currentlyLoading)
-                                fireLoadMoreClick(items.length);
-                            setCurrentlyLoading(true);
-                        }}>{currentlyLoading ? "..." : "+"}</div>
+                    return <LoadingColumn
+                        loading={currentlyLoading}
+                        loadMore={fireLoadMoreClick}
+                        setLoading={setCurrentlyLoading}
+                        currentItems={items.length}
+                        style={style}
+                    />
                 }
                 const item = items[index];
                 if (!item || !item.kernels) return <div style={style}></div>;
