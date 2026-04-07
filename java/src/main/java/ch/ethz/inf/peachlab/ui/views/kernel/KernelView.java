@@ -11,7 +11,9 @@ import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.enums.CellType;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
+import ch.ethz.inf.peachlab.model.loadtype.ClusterLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
+import ch.ethz.inf.peachlab.model.loadtype.UploadedClusterLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.UiAsyncUtils;
@@ -332,7 +334,9 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         grid.setHeightFull();
 
         UiAsyncUtils.callServiceAsync(
-            () -> clusterService.fetchById(kernel.getClusterId()),
+            () -> clusterService.fetchById(kernel.getClusterId(), kernel instanceof KernelEntity
+                ? ClusterLoadType.WITH_KERNELS
+                : UploadedClusterLoadType.WITH_KERNELS),
             UI.getCurrent(),
             res -> res.getEntity()
                 .map(ClusterEntity::getKernels)

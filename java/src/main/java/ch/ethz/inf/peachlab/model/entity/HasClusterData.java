@@ -49,7 +49,7 @@ public abstract class HasClusterData<K extends HasKernelData<?, ?, ?>, C extends
     @Column(name = "MainLabelStats", columnDefinition = "jsonb")
     private Map<Integer, Integer> mainLabelStats;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "ClusterId")
     private Set<K> kernels;
 
@@ -129,13 +129,6 @@ public abstract class HasClusterData<K extends HasKernelData<?, ?, ?>, C extends
     @Override
     public Double getVotes() {
         return avgVotes;
-    }
-
-    @Override
-    public Collection<HasBaseStats> getChildren() {
-        return getKernels().stream()
-            .map(o -> (HasBaseStats) o)
-            .toList();
     }
 
     public void setAvgCellsPerKernel(Double avgCellsPerKernel) {

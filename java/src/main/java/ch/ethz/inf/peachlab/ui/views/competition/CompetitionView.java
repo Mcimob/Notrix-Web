@@ -16,8 +16,8 @@ import ch.ethz.inf.peachlab.model.filter.ClusterFilter;
 import ch.ethz.inf.peachlab.model.filter.CompetitionFilter;
 import ch.ethz.inf.peachlab.model.filter.KernelFilter;
 import ch.ethz.inf.peachlab.model.filter.UploadedKernelFilter;
+import ch.ethz.inf.peachlab.model.loadtype.ClusterLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.HasLoadType;
-import ch.ethz.inf.peachlab.model.loadtype.KernelLoadType;
 import ch.ethz.inf.peachlab.model.loadtype.UploadedKernelLoadType;
 import ch.ethz.inf.peachlab.ui.MainLayout;
 import ch.ethz.inf.peachlab.ui.webstorage.ManagesProcessingNotebooks;
@@ -39,10 +39,9 @@ import org.springframework.data.domain.Pageable;
 
 import java.io.Serial;
 import java.util.HashSet;
+import java.util.function.Function;
 
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_BACKGROUND_WHITE;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_PADDING_M;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "competitions", layout = MainLayout.class)
@@ -66,11 +65,6 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
     }
 
     @Override
-    protected HasLoadType getKernelLoadType() {
-        return KernelLoadType.WITH_CELLS;
-    }
-
-    @Override
     protected ServiceResponse<? extends HasKernelData<?, ?, ?>> getKernelResponse(String stringId) {
         try {
             long longId = Long.parseLong(stringId);
@@ -84,6 +78,11 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
     protected Long parseId(String stringId) {
         return Long.parseLong(stringId);
 
+    }
+
+    @Override
+    protected HasLoadType getClusterMatrixLoadType() {
+        return ClusterLoadType.WITH_KERNELS;
     }
 
     @Override
@@ -119,7 +118,7 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
                     titleDialog.open();
                 });
             Upload upload = new Upload(inMemoryHandler);
-            upload.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
+            upload.addClassNames(STYLE_WIDTH_FULL);
 
             upload.setAcceptedFileTypes("application/json", ".ipynb");
             upload.addFileRejectedListener(event ->
@@ -135,7 +134,7 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
                 .setIncorrectFileType("The provided file does not have the correct format (Python notebook)"));
 
             upload.setI18n(i18n);
-            upload.getStyle().setMargin("auto");
+            upload.getStyle().setMarginTop("32px");
 
             return upload;
         }
@@ -148,10 +147,14 @@ public class CompetitionView extends AbstractCompetitionView<CompetitionEntity, 
         getUploadedNotebooks(nbs -> {
             UploadedKernelFilter uploadedKernelFilter = new UploadedKernelFilter();
             uploadedKernelFilter.setIds(nbs.getOrDefault(competition.getId(), new HashSet<>()));
-            //noinspection unchecked,rawtypes
             initData(() -> ServiceResponseHelper.transformEntity(
                 uploadedKernelService.fetch(Pageable.unpaged(), uploadedKernelFilter, UploadedKernelLoadType.WITH_CELLS),
-                p -> (PageImpl) p.map(k -> (HasKernelData<?, ?, ?>) k)));
+                p -> new PageImpl<HasKernelData<?, ?, ?>>(
+                    p.stream()
+                        .<HasKernelData<?, ?, ?>>map(Function.identity())
+                        .toList()
+                )
+            ));
         });
     }
 

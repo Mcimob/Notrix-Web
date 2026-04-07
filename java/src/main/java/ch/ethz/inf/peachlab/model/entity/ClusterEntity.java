@@ -2,33 +2,36 @@ package ch.ethz.inf.peachlab.model.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.NamedSubgraph;
-import jakarta.persistence.OneToMany;
 
 import java.io.Serial;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
-@NamedEntityGraph(name = ClusterEntity.WITH_KERNELS_AND_CELLS,
-attributeNodes = {
-    @NamedAttributeNode(value = "kernels", subgraph = KernelEntity.WITH_CELLS)
+@NamedEntityGraph(
+    name = ClusterEntity.WITH_KERNELS_AND_CELLS,
+    attributeNodes = {
+        @NamedAttributeNode(value = "kernels", subgraph = KernelEntity.WITH_CELLS)
 },
-subgraphs = {
-    @NamedSubgraph(name = KernelEntity.WITH_CELLS, attributeNodes = {
-        @NamedAttributeNode("cells")
-    })
-})
+    subgraphs = {
+        @NamedSubgraph(name = KernelEntity.WITH_CELLS, attributeNodes = {
+            @NamedAttributeNode("cells")
+        })
+    }
+)
+@NamedEntityGraph(
+    name = ClusterEntity.WITH_KERNELS,
+    attributeNodes = {
+        @NamedAttributeNode(value = "kernels")
+    }
+)
 public class ClusterEntity extends HasClusterData<KernelEntity, CompetitionEntity> {
 
     public static final String WITH_KERNELS_AND_CELLS = "withKernelsAndCells";
+    public static final String WITH_KERNELS = "withKernels";
     @Serial
     private static final long serialVersionUID = 7054276197678850847L;
 

@@ -1,12 +1,9 @@
 package ch.ethz.inf.peachlab.model.entity;
 
-import ch.ethz.inf.peachlab.model.enums.MainLabel;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -32,7 +29,7 @@ public class UploadedKernelEntity extends HasKernelData<String, UploadedCellEnti
 
     public static final String WITH_CELLS_UPLOADED = "withCellsUploaded";
     public static final String WITH_COMPETITION_UPLOADED = "withCompetitionUploaded";
-    
+
     @Serial
     private static final long serialVersionUID = -7032933906001116015L;
 

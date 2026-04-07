@@ -1,53 +1,83 @@
 package ch.ethz.inf.peachlab.ui.provider;
 
-import ch.ethz.inf.peachlab.app.SpringContext;
-import ch.ethz.inf.peachlab.backend.service.db.ClusterService;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
-import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
-import ch.ethz.inf.peachlab.model.filter.ClusterFilter;
-import com.vaadin.flow.data.provider.AbstractBackEndDataProvider;
+import ch.ethz.inf.peachlab.backend.service.db.BaseService;
+import ch.ethz.inf.peachlab.model.entity.HasBaseStats;
+import ch.ethz.inf.peachlab.model.entity.HasClusterData;
+import ch.ethz.inf.peachlab.model.entity.HasKernelData;
+import ch.ethz.inf.peachlab.model.filter.AbstractClusterFilter;
+import ch.ethz.inf.peachlab.model.filter.AbstractKernelFilter;
 import com.vaadin.flow.data.provider.Query;
-import com.vaadin.flow.data.provider.QuerySortOrder;
+import com.vaadin.flow.data.provider.hierarchy.AbstractBackEndHierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import java.io.Serial;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
-public class ClusterProvider extends AbstractBackEndDataProvider<ClusterEntity, ClusterFilter> {
+public class ClusterProvider<
+        C extends HasClusterData<K, ?>,
+        CF extends AbstractClusterFilter<C, K, ?>,
+        K extends HasKernelData<?, ?, ?>,
+        KF extends AbstractKernelFilter<K, ?, ?>
+    > extends AbstractBackEndHierarchicalDataProvider<HasBaseStats, CF> {
 
     @Serial
     private static final long serialVersionUID = 2812842525037289551L;
-    private final ClusterService clusterService;
+    private final BaseService<C, CF, Long> clusterService;
+    private final BaseService<K, KF, ?> kernelService;
+    private final KF filter;
 
-    public ClusterProvider() {
-        this.clusterService = SpringContext.getBean(ClusterService.class);
+    public ClusterProvider(BaseService<C, CF, Long> clusterService, BaseService<K, KF, ?> kernelService, KF filter) {
+        this.clusterService = clusterService;
+        this.kernelService = kernelService;
+        this.filter = filter;
     }
 
-    @Override
-    protected Stream<ClusterEntity> fetchFromBackEnd(Query<ClusterEntity, ClusterFilter> query) {
-        ClusterFilter filter = query.getFilter().orElse(new ClusterFilter());
-        ServiceResponse<PageImpl<ClusterEntity>> response = clusterService.fetch(PageRequest.of(
-                        query.getOffset() / query.getLimit(),
-                        query.getLimit(),
-                        Sort.by(query.getSortOrders().stream()
-                                .map(s -> new Sort.Order(getSortDirection(s), s.getSorted())).toList())),
-                filter);
+    protected Stream<C> fetchFromBackEnd(Query<HasBaseStats, CF> query) {
+        CF filter = query.getFilter().orElseThrow();
+        ServiceResponse<PageImpl<C>> response = clusterService.fetch(PageRequest.of(
+                query.getPage(),
+                query.getLimit(),
+                Sort.by(Sort.Direction.ASC, "localClusterId")),
+            filter);
         return response.getEntity().map(PageImpl::stream).orElse(Stream.empty());
     }
 
-    @Override
-    protected int sizeInBackEnd(Query<ClusterEntity, ClusterFilter> query) {
-        ClusterFilter filter = query.getFilter().orElse(new ClusterFilter());
+    protected int sizeInBackEnd(Query<HasBaseStats, CF> query) {
+        CF filter = query.getFilter().orElseThrow();
         ServiceResponse<Long> countResponse = clusterService.count(filter);
         return Math.toIntExact(countResponse.getEntity().orElse(0L));
     }
 
-    private static Sort.Direction getSortDirection(QuerySortOrder sort) {
-        return switch (sort.getDirection()) {
-            case ASCENDING -> Sort.Direction.ASC;
-            case DESCENDING -> Sort.Direction.DESC;
-        };
+    @Override
+    protected Stream<HasBaseStats> fetchChildrenFromBackEnd(HierarchicalQuery<HasBaseStats, CF> query) {
+        if (query.getParent() != null && query.getParent() instanceof HasClusterData<?, ?> cluster) {
+            filter.setClusterId(cluster.getId());
+            return kernelService.fetch(PageRequest.of(query.getPage(), query.getLimit()), filter)
+                .getEntity()
+                .map(PageImpl::stream)
+                .orElse(Stream.empty())
+                .<HasBaseStats>map(Function.identity());
+        }
+        return fetchFromBackEnd(query)
+            .map(Function.identity());
+    }
+
+    @Override
+    public int getChildCount(HierarchicalQuery<HasBaseStats, CF> query) {
+        if (query.getParent() != null && query.getParent() instanceof HasClusterData<?,?> cluster) {
+            filter.setClusterId(cluster.getId());
+            return kernelService.count(filter).getEntity().orElse(0L).intValue();
+        }
+        return sizeInBackEnd(query);
+    }
+
+    @Override
+    public boolean hasChildren(HasBaseStats item) {
+        return item instanceof HasClusterData<?,?>;
     }
 }

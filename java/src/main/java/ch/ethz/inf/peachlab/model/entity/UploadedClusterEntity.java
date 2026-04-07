@@ -15,7 +15,8 @@ import java.util.Objects;
 import java.util.Set;
 
 @Entity
-@NamedEntityGraph(name = UploadedClusterEntity.WITH_KERNELS_AND_CELLS_UPLOADED,
+@NamedEntityGraph(
+    name = UploadedClusterEntity.WITH_KERNELS_AND_CELLS_UPLOADED,
     attributeNodes = {
         @NamedAttributeNode(value = "kernels", subgraph = UploadedKernelEntity.WITH_CELLS_UPLOADED)
     },
@@ -23,10 +24,18 @@ import java.util.Set;
         @NamedSubgraph(name = UploadedKernelEntity.WITH_CELLS_UPLOADED, attributeNodes = {
             @NamedAttributeNode("cells")
         })
-    })
+    }
+)
+@NamedEntityGraph(
+    name = UploadedClusterEntity.WITH_KERNELS_UPLOADED,
+    attributeNodes = {
+        @NamedAttributeNode(value = "kernels")
+    }
+)
 public class UploadedClusterEntity extends HasClusterData<UploadedKernelEntity, UploadedCompetitionEntity> {
 
     public static final String WITH_KERNELS_AND_CELLS_UPLOADED = "withKernelsAndCellsUploaded";
+    public static final String WITH_KERNELS_UPLOADED = "withKernelsUploaded";
     @Serial
     private static final long serialVersionUID = -7907921108806369603L;
 

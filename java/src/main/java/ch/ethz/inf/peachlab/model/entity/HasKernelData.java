@@ -15,7 +15,6 @@ import org.hibernate.type.SqlTypes;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -274,11 +273,6 @@ public abstract class HasKernelData<ID, C extends HasCellData, CO extends HasCom
     @Override
     public Double getVotes() {
         return totalVotes.doubleValue();
-    }
-
-    @Override
-    public Collection<HasBaseStats> getChildren() {
-        return List.of();
     }
 
     @Override

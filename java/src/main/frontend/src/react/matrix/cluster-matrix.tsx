@@ -4,6 +4,7 @@ import {ReactAdapterElement, RenderHooks} from "Frontend/generated/flow/ReactAda
 import {AutoSizer, AutoSizerChildProps} from "react-virtualized-auto-sizer";
 import CellColumn from "Frontend/src/react/matrix/cell-column";
 import {KernelData} from "Frontend/src/react/matrix/notebook-matrix";
+import LoadingColumn from "Frontend/src/react/matrix/loading-column";
 
 export type ClusterData = {clusterId: number, localClusterId: number, kernels: KernelData[]}
 
@@ -13,17 +14,35 @@ export const DEFAULT_LABEL = {id: -1, title: "None"}
 
 class CLusterMatrix extends ReactAdapterElement {
     protected render(hooks: RenderHooks): React.ReactElement | null {
-        const [items, _setItems] = hooks.useState<ClusterData[]>("items", []);
+        const [totalItems, _setTotalItems] = hooks.useState<number>("totalItems", 0);
         const [labelData, _setLabelData] = hooks.useState<LabelData[]>("labelData", [])
-
-        const [highlightedClusterId, setHighlightedClusterId] =
-            React.useState<number | null>(null);
 
         const fireClusterClick = hooks.useCustomEvent<string>("cluster-click");
         const fireKernelClick = hooks.useCustomEvent<string>("kernel-click")
+        const fireLoadMoreClick = hooks.useCustomEvent<number>("load-more-click");
 
         const listRef = React.useRef<VariableSizeList>(null);
         const scrollOffset = React.useRef(0);
+        const [highlightedClusterId, setHighlightedClusterId] = React.useState<number | null>(null);
+        const [currentlyLoading, setCurrentlyLoading] = React.useState<boolean>(true);
+        const [items, setItems] = React.useState<ClusterData[]>([]);
+
+        React.useEffect(() => {
+            const handler = (e: Event) => {
+                const customEvent = e as CustomEvent;
+                console.log("Custom Event: ", customEvent);
+                let newItems = customEvent.detail;
+                if (typeof newItems === "string")
+                    newItems = JSON.parse(newItems);
+
+                setItems(prev => [...prev, ...newItems]);
+                setCurrentlyLoading(false);
+            }
+            this.addEventListener("append-items", handler);
+            return () => {
+                this.removeEventListener("append-items", handler)
+            }
+        }, []);
 
         const getLabel = React.useCallback(
             (id: number) => labelData.find(l => l.id === id) || DEFAULT_LABEL,
@@ -32,14 +51,23 @@ class CLusterMatrix extends ReactAdapterElement {
 
         const getItemSize = React.useCallback(
             (index: number) =>
-                Math.max(3, items[index]?.kernels.length ?? 0) * 28 + 12,
+                index < items.length ? Math.max(3, items[index]?.kernels?.length ?? 0) * 28 + 12 : 28,
             [items]
         );
 
         const Cluster = React.useCallback(
             ({ index, style }: { index: number; style: React.CSSProperties }) => {
+                if (index >= items.length && items.length < totalItems) {
+                    return <LoadingColumn
+                        loading={currentlyLoading}
+                        loadMore={fireLoadMoreClick}
+                        setLoading={setCurrentlyLoading}
+                        currentItems={items.length}
+                        style={style}
+                    />
+                }
                 const item = items[index];
-                if (!item) return <div style={style}>...</div>;
+                if (!item || !item.kernels) return <div style={style}></div>;
 
                 const isHighlighted = highlightedClusterId === item.localClusterId;
                 const textColor = isHighlighted ? "green" : "black";
@@ -86,6 +114,7 @@ class CLusterMatrix extends ReactAdapterElement {
             [
                 items,
                 highlightedClusterId,
+                currentlyLoading,
                 fireClusterClick,
                 fireKernelClick,
                 getLabel
@@ -99,14 +128,14 @@ class CLusterMatrix extends ReactAdapterElement {
                         initialScrollOffset={scrollOffset.current}
                         itemSize={getItemSize}
                         height={height || 300}
-                        itemCount={items.length}
+                        itemCount={Math.min(totalItems, items.length + 1)}
                         width={width || 400}
                         layout={"horizontal"}
-                        itemKey={index => items[index].clusterId}
+                        itemKey={index => index < items.length ? items[index].clusterId : -1}
                         onScroll={({ scrollOffset: offset }) => {
                             scrollOffset.current = offset;
-                            console.log(offset);
                         }}
+                        overscanCount={3}
                     >
                         {Cluster}
                     </VariableSizeList>

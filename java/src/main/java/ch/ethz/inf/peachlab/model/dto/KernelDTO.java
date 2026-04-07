@@ -2,10 +2,8 @@ package ch.ethz.inf.peachlab.model.dto;
 
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.entity.UploadedKernelEntity;
-import ch.ethz.inf.peachlab.model.enums.MainLabel;
 
-import java.util.Arrays;
-import java.util.Objects;
+import java.io.Serializable;
 import java.util.Optional;
 
 public record KernelDTO(
@@ -15,7 +13,7 @@ public record KernelDTO(
     Integer[] labelSequenceWithMd,
     Integer[] lengthSequence,
     boolean isUploaded
-) {
+) implements Serializable {
 
     public static KernelDTO ofKernel(HasKernelData<?, ?, ?> kernel) {
         return new KernelDTO(
