@@ -95,6 +95,7 @@ class NotebookMatrix extends ReactAdapterElement {
                         onScroll={({scrollOffset: offset}) => {
                             scrollOffset.current = offset;
                         }}
+                        overscanCount={5}
                     >
                         {Column}
                     </FixedSizeList>

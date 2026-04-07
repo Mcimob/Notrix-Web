@@ -9,6 +9,12 @@ type LoadingColumnProps = {
 } & React.ComponentPropsWithoutRef<'div'>;
 
 export default function LoadingColumn({loading, loadMore, setLoading, currentItems, style, ...props} : LoadingColumnProps) {
+    const onClick = () => {
+        if (!loading)
+            loadMore(currentItems);
+        setLoading(true);
+    }
+    onClick();
     return <div
         className={"flex-column flex-center height-full font-weight-bold"}
         {...props}
@@ -20,9 +26,5 @@ export default function LoadingColumn({loading, loadMore, setLoading, currentIte
             padding: "2px",
             cursor: loading ? "wait" : "pointer"
         }}
-        onClick={() => {
-            if (!loading)
-                loadMore(currentItems);
-            setLoading(true);
-        }}>{loading ? "..." : "+"}</div>
+        onClick={onClick}>{loading ? "..." : "+"}</div>
 }

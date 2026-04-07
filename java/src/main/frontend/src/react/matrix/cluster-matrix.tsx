@@ -135,6 +135,7 @@ class CLusterMatrix extends ReactAdapterElement {
                         onScroll={({ scrollOffset: offset }) => {
                             scrollOffset.current = offset;
                         }}
+                        overscanCount={3}
                     >
                         {Cluster}
                     </VariableSizeList>
