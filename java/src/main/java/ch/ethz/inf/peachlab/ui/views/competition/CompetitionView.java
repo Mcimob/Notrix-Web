@@ -41,7 +41,6 @@ import java.io.Serial;
 import java.util.HashSet;
 import java.util.function.Function;
 
-import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_HEIGHT_FULL;
 import static ch.ethz.inf.peachlab.ui.DesignConstants.STYLE_WIDTH_FULL;
 
 @Route(value = "competitions", layout = MainLayout.class)
