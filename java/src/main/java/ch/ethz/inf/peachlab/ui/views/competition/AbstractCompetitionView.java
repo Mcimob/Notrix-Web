@@ -151,7 +151,14 @@ public abstract class AbstractCompetitionView<
     }
 
     protected final void initData() {
-        onKernelData(new ServiceResponse<>());
+        initData(() -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return new ServiceResponse<>();
+        });
     }
 
     protected final void initData(Supplier<ServiceResponse<? extends PageImpl<HasKernelData<?, ?, ?>>>> localSupplier) {
