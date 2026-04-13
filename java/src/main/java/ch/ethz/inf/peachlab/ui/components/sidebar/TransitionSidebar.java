@@ -35,7 +35,6 @@ public class TransitionSidebar extends DivWithTooltip {
     private static final long serialVersionUID = -761105623022532172L;
     private Map<MainLabel, Integer> stageFrequencies;
     private Integer[][] transitionMatrix;
-    private String[] opacityTargets;
 
     public TransitionSidebar() {
         super(".with-hover");
@@ -49,7 +48,6 @@ public class TransitionSidebar extends DivWithTooltip {
     private Component createReactComponent() {
         TransitionSidebarReact sidebar = new TransitionSidebarReact();
         sidebar.setData(stageFrequencies, transitionMatrix);
-        sidebar.setOpacityTargets(opacityTargets);
         sidebar.addClassNames(STYLE_HEIGHT_FULL, STYLE_WIDTH_FULL);
 
         return sidebar;
@@ -114,8 +112,7 @@ public class TransitionSidebar extends DivWithTooltip {
     public void render() {
         super.render();
         if (stageFrequencies == null
-            || transitionMatrix == null
-            || opacityTargets == null) {
+            || transitionMatrix == null) {
             return;
         }
         add(createReactComponent());
@@ -128,9 +125,5 @@ public class TransitionSidebar extends DivWithTooltip {
 
     public void setTransitionMatrix(Integer[][] transitionMatrix) {
         this.transitionMatrix = transitionMatrix;
-    }
-
-    public void setOpacityTargets(String[] opacityTargets) {
-        this.opacityTargets = opacityTargets;
     }
 }

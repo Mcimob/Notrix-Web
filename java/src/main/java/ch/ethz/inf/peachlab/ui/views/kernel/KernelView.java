@@ -135,7 +135,6 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         TransitionSidebar sidebar = new TransitionSidebar();
         sidebar.setStageFrequencies(kernel.getMainLabelStats());
         sidebar.setTransitionMatrix(kernel.getTransitionMatrix());
-        sidebar.setOpacityTargets(new String[]{"cell-column-element .cell"});
         sidebar.render();
         sidebar.setWidth("50%");
 

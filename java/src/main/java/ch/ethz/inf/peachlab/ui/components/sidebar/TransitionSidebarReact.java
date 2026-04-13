@@ -48,8 +48,4 @@ public class TransitionSidebarReact extends ReactAdapterComponent {
                         .map(l -> MainLabelDTO.ofLabel(l, this::getTranslation))
                         .toList()));
     }
-
-    public void setOpacityTargets(String[] selectors) {
-        setState("opacityTargets", selectors);
-    }
 }

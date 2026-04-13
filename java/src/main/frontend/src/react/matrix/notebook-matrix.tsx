@@ -4,6 +4,7 @@ import {ReactAdapterElement, RenderHooks} from "Frontend/generated/flow/ReactAda
 import {AutoSizer, AutoSizerChildProps} from "react-virtualized-auto-sizer";
 import CellColumn from "Frontend/src/react/matrix/cell-column";
 import LoadingColumn from "Frontend/src/react/matrix/loading-column";
+import {addListener} from "Frontend/src/react/matrix/listener-utils";
 
 export type CellData = { sourceLinesCount: number; cellType: number; mainLabel: number };
 export type KernelData = { id: string; title: string; currentUrlSlug: string; labelSequenceWithMd: number[]; lengthSequence: number[], isUploaded: boolean };
@@ -24,33 +25,34 @@ class NotebookMatrix extends ReactAdapterElement {
         const scrollOffset = React.useRef(0);
         const [currentlyLoading, setCurrentlyLoading] = React.useState<boolean>(true);
         const [items, setItems] = React.useState<KernelData[]>([]);
+        const [selectedLabel, setSelectedLabel] = React.useState<number>(-1);
+        const [selectedTransition, setSelectedTransition] = React.useState<number[] | undefined>();
 
-        React.useEffect(() => {
-            const handler = (e: Event) => {
-                const customEvent = e as CustomEvent;
-                console.log("Custom Event: ", customEvent);
-                let newItems = customEvent.detail;
-                if (typeof newItems === "string")
-                    newItems = JSON.parse(newItems);
+        addListener("append-items", e => {
+            const customEvent = e as CustomEvent;
+            let newItems = customEvent.detail;
+            if (typeof newItems === "string")
+                newItems = JSON.parse(newItems);
 
-                setItems(prev => [...prev, ...newItems]);
-                setCurrentlyLoading(false);
-            }
-            this.addEventListener("append-items", handler);
-            return () => {
-                this.removeEventListener("append-items", handler)
-            }
-        }, []);
+            setItems(prev => [...prev, ...newItems]);
+            setCurrentlyLoading(false);
+        }, this);
 
-        React.useEffect(() => {
-            const handler = () => {
-                setItems([]);
-            }
-            this.addEventListener("clear-items", handler);
-            return () => {
-                this.removeEventListener("clear-items", handler);
-            };
-        }, []);
+
+        addListener("clear-items", () => setItems([]), this);
+
+        addListener("label-selected", e => {
+            const customEvent = e as CustomEvent;
+            let selectedLabel = customEvent.detail;
+            setSelectedLabel(selectedLabel);
+        }, document);
+
+        addListener("transition-selected", e => {
+            const customEvent = e as CustomEvent;
+            let selectedTransition = customEvent.detail;
+            console.log("Transition at matrix", selectedTransition);
+            setSelectedTransition(selectedTransition);
+        }, document);
 
         const getLabel = React.useCallback(
             (id: number) => labelData.find(l => l.id === id) || DEFAULT_LABEL,
@@ -78,6 +80,8 @@ class NotebookMatrix extends ReactAdapterElement {
                 clickListener={() => fireKernelClick(item.id)}
                 style={style}
                 data-kernel-index={index}
+                selectedLabel={selectedLabel}
+                selectedTransition={selectedTransition}
             />
         }
 
