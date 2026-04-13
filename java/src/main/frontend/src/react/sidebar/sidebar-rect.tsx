@@ -7,34 +7,29 @@ import {
     setOpacity,
     VIEWBOX_WIDTH
 } from "Frontend/src/react/sidebar/sidebar-utils";
+import {pointer} from "d3";
 
 type RectProps = {
     stage: Stage;
     index: number;
     maxValue: number;
     labelFunction: (value: number) => Label;
-    opacityTargets: string[];
+    currentlySelectedLabel: number;
+    setCurrentlySelectedLabel: (label: number) => void;
+    currentlyClicked: boolean;
+    setCurrentlyClicked: (clicked: boolean ) => void;
 };
 
-export default function SidebarRect({stage, index, maxValue, labelFunction, opacityTargets} : RectProps) {
-
-    const targets = ["transition-sidebar path", ...opacityTargets];
-
-    const onRectMouseover = (event: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-        const rect = event.currentTarget;
-        const stageClass = Array.from(rect.classList).find(cls => cls.startsWith("stage-"));
-        if (!stageClass) return;
-
-        targets.forEach(selector => {
-            document.querySelectorAll(selector).forEach(setOpacity("0.1"));
-            document.querySelectorAll(`${selector}.${stageClass}`).forEach(setOpacity("0.9"));
-        });
-    };
-
-    const onRectMouseLeave = (_: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-        targets.forEach(selector =>
-            document.querySelectorAll(selector).forEach(setOpacity("1")));
-    };
+export default function SidebarRect({
+    stage,
+    index,
+    maxValue,
+    labelFunction,
+    currentlySelectedLabel,
+    setCurrentlySelectedLabel,
+    currentlyClicked,
+    setCurrentlyClicked
+} : RectProps) {
 
     const toolTipText = `\
 <b>${labelFunction(stage.id)!.name}</b>
@@ -56,8 +51,25 @@ Count: ${stage.count}`
             strokeDasharray={labelFunction(stage.id)!.strokeDasharray}
             className={`with-hover stage-${stage.id}`}
             data-tooltip={toolTipText}
-            onMouseOver={onRectMouseover}
-            onMouseLeave={onRectMouseLeave}
+            cursor={"pointer"}
+            onMouseOver={() => {
+                if (!currentlyClicked) {
+                    setCurrentlySelectedLabel(stage.id);
+                }
+            }}
+            onMouseLeave={() => {
+                if (!currentlyClicked) {
+                    setCurrentlySelectedLabel(-1);
+                }
+            }}
+            onClick={() => {
+                if (currentlyClicked) {
+                    setCurrentlyClicked(currentlySelectedLabel != stage.id);
+                    setCurrentlySelectedLabel(stage.id);
+                } else {
+                    setCurrentlyClicked(true);
+                }
+            }}
         />
     );
 }

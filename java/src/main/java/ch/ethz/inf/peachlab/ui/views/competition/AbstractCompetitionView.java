@@ -171,14 +171,12 @@ public abstract class AbstractCompetitionView<
         int numClusters = clusterGrid.getDataProvider().size(new HierarchicalQuery<>(0, Integer.MAX_VALUE, null, null, null, null));
         clusterMatrix.setTotalItems(numClusters);
         onMoreClustersRequested(new LoadMoreClickEvent(this, false, 0));
-
     }
 
     private Component createSidebar() {
         TransitionSidebar sidebar = new TransitionSidebar();
         sidebar.setStageFrequencies(competition.getMainLabelStats());
         sidebar.setTransitionMatrix(competition.getTransitionMatrix());
-        sidebar.setOpacityTargets(new String[]{"notebook-matrix .cell", "cluster-matrix .cell"});
         sidebar.setWidth("50%");
         sidebar.render();
 

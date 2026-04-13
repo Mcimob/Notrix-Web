@@ -5,6 +5,7 @@ import {AutoSizer, AutoSizerChildProps} from "react-virtualized-auto-sizer";
 import CellColumn from "Frontend/src/react/matrix/cell-column";
 import {KernelData} from "Frontend/src/react/matrix/notebook-matrix";
 import LoadingColumn from "Frontend/src/react/matrix/loading-column";
+import {addListener} from "Frontend/src/react/matrix/listener-utils";
 
 export type ClusterData = {clusterId: number, localClusterId: number, kernels: KernelData[]}
 
@@ -26,23 +27,31 @@ class CLusterMatrix extends ReactAdapterElement {
         const [highlightedClusterId, setHighlightedClusterId] = React.useState<number | null>(null);
         const [currentlyLoading, setCurrentlyLoading] = React.useState<boolean>(true);
         const [items, setItems] = React.useState<ClusterData[]>([]);
+        const [selectedLabel, setSelectedLabel] = React.useState<number>(-1);
+        const [selectedTransition, setSelectedTransition] = React.useState<number[] | undefined>();
 
-        React.useEffect(() => {
-            const handler = (e: Event) => {
-                const customEvent = e as CustomEvent;
-                console.log("Custom Event: ", customEvent);
-                let newItems = customEvent.detail;
-                if (typeof newItems === "string")
-                    newItems = JSON.parse(newItems);
+        addListener("append-items", e => {
+            const customEvent = e as CustomEvent;
+            let newItems = customEvent.detail;
+            if (typeof newItems === "string")
+                newItems = JSON.parse(newItems);
 
-                setItems(prev => [...prev, ...newItems]);
-                setCurrentlyLoading(false);
-            }
-            this.addEventListener("append-items", handler);
-            return () => {
-                this.removeEventListener("append-items", handler)
-            }
-        }, []);
+            setItems(prev => [...prev, ...newItems]);
+            setCurrentlyLoading(false);
+        }, this);
+
+        addListener("label-selected", e => {
+            const customEvent = e as CustomEvent;
+            let selectedLabel = customEvent.detail;
+            setSelectedLabel(selectedLabel);
+            console.log("Received selected label in cluster matriy: ", selectedLabel);
+        }, document);
+
+        addListener("transition-selected", e => {
+            const customEvent = e as CustomEvent;
+            let selectedTransition = customEvent.detail;
+            setSelectedTransition(selectedTransition);
+        }, document)
 
         const getLabel = React.useCallback(
             (id: number) => labelData.find(l => l.id === id) || DEFAULT_LABEL,
@@ -105,6 +114,8 @@ class CLusterMatrix extends ReactAdapterElement {
                                     clickListener={() => fireKernelClick(kernel.id)}
                                     getTooltip={(kernel, label, numLines) => `Stage: ${getLabel(label).title}<br/>Title: ${kernel.title}<br/>Lines: ${numLines}`}
                                     style={{}}
+                                    selectedLabel={selectedLabel}
+                                    selectedTransition={selectedTransition}
                                 />
                             ))}
                         </div>
@@ -115,6 +126,8 @@ class CLusterMatrix extends ReactAdapterElement {
                 items,
                 highlightedClusterId,
                 currentlyLoading,
+                selectedLabel,
+                selectedTransition,
                 fireClusterClick,
                 fireKernelClick,
                 getLabel

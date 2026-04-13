@@ -1,6 +1,6 @@
 import React from "react";
 import {ReactAdapterElement, RenderHooks} from "Frontend/generated/flow/ReactAdapter";
-import {Props} from "Frontend/src/react/sidebar/sidebar-types";
+import {Props, Stage} from "Frontend/src/react/sidebar/sidebar-types";
 import SidebarRect from "Frontend/src/react/sidebar/sidebar-rect";
 import {DEFAULT_LABEL, RECT_SPACING, VIEWBOX_WIDTH} from "Frontend/src/react/sidebar/sidebar-utils";
 import SidebarGradient from "Frontend/src/react/sidebar/sidebar-gradient";
@@ -10,8 +10,33 @@ import SidebarArrow from "Frontend/src/react/sidebar/sidebar-arrow";
 class TransitionSidebar extends ReactAdapterElement {
 
     protected render(hooks: RenderHooks): React.ReactElement | null {
-        const [data, _setData] = hooks.useState<Props>("data")
-        const [opacityTargets, _setOpacityTargets] = hooks.useState<string[]>("opacityTargets", [])
+        const [data, _setData] = hooks.useState<Props>("data");
+
+        const [currentlySelectedLabel, setCurrentlySelectedLabel] = React.useState<number>(-1);
+        const [currentlySelectedTransition, setCurrentlySelectedTransition] = React.useState<number[] | undefined>();
+        const [currentlySelectedLabelDebounced, setCurrentlySelectedLabelDebounced] = React.useState<number>(-1);
+        const [currentlySelectedTransitionDebounced, setCurrentlySelectedTransitionDebounced] = React.useState<number[] | undefined>();
+        const [currentlyClicked, setCurrentlyClicked] = React.useState<boolean>(false);
+
+        React.useEffect(() => {
+            const timeout = setTimeout(() =>
+                setCurrentlySelectedLabelDebounced(currentlySelectedLabel), 300);
+            return () => clearTimeout(timeout);
+        }, [currentlySelectedLabel]);
+
+        React.useEffect(() => {
+            const timeout = setTimeout(() =>
+                setCurrentlySelectedTransitionDebounced(currentlySelectedTransition), 300);
+            return () => clearTimeout(timeout);
+        }, [currentlySelectedTransition]);
+
+        React.useEffect(() => {
+            document.dispatchEvent(new CustomEvent("label-selected", {detail: currentlySelectedLabel}));
+        }, [currentlySelectedLabelDebounced])
+
+        React.useEffect(() => {
+            document.dispatchEvent(new CustomEvent("transition-selected", {detail: currentlySelectedTransition}));
+        }, [currentlySelectedTransitionDebounced])
 
         const { stages, transitions, labels } = data;
 
@@ -36,6 +61,23 @@ class TransitionSidebar extends ReactAdapterElement {
         const label = (id: number) => {
             return labels.find(l => l.id == id) || DEFAULT_LABEL;
         }
+
+        const onTransitionMouseOver = (from: Stage, to: Stage) => {
+            if (!currentlyClicked) {
+                setCurrentlySelectedTransition([from.id, to.id]);
+                console.log(currentlySelectedTransition);
+            }
+        };
+
+        const onTransitionMouseLeave = () => {
+            if (!currentlyClicked) {
+                setCurrentlySelectedTransition(undefined);
+            }
+        };
+
+        const transitionOpacity = (from: Stage, to: Stage) => currentlySelectedTransition
+                ? (currentlySelectedTransition[0] == from.id && currentlySelectedTransition[1] == to.id ? 0.9 : 0.1)
+                : (currentlySelectedLabel >= 0 ? (currentlySelectedLabel == from.id || currentlySelectedLabel == to.id ? 0.9 : 0.1) : 1);
 
         return (
             <svg viewBox={`0 0 ${VIEWBOX_WIDTH} ${height}`} max-height="100%" max-width="100%">
@@ -70,7 +112,9 @@ class TransitionSidebar extends ReactAdapterElement {
                                 labelFunction={label}
                                 strokeFunction={pathStrokeWidth}
                                 countFunction={n => stages.find(s => s.id == n)?.count || 0}
-                                opacityTargets={opacityTargets}
+                                onMouseOver={() => onTransitionMouseOver(fromStage, toStage)}
+                                onMouseLeave={onTransitionMouseLeave}
+                                opacity={transitionOpacity(fromStage, toStage)}
                             />
                             <SidebarArrow
                                 fromStage={fromStage}
@@ -82,7 +126,9 @@ class TransitionSidebar extends ReactAdapterElement {
                                 labelFunction={label}
                                 strokeFunction={pathStrokeWidth}
                                 countFunction={n => stages.find(s => s.id == n)?.count || 0}
-                                opacityTargets={opacityTargets}
+                                onMouseOver={() => onTransitionMouseOver(fromStage, toStage)}
+                                onMouseLeave={onTransitionMouseLeave}
+                                opacity={transitionOpacity(fromStage, toStage)}
                             />
                         </>);
                     })
@@ -95,7 +141,10 @@ class TransitionSidebar extends ReactAdapterElement {
                         index={i}
                         maxValue={maxValue}
                         labelFunction={label}
-                        opacityTargets={opacityTargets}
+                        currentlyClicked={currentlyClicked}
+                        currentlySelectedLabel={currentlySelectedLabel}
+                        setCurrentlyClicked={setCurrentlyClicked}
+                        setCurrentlySelectedLabel={setCurrentlySelectedLabel}
                     />
                     )
                 }

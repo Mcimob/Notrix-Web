@@ -1,26 +1,19 @@
-import React from "react";
+import React, {SVGAttributes} from "react";
 import {computeTransitionPosition, setOpacity} from "Frontend/src/react/sidebar/sidebar-utils";
 import {Label, Stage, TransitionProps} from "Frontend/src/react/sidebar/sidebar-types";
 
-export default function SidebarTransition({fromStage, from, toStage, to, value, maxValue, labelFunction, strokeFunction, countFunction, opacityTargets}: TransitionProps) {
-    const targets = ["transition-sidebar path", ...opacityTargets];
-
-    const onPathMouseover = (event: React.MouseEvent<SVGPathElement, MouseEvent>)=> {
-        const path = event.currentTarget;
-        const transitionClass = Array.from(path.classList).find(cls => cls.startsWith("transition-"));
-        if (!transitionClass) return;
-
-        targets.forEach(selector => {
-            document.querySelectorAll(selector).forEach(setOpacity("0.1"));
-            document.querySelectorAll(`${selector}.${transitionClass}`).forEach(setOpacity("0.9"));
-        });
-    };
-
-    const onPathMouseleave = (_: React.MouseEvent<SVGRectElement, MouseEvent>) => {
-        targets.forEach(selector =>
-            document.querySelectorAll(selector).forEach(setOpacity("1")));
-    };
-
+export default function SidebarTransition({
+    fromStage,
+    from,
+    toStage,
+    to,
+    value,
+    maxValue,
+    labelFunction,
+    strokeFunction,
+    countFunction,
+    ...props
+}: TransitionProps & SVGAttributes<any>) {
     const {x, y1, y2, ctrlX} = computeTransitionPosition(fromStage, from, toStage, to, maxValue, countFunction);
 
     const strokeWidth = strokeFunction(value);
@@ -41,8 +34,7 @@ Count: ${value}`;
             strokeWidth={strokeWidth}
             className={`with-hover stage-${fromStage.id} stage-${toStage.id} transition-${fromStage.id}-${toStage.id}`}
             data-tooltip={tooltipText}
-            onMouseOver={onPathMouseover}
-            onMouseLeave={onPathMouseleave}
+            {...props}
         />
     );
 }

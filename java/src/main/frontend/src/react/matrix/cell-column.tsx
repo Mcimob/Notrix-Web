@@ -1,13 +1,15 @@
-import {CellData, KernelData, LabelData} from "Frontend/src/react/matrix/notebook-matrix";
+import {KernelData, LabelData} from "Frontend/src/react/matrix/notebook-matrix";
 import React from "react";
 
 type CellProps = {
     labelNr: number;
     numLines: number;
     getLabel: (id: number) => LabelData;
+    selectedLabel: number;
+    selectedTransition: number[] | undefined;
 } & React.ComponentPropsWithoutRef<'div'>;
 
-function Cell({labelNr, getLabel, numLines, ...props} : CellProps) {
+function Cell({labelNr, getLabel, numLines, selectedLabel, selectedTransition, ...props} : CellProps) {
     const cellHeight = (numLines: number) =>
         Math.max(3, Math.min(20, 3 + numLines * 0.8));
 
@@ -18,6 +20,9 @@ function Cell({labelNr, getLabel, numLines, ...props} : CellProps) {
             flexShrink: 0,
             display: labelNr == -1 ? "var(--display-md)" : "block",
             border: labelNr == -1 ? "1px solid #bbb" : `1px solid var(--clr-stage-${labelNr})`,
+            opacity: selectedTransition
+                ? (labelNr == selectedTransition[0] || labelNr == selectedTransition[1] ? 0.9 : 0.1)
+                : (selectedLabel >= 0 ? (selectedLabel == labelNr ? 0.9 : 0.1) : 1)
         }}
         {...props}
     />
@@ -28,10 +33,12 @@ type CellColumnProps = {
     getLabel: (id: number) => LabelData;
     getTooltip: (kernel: KernelData, label: number, numLines: number) => string;
     clickListener?: (cellIndex: number) => void;
+    selectedLabel: number;
+    selectedTransition: number[] | undefined;
     style: React.CSSProperties;
 } & React.ComponentPropsWithoutRef<'div'>;
 
-export default function CellColumn({kernel, getLabel, getTooltip, clickListener, style, ...props}: CellColumnProps) {
+export default function CellColumn({kernel, getLabel, getTooltip, clickListener, selectedLabel, selectedTransition, style, ...props}: CellColumnProps) {
     props.onMouseOver
     const result = [];
     const labelSequenceWithMd = kernel.labelSequenceWithMd;
@@ -62,6 +69,8 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
                 clickListener && clickListener(i);
                 e.stopPropagation();
             }}
+            selectedLabel={selectedLabel}
+            selectedTransition={selectedTransition}
         />)
 
     }
@@ -73,7 +82,8 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
             padding: "2px",
             outline: (kernel.isUploaded ? "var(--lumo-primary-color-50pct)" : "transparent") + " solid 2px",
             height: "fit-content",
-            display: "inline-flex"}}
+            display: "inline-flex"
+        }}
         className={"flex-column"}
         {...props}>
         {result}
