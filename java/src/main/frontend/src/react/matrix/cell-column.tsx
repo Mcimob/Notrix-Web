@@ -7,9 +7,10 @@ type CellProps = {
     getLabel: (id: number) => LabelData;
     selectedLabel: number;
     selectedTransition: number[] | undefined;
+    relevantTransitions: number[][];
 } & React.ComponentPropsWithoutRef<'div'>;
 
-function Cell({labelNr, getLabel, numLines, selectedLabel, selectedTransition, ...props} : CellProps) {
+function Cell({labelNr, getLabel, numLines, selectedLabel, selectedTransition, relevantTransitions, ...props} : CellProps) {
     const cellHeight = (numLines: number) =>
         Math.max(3, Math.min(20, 3 + numLines * 0.8));
 
@@ -21,7 +22,7 @@ function Cell({labelNr, getLabel, numLines, selectedLabel, selectedTransition, .
             display: labelNr == -1 ? "var(--display-md)" : "block",
             border: labelNr == -1 ? "1px solid #bbb" : `1px solid var(--clr-stage-${labelNr})`,
             opacity: selectedTransition
-                ? (labelNr == selectedTransition[0] || labelNr == selectedTransition[1] ? 0.9 : 0.1)
+                ? (relevantTransitions.filter(v => selectedTransition[0] == v[0] && selectedTransition[1] == v[1]).length != 0 ? 0.9 : 0.1)
                 : (selectedLabel >= 0 ? (selectedLabel == labelNr ? 0.9 : 0.1) : 1)
         }}
         {...props}
@@ -47,13 +48,14 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
     let sequenceIndex = 0;
     for (let i = 0; i < labelSequenceWithMd.length; i++) {
         const label = labelSequenceWithMd[i];
+        const relevantTransitions = [];
         let className = `width-full cell stage-${label}`;
         if (label != -1 && labelSequence.length != 0) {
             if (sequenceIndex + 1 < labelSequence.length) {
-                className = className.concat(` transition-${labelSequence[sequenceIndex]}-${labelSequence[sequenceIndex + 1]}`);
+                relevantTransitions.push([labelSequence[sequenceIndex], labelSequence[sequenceIndex + 1]]);
             }
             if (sequenceIndex - 1 >= 0) {
-                className = className.concat(` transition-${labelSequence[sequenceIndex - 1]}-${labelSequence[sequenceIndex]}`);
+                relevantTransitions.push([labelSequence[sequenceIndex - 1], labelSequence[sequenceIndex]]);
             }
             sequenceIndex++;
         }
@@ -63,7 +65,7 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
             labelNr={label}
             numLines={numLines}
             getLabel={getLabel}
-            className={className}
+            className={`width-full stage-${label}`}
             data-tooltip={getTooltip(kernel, label, numLines)}
             onClick={(e) => {
                 clickListener && clickListener(i);
@@ -71,6 +73,7 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
             }}
             selectedLabel={selectedLabel}
             selectedTransition={selectedTransition}
+            relevantTransitions={relevantTransitions}
         />)
 
     }

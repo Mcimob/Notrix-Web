@@ -3,10 +3,11 @@ package ch.ethz.inf.peachlab.ui.views.kernel;
 import ch.ethz.inf.peachlab.backend.service.ServiceResponse;
 import ch.ethz.inf.peachlab.backend.service.db.ClusterService;
 import ch.ethz.inf.peachlab.backend.service.db.KernelService;
+import ch.ethz.inf.peachlab.backend.service.db.UploadedClusterService;
 import ch.ethz.inf.peachlab.backend.service.db.UploadedKernelService;
 import ch.ethz.inf.peachlab.model.Notebook;
-import ch.ethz.inf.peachlab.model.entity.ClusterEntity;
 import ch.ethz.inf.peachlab.model.entity.HasCellData;
+import ch.ethz.inf.peachlab.model.entity.HasClusterData;
 import ch.ethz.inf.peachlab.model.entity.HasKernelData;
 import ch.ethz.inf.peachlab.model.entity.KernelEntity;
 import ch.ethz.inf.peachlab.model.enums.CellType;
@@ -49,9 +50,11 @@ import org.springframework.data.util.Pair;
 
 import java.io.Serial;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,6 +93,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
     private static final long serialVersionUID = 9162870272207688934L;
     private final KernelService kernelService;
     private final UploadedKernelService uploadedKernelService;
+    private final UploadedClusterService uploadedClusterService;
     private final ClusterService clusterService;
     private final ObjectMapper objectMapper;
 
@@ -97,11 +101,12 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
 
     private HasKernelData<?, ?, ?> kernel;
 
-    public KernelView(KernelService kernelService, ClusterService clusterService, ObjectMapper objectMapper, UploadedKernelService uploadedKernelService) {
+    public KernelView(KernelService kernelService, ClusterService clusterService, ObjectMapper objectMapper, UploadedKernelService uploadedKernelService, UploadedClusterService uploadedClusterService) {
         this.kernelService = kernelService;
         this.clusterService = clusterService;
         this.objectMapper = objectMapper;
         this.uploadedKernelService = uploadedKernelService;
+        this.uploadedClusterService = uploadedClusterService;
     }
 
     @Override
@@ -324,7 +329,7 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
     private Component createClusterGrid() {
         Span gridTitle = new Span("Similar Notebooks");
         gridTitle.addClassNames(STYLE_FONT_SIZE_L, STYLE_PADDING_S);
-        Grid<KernelEntity> grid = new Grid<>();
+        Grid<HasKernelData<?, ?, ?>> grid = new Grid<>();
         grid.addComponentColumn(TitleLink::ofKernel)
             .setHeader("Title")
             .setSortable(true)
@@ -333,15 +338,17 @@ public class KernelView extends AbstractView implements HasUrlParameter<String> 
         grid.setHeightFull();
 
         UiAsyncUtils.callServiceAsync(
-            () -> clusterService.fetchById(kernel.getClusterId(), kernel instanceof KernelEntity
-                ? ClusterLoadType.WITH_KERNELS
-                : UploadedClusterLoadType.WITH_KERNELS),
+            () -> kernel instanceof KernelEntity
+                ? clusterService.fetchById(kernel.getClusterId(), ClusterLoadType.WITH_KERNELS)
+                : uploadedClusterService.fetchById(kernel.getClusterId(), UploadedClusterLoadType.WITH_KERNELS),
             UI.getCurrent(),
             res -> res.getEntity()
-                .map(ClusterEntity::getKernels)
+                .map(HasClusterData::getKernels)
                 .ifPresentOrElse(items -> {
-                    items.remove(kernel);
-                    grid.setItems(items);
+                        Set<HasKernelData<?, ?, ?>> kernels = new HashSet<>(items.stream().<HasKernelData<?, ?, ?>>map(Function.identity())
+                            .toList());
+                        kernels.remove(kernel);
+                    grid.setItems(kernels);
                     },
                     () -> grid.setEmptyStateText("Could not find any kernels in the same cluster"))
         );
