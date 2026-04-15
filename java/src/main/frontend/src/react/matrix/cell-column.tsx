@@ -49,7 +49,6 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
     for (let i = 0; i < labelSequenceWithMd.length; i++) {
         const label = labelSequenceWithMd[i];
         const relevantTransitions = [];
-        let className = `width-full cell stage-${label}`;
         if (label != -1 && labelSequence.length != 0) {
             if (sequenceIndex + 1 < labelSequence.length) {
                 relevantTransitions.push([labelSequence[sequenceIndex], labelSequence[sequenceIndex + 1]]);
@@ -65,7 +64,7 @@ export default function CellColumn({kernel, getLabel, getTooltip, clickListener,
             labelNr={label}
             numLines={numLines}
             getLabel={getLabel}
-            className={`width-full stage-${label}`}
+            className={`width-full cell stage-${label}`}
             data-tooltip={getTooltip(kernel, label, numLines)}
             onClick={(e) => {
                 clickListener && clickListener(i);
